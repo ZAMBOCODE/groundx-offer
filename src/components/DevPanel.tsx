@@ -17,6 +17,8 @@ type Settings = {
   accent: string;
   radius: number; // base card radius in px
   highlightFont: string; // CSS font-family value
+  bodyFont: string; // normal/body font
+  sidePad: number; // section horizontal padding in px
   smoothScroll: boolean;
   snap: boolean;
   cursorFx: string;
@@ -30,6 +32,8 @@ const DEFAULTS: Settings = {
   accent: "#f97316",
   radius: 28,
   highlightFont: "inherit",
+  bodyFont: "inherit",
+  sidePad: 24,
   smoothScroll: true,
   snap: false,
   cursorFx: "off",
@@ -114,6 +118,11 @@ function apply(s: Settings) {
   root.style.setProperty("--r-hero", `${Math.round(s.radius * 1.3)}px`);
   root.style.setProperty("--r-mini", `${Math.round(s.radius * 0.3)}px`);
   root.style.setProperty("--highlight-font", s.highlightFont);
+  root.style.setProperty(
+    "--body-font",
+    s.bodyFont === "inherit" ? "var(--font-sans)" : s.bodyFont,
+  );
+  root.style.setProperty("--side-pad", `${s.sidePad}px`);
   root.style.scrollBehavior = s.smoothScroll ? "smooth" : "auto";
   root.classList.toggle("snap", s.snap);
   root.classList.toggle("fx-bubbles", s.bubbles);
@@ -293,6 +302,34 @@ export function DevPanel() {
               </select>
             </Field>
 
+            {/* body font */}
+            <Field label="Body font">
+              <select
+                value={s.bodyFont}
+                onChange={(e) => update({ bodyFont: e.target.value })}
+                className="inner-card w-full px-2.5 py-2 text-[0.82rem]"
+                style={{ color: "var(--ink)" }}
+              >
+                {FONTS.map((f) => (
+                  <option key={f.value} value={f.value} style={{ background: "#111" }}>
+                    {f.label}
+                  </option>
+                ))}
+              </select>
+            </Field>
+
+            {/* side padding */}
+            <Field label={`Side padding — ${s.sidePad}px`}>
+              <input
+                type="range"
+                min={8}
+                max={160}
+                value={s.sidePad}
+                onChange={(e) => update({ sidePad: Number(e.target.value) })}
+                className="w-full accent-[var(--accent)]"
+              />
+            </Field>
+
             {/* toggles */}
             <Toggle
               label="Smooth scroll"
@@ -350,7 +387,12 @@ export function DevPanel() {
                     return (
                       <button
                         key={idx}
-                        onClick={() => setVariant(key, idx)}
+                        onClick={() => {
+                          setVariant(key, idx);
+                          document
+                            .getElementById(key)
+                            ?.scrollIntoView({ behavior: "smooth", block: "start" });
+                        }}
                         className="inner-card h-7 w-7 text-[0.72rem] font-semibold"
                         style={{
                           color: active ? "#1a0f04" : "var(--ink-2)",

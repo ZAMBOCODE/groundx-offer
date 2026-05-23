@@ -60,12 +60,32 @@ html {
 body {
   margin: 0;
   color: var(--ink);
-  font-family: var(--font-sans), Inter, system-ui, sans-serif;
+  font-family: var(--body-font, var(--font-sans)), Inter, system-ui, sans-serif;
   font-weight: 400;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   overflow-x: hidden;
   background: #050507;
+}
+
+/* scrollbar follows the dev-panel accent */
+* {
+  scrollbar-color: var(--accent) transparent;
+}
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--accent);
+  border-radius: 999px;
+  border: 2px solid #050507;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--accent-bright);
 }
 
 /* app background: radial top light + warm floor-glow */
@@ -320,7 +340,7 @@ body {
 .section {
   max-width: 1120px;
   margin: 0 auto;
-  padding: 7rem 1.5rem;
+  padding: 7rem var(--side-pad, 1.5rem);
 }
 @media (max-width: 640px) {
   .section {
@@ -414,7 +434,8 @@ html.fx-mark .fx-mark-layer {
   font-size: 14vw;
   letter-spacing: -0.05em;
   white-space: nowrap;
-  color: rgba(255, 255, 255, 0.025);
+  color: var(--accent);
+  opacity: 0.06;
   animation: mark-float 20s ease-in-out infinite;
 }
 @keyframes mark-float {
@@ -442,13 +463,14 @@ html.fx-mark .fx-mark-layer {
   display: none;
 }
 .cur-glow {
-  width: 540px;
-  height: 540px;
-  left: -270px;
-  top: -270px;
+  width: 440px;
+  height: 440px;
+  left: -220px;
+  top: -220px;
   border-radius: 50%;
-  background: radial-gradient(circle, var(--accent-dim) 0%, transparent 60%);
-  filter: blur(40px);
+  background: radial-gradient(circle, var(--accent-dim) 0%, transparent 62%);
+  filter: blur(55px);
+  opacity: 0.4;
 }
 .cur-ring {
   width: 32px;
@@ -473,10 +495,10 @@ html[data-cursor="ring"] .cur-ring {
   pointer-events: none;
   display: none;
   background: radial-gradient(
-    240px circle at var(--mx, 50%) var(--my, 50%),
+    280px circle at var(--mx, 50%) var(--my, 50%),
     transparent 0,
-    transparent 150px,
-    rgba(0, 0, 0, 0.55) 360px
+    transparent 200px,
+    rgba(0, 0, 0, 0.34) 460px
   );
 }
 html[data-cursor="spotlight"] .fx-spotlight {

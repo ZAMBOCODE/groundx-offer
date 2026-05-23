@@ -12,6 +12,7 @@ import {
 } from "next/font/google";
 import "./globals.css";
 import { Atmosphere } from "@/components/Atmosphere";
+import { Header } from "@/components/Header";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -61,6 +62,7 @@ export default function RootLayout({
       <body>
         <div className="ambient" />
         <Atmosphere />
+        <Header />
         {children}
       </body>
     </html>

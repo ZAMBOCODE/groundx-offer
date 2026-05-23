@@ -86,7 +86,7 @@ export function Angle() {
     { k: "Systems", v: "AETHER and zZzlim prove I run marketing as a system." },
   ];
   return (
-    <section className="section">
+    <section id="angle" className="section">
       <SectionHead
         eyebrow="Why me, for this"
         title={
@@ -215,7 +215,7 @@ export function Work() {
       eyebrow="Selected work"
       title={
         <>
-          Proof, <span className="accent-text">not promises.</span>
+          Already built, <span className="accent-text">already live.</span>
         </>
       }
     />
@@ -325,7 +325,7 @@ export function BrandTeaser() {
   ];
   const palette = ["#0a0907", "#1a1714", "#8a5a1c", "#c8862e", "#e8b563"];
   return (
-    <section className="section">
+    <section id="brand" className="section">
       <SectionHead
         eyebrow="Brand direction"
         title={
