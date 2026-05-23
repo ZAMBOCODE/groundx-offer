@@ -1,0 +1,206 @@
+@import "tailwindcss";
+
+/* ============================================================
+   GROUND X OFFER — design system
+   AETHER glass aesthetic, single warm accent (copper/gold)
+   bridging AETHER-orange and Ground X gold. No card icons.
+   ============================================================ */
+
+:root {
+  /* surfaces — deep warm near-black (anthracite) */
+  --bg: #0a0907;
+  --bg-2: #0e0c09;
+  --ink: #f4efe7;
+  --ink-dim: #b9b0a2;
+  --ink-faint: #6f685c;
+
+  /* the one accent: copper/gold */
+  --accent: #c8862e;
+  --accent-hi: #e8b563;
+  --accent-deep: #8a5a1c;
+
+  /* hard-error only */
+  --danger: #d6452f;
+
+  /* glass */
+  --glass: rgba(255, 255, 255, 0.035);
+  --glass-2: rgba(255, 255, 255, 0.055);
+  --hair: rgba(255, 255, 255, 0.09);
+  --hair-strong: rgba(255, 255, 255, 0.16);
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-ink: var(--ink);
+  --color-accent: var(--accent);
+  --font-sans: var(--font-sans);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-sans), system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  overflow-x: hidden;
+}
+
+/* warm ambient field + film grain (the imperfection rule) */
+.ambient {
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+  background:
+    radial-gradient(60% 50% at 50% -10%, rgba(200, 134, 46, 0.16), transparent 70%),
+    radial-gradient(40% 40% at 85% 20%, rgba(138, 90, 28, 0.1), transparent 70%),
+    radial-gradient(50% 50% at 10% 90%, rgba(200, 134, 46, 0.06), transparent 70%),
+    var(--bg);
+}
+.grain {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  opacity: 0.05;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* glass card */
+.card {
+  position: relative;
+  background: var(--glass);
+  border: 1px solid var(--hair);
+  border-radius: 18px;
+  backdrop-filter: blur(14px) saturate(1.1);
+  -webkit-backdrop-filter: blur(14px) saturate(1.1);
+  transition:
+    border-color 0.4s ease,
+    transform 0.5s cubic-bezier(0.16, 1, 0.3, 1),
+    background 0.4s ease;
+}
+.card:hover {
+  border-color: var(--hair-strong);
+  background: var(--glass-2);
+}
+
+/* frosted inner card */
+.inner-card {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--hair);
+  border-radius: 12px;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+/* mouse-tracked gradient hairline border */
+.glow-border::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: radial-gradient(
+    220px circle at var(--mx, 50%) var(--my, 50%),
+    rgba(232, 181, 99, 0.7),
+    transparent 60%
+  );
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  pointer-events: none;
+}
+.glow-border:hover::before {
+  opacity: 1;
+}
+
+/* typography helpers */
+.display {
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  line-height: 0.98;
+}
+.eyebrow {
+  font-size: 0.72rem;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--accent-hi);
+}
+.text-dim {
+  color: var(--ink-dim);
+}
+.text-faint {
+  color: var(--ink-faint);
+}
+.accent {
+  color: var(--accent-hi);
+}
+
+.gold-text {
+  background: linear-gradient(180deg, #f6e3bf 0%, var(--accent-hi) 45%, var(--accent) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.hairline {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--hair-strong), transparent);
+}
+
+/* buttons */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.8rem 1.4rem;
+  border-radius: 999px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+.btn-primary {
+  background: linear-gradient(180deg, var(--accent-hi), var(--accent));
+  color: #1a1206;
+  border: 1px solid var(--accent-hi);
+}
+.btn-primary:hover {
+  filter: brightness(1.08);
+  transform: translateY(-1px);
+  box-shadow: 0 10px 30px -10px rgba(200, 134, 46, 0.5);
+}
+.btn-ghost {
+  background: transparent;
+  color: var(--ink);
+  border: 1px solid var(--hair-strong);
+}
+.btn-ghost:hover {
+  border-color: var(--accent);
+  color: var(--accent-hi);
+}
+
+/* section rhythm */
+.section {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 7rem 1.5rem;
+}
+@media (max-width: 640px) {
+  .section {
+    padding: 4.5rem 1.25rem;
+  }
+}
