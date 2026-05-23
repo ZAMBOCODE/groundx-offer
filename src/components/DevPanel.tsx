@@ -13,6 +13,9 @@ type Settings = {
   highlightFont: string; // CSS font-family value
   smoothScroll: boolean;
   snap: boolean;
+  cursorGlow: boolean;
+  bubbles: boolean;
+  bgMark: boolean;
 };
 
 const DEFAULTS: Settings = {
@@ -21,6 +24,9 @@ const DEFAULTS: Settings = {
   highlightFont: "inherit",
   smoothScroll: true,
   snap: false,
+  cursorGlow: false,
+  bubbles: false,
+  bgMark: false,
 };
 
 const KEY = "groundx.devpanel";
@@ -72,6 +78,9 @@ function apply(s: Settings) {
   root.style.setProperty("--highlight-font", s.highlightFont);
   root.style.scrollBehavior = s.smoothScroll ? "smooth" : "auto";
   root.classList.toggle("snap", s.snap);
+  root.classList.toggle("fx-cursor", s.cursorGlow);
+  root.classList.toggle("fx-bubbles", s.bubbles);
+  root.classList.toggle("fx-mark", s.bgMark);
 }
 
 export function DevPanel() {
@@ -250,6 +259,24 @@ export function DevPanel() {
               label="Snap to section"
               on={s.snap}
               onChange={(v) => update({ snap: v })}
+            />
+
+            <div className="hairline" />
+            <p className="meta text-faint text-[0.58rem]">Atmosphere</p>
+            <Toggle
+              label="Cursor glow"
+              on={s.cursorGlow}
+              onChange={(v) => update({ cursorGlow: v })}
+            />
+            <Toggle
+              label="Glass bubbles"
+              on={s.bubbles}
+              onChange={(v) => update({ bubbles: v })}
+            />
+            <Toggle
+              label="Floating brand mark"
+              on={s.bgMark}
+              onChange={(v) => update({ bgMark: v })}
             />
 
             <button
