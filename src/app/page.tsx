@@ -8,19 +8,22 @@ import {
   Contact,
 } from "@/components/Sections";
 import { DevPanel } from "@/components/DevPanel";
+import { DesignProvider } from "@/components/design-context";
 
 export default function Page() {
   return (
-    <main>
-      <Hero />
-      <div className="hairline mx-auto max-w-5xl" />
-      <Angle />
-      <Capabilities />
-      <Work />
-      <BrandTeaser />
-      <Offer />
-      <Contact />
-      <DevPanel />
-    </main>
+    <DesignProvider>
+      <main>
+        <Hero />
+        <div className="hairline mx-auto max-w-5xl" />
+        <Angle />
+        <Capabilities />
+        <Work />
+        <BrandTeaser />
+        <Offer />
+        <Contact />
+        <DevPanel />
+      </main>
+    </DesignProvider>
   );
 }

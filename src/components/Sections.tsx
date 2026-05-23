@@ -2,7 +2,10 @@
 
 import { motion } from "motion/react";
 import { TiltCard } from "./TiltCard";
-import { capabilities, cases } from "@/lib/data";
+import { capabilities, cases, type CaseStudy } from "@/lib/data";
+import { useDesign } from "./design-context";
+
+/* ---------------------------------------------------- shared helpers */
 
 function Reveal({
   children,
@@ -41,8 +44,38 @@ function SectionHead({
   );
 }
 
-/* -------------------------------------------------- the angle */
+function CaseImage({ c, className }: { c: CaseStudy; className?: string }) {
+  return (
+    <div
+      className={`relative overflow-hidden ${className ?? ""}`}
+      style={{ background: "linear-gradient(135deg, rgba(249,115,22,0.1), rgba(5,5,7,0.6))" }}
+    >
+      {c.image ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={c.image}
+          alt={c.name}
+          className={
+            c.fit === "contain"
+              ? "h-full w-full object-contain p-8 opacity-95 transition duration-700 group-hover:scale-[1.03]"
+              : "h-full w-full object-cover opacity-90 transition duration-700 group-hover:scale-[1.04]"
+          }
+        />
+      ) : (
+        <div className="flex h-full w-full items-center justify-center">
+          <span className="display text-[2rem] text-3 opacity-40">{c.name}</span>
+        </div>
+      )}
+      <div className="absolute inset-0 bg-gradient-to-t from-[#050507] via-transparent to-transparent" />
+      <span className="meta accent absolute bottom-3 left-4 text-[0.6rem]">{c.tag}</span>
+    </div>
+  );
+}
+
+/* ==================================================== ANGLE (2 variants) */
+
 export function Angle() {
+  const { variants } = useDesign();
   const points = [
     { k: "Dubai", v: "I already build for the GCC market and its buyers." },
     { k: "Luxury + security", v: "Gulf Rescue, Löwenhardt — the exact tone Ground X needs." },
@@ -61,22 +94,44 @@ export function Angle() {
         }
         sub="Ground X needs Dubai fluency, a luxury-security tone, container know-how and a systems mindset. Those four overlap with work I have already delivered."
       />
-      <div className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-        {points.map((p, i) => (
-          <Reveal key={p.k} delay={i * 0.08}>
-            <TiltCard className="h-full p-6">
-              <div className="meta accent">{p.k}</div>
-              <p className="text-dim mt-3 text-[0.95rem] leading-relaxed">{p.v}</p>
-            </TiltCard>
-          </Reveal>
-        ))}
-      </div>
+
+      {variants.angle === 0 ? (
+        <div className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+          {points.map((p, i) => (
+            <Reveal key={p.k} delay={i * 0.08}>
+              <TiltCard className="h-full p-6">
+                <div className="meta accent">{p.k}</div>
+                <p className="text-dim mt-3 text-[0.95rem] leading-relaxed">{p.v}</p>
+              </TiltCard>
+            </Reveal>
+          ))}
+        </div>
+      ) : (
+        <div className="mt-12 flex flex-col">
+          {points.map((p, i) => (
+            <Reveal key={p.k} delay={i * 0.06}>
+              <div className="group flex items-baseline gap-6 border-t border-[var(--stroke-card)] py-6">
+                <span className="display-light accent w-12 shrink-0 text-[1.6rem]">
+                  0{i + 1}
+                </span>
+                <div className="flex flex-1 flex-col gap-1 md:flex-row md:items-baseline md:gap-8">
+                  <h3 className="display w-full text-[1.3rem] md:w-64">{p.k}</h3>
+                  <p className="text-dim flex-1 text-[1rem] leading-relaxed">{p.v}</p>
+                </div>
+              </div>
+            </Reveal>
+          ))}
+        </div>
+      )}
     </section>
   );
 }
 
-/* -------------------------------------------------- capabilities */
+/* ============================================ CAPABILITIES (3 variants) */
+
 export function Capabilities() {
+  const { variants } = useDesign();
+  const v = variants.capabilities;
   return (
     <section id="capabilities" className="section">
       <SectionHead
@@ -88,26 +143,70 @@ export function Capabilities() {
         }
         sub="Each of these is something I have built and shipped, not a service line on a page."
       />
-      <div className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-        {capabilities.map((c, i) => (
-          <Reveal key={c.title} delay={(i % 3) * 0.07}>
-            <TiltCard className="flex h-full flex-col p-6">
-              <h3 className="display text-[1.15rem]">{c.title}</h3>
-              <p className="text-dim mt-3 flex-1 text-[0.92rem] leading-relaxed">{c.blurb}</p>
-              <div className="inner-card mt-5 px-3 py-2">
-                <span className="meta text-faint text-[0.6rem]">Proof</span>
-                <p className="accent mt-0.5 text-[0.82rem]">{c.proof}</p>
+
+      {/* variant 0: even 3-col cards */}
+      {v === 0 && (
+        <div className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          {capabilities.map((c, i) => (
+            <Reveal key={c.title} delay={(i % 3) * 0.07}>
+              <TiltCard className="flex h-full flex-col p-6">
+                <h3 className="display text-[1.15rem]">{c.title}</h3>
+                <p className="text-dim mt-3 flex-1 text-[0.92rem] leading-relaxed">{c.blurb}</p>
+                <div className="inner-card mt-5 px-3 py-2">
+                  <span className="meta text-faint text-[0.6rem]">Proof</span>
+                  <p className="accent mt-0.5 text-[0.82rem]">{c.proof}</p>
+                </div>
+              </TiltCard>
+            </Reveal>
+          ))}
+        </div>
+      )}
+
+      {/* variant 1: bento — first card featured */}
+      {v === 1 && (
+        <div className="mt-12 grid auto-rows-[minmax(150px,auto)] gap-5 sm:grid-cols-2 lg:grid-cols-4">
+          {capabilities.map((c, i) => {
+            const big = i === 0;
+            return (
+              <Reveal key={c.title} delay={(i % 4) * 0.06}>
+                <TiltCard
+                  className={`flex h-full flex-col p-6 ${big ? "lg:col-span-2 lg:row-span-2" : ""}`}
+                >
+                  <h3 className={`display ${big ? "text-[1.5rem]" : "text-[1.1rem]"}`}>{c.title}</h3>
+                  <p className="text-dim mt-3 flex-1 text-[0.9rem] leading-relaxed">{c.blurb}</p>
+                  <div className="inner-card mt-4 px-3 py-2">
+                    <p className="accent text-[0.8rem]">{c.proof}</p>
+                  </div>
+                </TiltCard>
+              </Reveal>
+            );
+          })}
+        </div>
+      )}
+
+      {/* variant 2: compact rows */}
+      {v === 2 && (
+        <div className="mt-12 flex flex-col">
+          {capabilities.map((c, i) => (
+            <Reveal key={c.title} delay={(i % 6) * 0.04}>
+              <div className="grid grid-cols-1 items-center gap-2 border-t border-[var(--stroke-card)] py-5 md:grid-cols-[220px_1fr_auto] md:gap-8">
+                <h3 className="display text-[1.1rem]">{c.title}</h3>
+                <p className="text-dim text-[0.9rem] leading-relaxed">{c.blurb}</p>
+                <span className="accent meta text-[0.6rem] md:text-right">{c.proof}</span>
               </div>
-            </TiltCard>
-          </Reveal>
-        ))}
-      </div>
+            </Reveal>
+          ))}
+        </div>
+      )}
     </section>
   );
 }
 
-/* -------------------------------------------------- selected work */
+/* ============================================== WORK (3 variants) */
+
 export function Work() {
+  const { variants } = useDesign();
+  const v = variants.work;
   return (
     <section id="work" className="section">
       <SectionHead
@@ -118,54 +217,84 @@ export function Work() {
           </>
         }
       />
-      <div className="mt-12 grid gap-5 md:grid-cols-2">
-        {cases.map((c, i) => (
-          <Reveal key={c.name} delay={(i % 2) * 0.1}>
-            <TiltCard className="group flex h-full flex-col overflow-hidden">
-              <div
-                className="relative h-52 w-full overflow-hidden"
-                style={{
-                  borderTopLeftRadius: "inherit",
-                  borderTopRightRadius: "inherit",
-                  background:
-                    "linear-gradient(135deg, rgba(249,115,22,0.1), rgba(5,5,7,0.6))",
-                }}
+
+      {/* variant 0: 2-col image cards */}
+      {v === 0 && (
+        <div className="mt-12 grid gap-5 md:grid-cols-2">
+          {cases.map((c, i) => (
+            <Reveal key={c.name} delay={(i % 2) * 0.1}>
+              <TiltCard className="group flex h-full flex-col overflow-hidden">
+                <CaseImage c={c} className="h-52 w-full" />
+                <div className="flex flex-1 flex-col p-6">
+                  <h3 className="display text-[1.3rem]">{c.name}</h3>
+                  <p className="text-dim mt-3 text-[0.92rem] leading-relaxed">{c.what}</p>
+                  <p className="accent mt-3 text-[0.88rem] italic">{c.why}</p>
+                  <p className="meta text-faint mt-4 text-[0.6rem]">{c.stack}</p>
+                </div>
+              </TiltCard>
+            </Reveal>
+          ))}
+        </div>
+      )}
+
+      {/* variant 1: alternating wide rows */}
+      {v === 1 && (
+        <div className="mt-12 flex flex-col gap-5">
+          {cases.map((c, i) => (
+            <Reveal key={c.name} delay={0.05}>
+              <TiltCard
+                className={`group flex flex-col overflow-hidden md:flex-row ${
+                  i % 2 ? "md:flex-row-reverse" : ""
+                }`}
               >
-                {c.image ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={c.image}
-                    alt={c.name}
-                    className={
-                      c.fit === "contain"
-                        ? "h-full w-full object-contain p-8 opacity-95 transition duration-700 group-hover:scale-[1.03]"
-                        : "h-full w-full object-cover opacity-90 transition duration-700 group-hover:scale-[1.04]"
-                    }
-                  />
-                ) : (
-                  <div className="flex h-full w-full items-center justify-center">
-                    <span className="display text-[2rem] text-3 opacity-40">{c.name}</span>
+                <CaseImage c={c} className="h-56 w-full md:h-auto md:w-1/2" />
+                <div className="flex flex-1 flex-col justify-center p-8">
+                  <h3 className="display text-[1.6rem]">{c.name}</h3>
+                  <p className="text-dim mt-3 max-w-md text-[0.95rem] leading-relaxed">{c.what}</p>
+                  <p className="accent mt-3 text-[0.9rem] italic">{c.why}</p>
+                  <p className="meta text-faint mt-4 text-[0.6rem]">{c.stack}</p>
+                </div>
+              </TiltCard>
+            </Reveal>
+          ))}
+        </div>
+      )}
+
+      {/* variant 2: horizontal scroll strip */}
+      {v === 2 && (
+        <Reveal>
+          <div
+            className="mt-12 flex gap-5 overflow-x-auto pb-4"
+            style={{ scrollSnapType: "x mandatory" }}
+          >
+            {cases.map((c) => (
+              <div
+                key={c.name}
+                className="shrink-0"
+                style={{ width: "340px", scrollSnapAlign: "start" }}
+              >
+                <TiltCard className="group flex h-full flex-col overflow-hidden">
+                  <CaseImage c={c} className="h-48 w-full" />
+                  <div className="flex flex-1 flex-col p-6">
+                    <h3 className="display text-[1.25rem]">{c.name}</h3>
+                    <p className="text-dim mt-3 text-[0.9rem] leading-relaxed">{c.what}</p>
+                    <p className="accent mt-3 text-[0.86rem] italic">{c.why}</p>
                   </div>
-                )}
-                <div className="absolute inset-0 bg-gradient-to-t from-[#050507] via-transparent to-transparent" />
-                <span className="meta accent absolute bottom-3 left-4 text-[0.6rem]">{c.tag}</span>
+                </TiltCard>
               </div>
-              <div className="flex flex-1 flex-col p-6">
-                <h3 className="display text-[1.3rem]">{c.name}</h3>
-                <p className="text-dim mt-3 text-[0.92rem] leading-relaxed">{c.what}</p>
-                <p className="accent mt-3 text-[0.88rem] italic">{c.why}</p>
-                <p className="meta text-faint mt-4 text-[0.6rem]">{c.stack}</p>
-              </div>
-            </TiltCard>
-          </Reveal>
-        ))}
-      </div>
+            ))}
+          </div>
+          <p className="meta text-faint mt-2 text-[0.58rem]">← scroll →</p>
+        </Reveal>
+      )}
     </section>
   );
 }
 
-/* -------------------------------------------------- brand teaser */
+/* =========================================== BRAND TEASER (2 variants) */
+
 export function BrandTeaser() {
+  const { variants } = useDesign();
   const moods = [
     "Cognac leather",
     "Dark walnut",
@@ -174,6 +303,7 @@ export function BrandTeaser() {
     "Villa, never isolated",
     "Discreet, never loud",
   ];
+  const palette = ["#0a0907", "#1a1714", "#8a5a1c", "#c8862e", "#e8b563"];
   return (
     <section className="section">
       <SectionHead
@@ -185,42 +315,70 @@ export function BrandTeaser() {
         }
         sub="A first taste of the visual language: a gentleman's-club world, not a survival product. Final brand locks once your assets land."
       />
-      <Reveal delay={0.1}>
-        <TiltCard className="mt-12 p-8 sm:p-12">
-          <div className="grid items-center gap-10 md:grid-cols-[1.1fr_1fr]">
-            <div>
-              <div className="gold-text display text-[3.4rem] sm:text-[4.6rem]">
-                GROUND<span className="ml-3 font-light">X</span>
+
+      {variants.brand === 0 ? (
+        <Reveal delay={0.1}>
+          <TiltCard className="mt-12 p-8 sm:p-12">
+            <div className="grid items-center gap-10 md:grid-cols-[1.1fr_1fr]">
+              <div>
+                <div className="gold-text display text-[3.4rem] sm:text-[4.6rem]">
+                  GROUND<span className="ml-3 font-light">X</span>
+                </div>
+                <p className="meta text-dim mt-4 text-[0.72rem]">Discreet. Modular. Uncompromising.</p>
+                <div className="mt-6 flex gap-3">
+                  {palette.map((c) => (
+                    <div
+                      key={c}
+                      className="h-9 w-9 rounded-full border border-[var(--stroke-card)]"
+                      style={{ background: c }}
+                      title={c}
+                    />
+                  ))}
+                </div>
               </div>
-              <p className="meta text-dim mt-4 text-[0.72rem]">
-                Discreet. Modular. Uncompromising.
-              </p>
-              <div className="mt-6 flex gap-3">
-                {["#0a0907", "#1a1714", "#8a5a1c", "#c8862e", "#e8b563"].map((c) => (
-                  <div
-                    key={c}
-                    className="h-9 w-9 rounded-full border border-[var(--stroke-card)]"
-                    style={{ background: c }}
-                    title={c}
-                  />
+              <div className="grid grid-cols-2 gap-3">
+                {moods.map((m) => (
+                  <div key={m} className="inner-card px-4 py-3 text-[0.85rem] text-dim">
+                    {m}
+                  </div>
                 ))}
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-3">
-              {moods.map((m) => (
-                <div key={m} className="inner-card px-4 py-3 text-[0.85rem] text-dim">
-                  {m}
-                </div>
+          </TiltCard>
+        </Reveal>
+      ) : (
+        <Reveal delay={0.1}>
+          <TiltCard className="mt-12 flex flex-col items-center p-10 text-center sm:p-16">
+            <div className="gold-text display text-[3.8rem] sm:text-[6rem]">
+              GROUND<span className="ml-3 font-light">X</span>
+            </div>
+            <p className="meta text-dim mt-3 text-[0.78rem]">Discreet. Modular. Uncompromising.</p>
+            <div className="mt-7 flex gap-3">
+              {palette.map((c) => (
+                <div
+                  key={c}
+                  className="h-10 w-10 rounded-full border border-[var(--stroke-card)]"
+                  style={{ background: c }}
+                  title={c}
+                />
               ))}
             </div>
-          </div>
-        </TiltCard>
-      </Reveal>
+            <div className="mt-8 flex flex-wrap justify-center gap-2.5">
+              {moods.map((m) => (
+                <span key={m} className="inner-card px-4 py-2 text-[0.82rem] text-dim">
+                  {m}
+                </span>
+              ))}
+            </div>
+          </TiltCard>
+        </Reveal>
+      )}
     </section>
   );
 }
 
-/* -------------------------------------------------- the offer */
+/* =================================================== OFFER (no variants) */
+
 export function Offer() {
   const phases = [
     {
@@ -312,7 +470,8 @@ export function Offer() {
   );
 }
 
-/* -------------------------------------------------- contact */
+/* =================================================== CONTACT */
+
 export function Contact() {
   return (
     <section className="section text-center">

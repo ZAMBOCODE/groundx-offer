@@ -2,6 +2,12 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { AnimatePresence, motion } from "motion/react";
+import {
+  useDesign,
+  VARIANT_COUNT,
+  SECTION_LABEL,
+  type SectionKey,
+} from "./design-context";
 
 /* Live design controls — the "Angebot builder" panel. Toggle with the FAB
    (or press "D"). Everything writes CSS custom properties on <html> and
@@ -86,6 +92,7 @@ function apply(s: Settings) {
 export function DevPanel() {
   const [open, setOpen] = useState(false);
   const [s, setS] = useState<Settings>(DEFAULTS);
+  const { variants, setVariant } = useDesign();
 
   // load + apply on mount
   useEffect(() => {
@@ -278,6 +285,34 @@ export function DevPanel() {
               on={s.bgMark}
               onChange={(v) => update({ bgMark: v })}
             />
+
+            <div className="hairline" />
+            <p className="meta text-faint text-[0.58rem]">Section layouts</p>
+            {(Object.keys(VARIANT_COUNT) as SectionKey[]).map((key) => (
+              <div key={key} className="flex items-center justify-between gap-2">
+                <span className="text-[0.82rem] text-dim">{SECTION_LABEL[key]}</span>
+                <div className="flex gap-1">
+                  {Array.from({ length: VARIANT_COUNT[key] }).map((_, idx) => {
+                    const active = variants[key] === idx;
+                    return (
+                      <button
+                        key={idx}
+                        onClick={() => setVariant(key, idx)}
+                        className="inner-card h-7 w-7 text-[0.72rem] font-semibold"
+                        style={{
+                          color: active ? "#1a0f04" : "var(--ink-2)",
+                          background: active ? "var(--accent)" : undefined,
+                          borderColor: active ? "var(--accent)" : undefined,
+                        }}
+                        title={`Variant ${String.fromCharCode(65 + idx)}`}
+                      >
+                        {String.fromCharCode(65 + idx)}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            ))}
 
             <button
               onClick={() => {
