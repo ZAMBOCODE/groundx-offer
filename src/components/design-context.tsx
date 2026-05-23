@@ -15,13 +15,13 @@ export type SectionKey = "angle" | "capabilities" | "work" | "brand";
 
 export type Variants = Record<SectionKey, number>;
 
-const DEFAULTS: Variants = { angle: 0, capabilities: 0, work: 0, brand: 0 };
+const DEFAULTS: Variants = { angle: 0, capabilities: 0, work: 4, brand: 0 };
 
 /** how many variants each section offers (for the dev-panel selector) */
 export const VARIANT_COUNT: Record<SectionKey, number> = {
   angle: 2,
   capabilities: 3,
-  work: 4,
+  work: 5,
   brand: 2,
 };
 

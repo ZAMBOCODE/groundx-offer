@@ -338,6 +338,24 @@ html.snap header {
   scroll-snap-stop: normal;
 }
 
+/* showcase screenshot cards — pre-tilted, minimal hover */
+.shot-card {
+  border-radius: var(--r-control);
+  border: 1px solid var(--stroke-card);
+  background: #0a0907;
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.55), 0 4px 10px rgba(0, 0, 0, 0.5);
+  transform: rotate(var(--r, 0deg));
+  transition: transform 0.4s var(--ease), box-shadow 0.4s, border-color 0.4s;
+  cursor: pointer;
+  padding: 0;
+}
+.shot-card:hover {
+  transform: rotate(var(--r, 0deg)) translateY(-10px) scale(1.03);
+  z-index: 30 !important;
+  border-color: var(--accent);
+  box-shadow: 0 30px 60px rgba(0, 0, 0, 0.6), 0 0 0 1px var(--accent-dim);
+}
+
 /* ---------------------------------------- atmosphere (dev-panel v2) */
 .fx-layer {
   position: fixed;

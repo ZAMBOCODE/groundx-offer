@@ -5,6 +5,7 @@ import { TiltCard } from "./TiltCard";
 import { capabilities, cases, type CaseStudy } from "@/lib/data";
 import { useDesign } from "./design-context";
 import { StickyWork } from "./StickyWork";
+import { WorkShowcase } from "./WorkShowcase";
 
 /* ---------------------------------------------------- shared helpers */
 
@@ -303,6 +304,9 @@ export function Work() {
           <p className="meta text-faint mt-2 text-[0.58rem]">← scroll →</p>
         </Reveal>
       )}
+
+      {/* variant 4: showcase — logo + facts + tags | staggered tilted shots */}
+      {v === 4 && <WorkShowcase />}
     </section>
   );
 }

@@ -66,6 +66,12 @@ export type CaseStudy = {
   image?: string;
   /** "cover" for photos, "contain" for logos on a dark plate */
   fit?: "cover" | "contain";
+  /** white/transparent logo for the showcase variant */
+  logo?: string;
+  /** capability tags shown as chips in the showcase variant */
+  tags?: string[];
+  /** website/section screenshots for the staggered showcase cards */
+  shots?: string[];
 };
 
 export const cases: CaseStudy[] = [
@@ -73,10 +79,13 @@ export const cases: CaseStudy[] = [
     name: "Gulf Rescue",
     tag: "Dubai · luxury security",
     what:
-      "Brand and site for an armored VIP transfer service. Cinematic 3D vehicle, multilingual, map-driven coverage.",
+      "Brand and site for an armored VIP transfer service. Cinematic 3D vehicle, multilingual, map-driven coverage, ballistic-spec storytelling.",
     why: "Same market, same buyer, same discretion as Ground X.",
     stack: "Next.js 16 · React Three Fiber · Mapbox",
     image: "/assets/gulfrescue-vehicle.png",
+    logo: "/assets/gulfrescue-logo.svg",
+    tags: ["3D animation", "AI video", "Web design", "Branding", "Multilingual", "Motion"],
+    shots: ["/assets/gulfrescue-1.png", "/assets/gulfrescue-2.png", "/assets/gulfrescue-3.png"],
   },
   {
     name: "Löwenhardt",
@@ -87,6 +96,8 @@ export const cases: CaseStudy[] = [
     stack: "Next.js 14 · React · TypeScript",
     image: "/assets/loewenhardt-logo.png",
     fit: "contain",
+    logo: "/assets/loewenhardt-logo.png",
+    tags: ["Web design", "Branding", "Partner platform", "Multilingual"],
   },
   {
     name: "Container Configurator",
@@ -95,6 +106,7 @@ export const cases: CaseStudy[] = [
       "Interactive 3D configurator for a container builder. Real GLB models, live interior parts, browser-based.",
     why: "Ground X sells containers. This already exists.",
     stack: "Next.js · React Three Fiber · Three.js",
+    tags: ["3D / R3F", "Configurator", "Product viz", "Web app"],
   },
   {
     name: "AETHER + zZzlim",
@@ -104,5 +116,6 @@ export const cases: CaseStudy[] = [
     why: "Shows I can run your marketing as a system, not a task list.",
     stack: "React · TypeScript · AI agents · ManyChat",
     image: "/assets/aether.png",
+    tags: ["Dashboards", "AI agents", "Automation", "ManyChat", "Systems"],
   },
 ];
