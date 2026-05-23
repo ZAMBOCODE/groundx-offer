@@ -76,10 +76,15 @@ const ACCENT_PRESETS = [
 ];
 
 const FONTS = [
-  { label: "Inherit (Space Grotesk)", value: "inherit" },
-  { label: "Inter", value: "var(--font-sans)" },
-  { label: "Space Grotesk", value: "var(--font-display)" },
-  { label: "Mono (JetBrains)", value: "var(--font-mono)" },
+  { label: "Default (Space Grotesk)", value: "inherit" },
+  { label: "Inter — clean", value: "var(--font-sans)" },
+  { label: "Bricolage — editorial", value: "var(--font-bricolage)" },
+  { label: "Syne — futuristic", value: "var(--font-syne)" },
+  { label: "Fraunces — luxury serif", value: "var(--font-fraunces)" },
+  { label: "Instrument — serif", value: "var(--font-instrument)" },
+  { label: "Unbounded — bold", value: "var(--font-unbounded)" },
+  { label: "Sora — geometric", value: "var(--font-sora)" },
+  { label: "JetBrains — mono", value: "var(--font-mono)" },
 ];
 
 /** lighten a hex toward white by amount (0..1) */

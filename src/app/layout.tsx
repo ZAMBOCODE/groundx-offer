@@ -1,5 +1,15 @@
 import type { Metadata } from "next";
-import { Space_Grotesk, Inter, JetBrains_Mono } from "next/font/google";
+import {
+  Space_Grotesk,
+  Inter,
+  JetBrains_Mono,
+  Bricolage_Grotesque,
+  Syne,
+  Fraunces,
+  Instrument_Serif,
+  Unbounded,
+  Sora,
+} from "next/font/google";
 import "./globals.css";
 import { Atmosphere } from "@/components/Atmosphere";
 
@@ -24,6 +34,14 @@ const jetbrainsMono = JetBrains_Mono({
   display: "swap",
 });
 
+// curated style-tagged display fonts (seed of the global font library)
+const bricolage = Bricolage_Grotesque({ subsets: ["latin"], variable: "--font-bricolage", display: "swap" });
+const syne = Syne({ subsets: ["latin"], variable: "--font-syne", display: "swap" });
+const fraunces = Fraunces({ subsets: ["latin"], variable: "--font-fraunces", display: "swap" });
+const instrument = Instrument_Serif({ subsets: ["latin"], weight: ["400"], variable: "--font-instrument", display: "swap" });
+const unbounded = Unbounded({ subsets: ["latin"], variable: "--font-unbounded", display: "swap" });
+const sora = Sora({ subsets: ["latin"], variable: "--font-sora", display: "swap" });
+
 export const metadata: Metadata = {
   title: "Ground X — Visual & Marketing Partnership",
   description:
@@ -38,7 +56,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${inter.variable} ${spaceGrotesk.variable} ${jetbrainsMono.variable}`}
+      className={`${inter.variable} ${spaceGrotesk.variable} ${jetbrainsMono.variable} ${bricolage.variable} ${syne.variable} ${fraunces.variable} ${instrument.variable} ${unbounded.variable} ${sora.variable}`}
     >
       <body>
         <div className="ambient" />
