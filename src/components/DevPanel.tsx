@@ -19,9 +19,11 @@ type Settings = {
   highlightFont: string; // CSS font-family value
   smoothScroll: boolean;
   snap: boolean;
-  cursorGlow: boolean;
+  cursorFx: string;
   bubbles: boolean;
   bgMark: boolean;
+  shader: string;
+  buttonStyle: string;
 };
 
 const DEFAULTS: Settings = {
@@ -30,10 +32,35 @@ const DEFAULTS: Settings = {
   highlightFont: "inherit",
   smoothScroll: true,
   snap: false,
-  cursorGlow: false,
+  cursorFx: "off",
   bubbles: false,
   bgMark: false,
+  shader: "none",
+  buttonStyle: "solid",
 };
+
+const SHADERS = [
+  { label: "None", value: "none" },
+  { label: "Aurora", value: "aurora" },
+  { label: "Mesh", value: "mesh" },
+  { label: "Grain", value: "grain" },
+  { label: "Grid", value: "grid" },
+  { label: "Orbs", value: "orbs" },
+  { label: "Beams", value: "beams" },
+];
+
+const CURSORS = [
+  { label: "Off", value: "off" },
+  { label: "Glow", value: "glow" },
+  { label: "Ring", value: "ring" },
+  { label: "Spotlight", value: "spotlight" },
+];
+
+const BUTTON_STYLES = [
+  { label: "Solid", value: "solid" },
+  { label: "Outline", value: "outline" },
+  { label: "Soft", value: "soft" },
+];
 
 const KEY = "groundx.devpanel";
 
@@ -84,9 +111,11 @@ function apply(s: Settings) {
   root.style.setProperty("--highlight-font", s.highlightFont);
   root.style.scrollBehavior = s.smoothScroll ? "smooth" : "auto";
   root.classList.toggle("snap", s.snap);
-  root.classList.toggle("fx-cursor", s.cursorGlow);
   root.classList.toggle("fx-bubbles", s.bubbles);
   root.classList.toggle("fx-mark", s.bgMark);
+  root.dataset.cursor = s.cursorFx;
+  root.dataset.shader = s.shader;
+  root.dataset.btn = s.buttonStyle;
 }
 
 export function DevPanel() {
@@ -272,11 +301,27 @@ export function DevPanel() {
             />
 
             <div className="hairline" />
+            <p className="meta text-faint text-[0.58rem]">Graphics</p>
+            <SelectField
+              label="Background shader"
+              value={s.shader}
+              options={SHADERS}
+              onChange={(v) => update({ shader: v })}
+            />
+            <SelectField
+              label="Button style"
+              value={s.buttonStyle}
+              options={BUTTON_STYLES}
+              onChange={(v) => update({ buttonStyle: v })}
+            />
+
+            <div className="hairline" />
             <p className="meta text-faint text-[0.58rem]">Atmosphere</p>
-            <Toggle
-              label="Cursor glow"
-              on={s.cursorGlow}
-              onChange={(v) => update({ cursorGlow: v })}
+            <SelectField
+              label="Cursor effect"
+              value={s.cursorFx}
+              options={CURSORS}
+              onChange={(v) => update({ cursorFx: v })}
             />
             <Toggle
               label="Glass bubbles"
@@ -341,6 +386,36 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
     <div>
       <p className="meta text-faint mb-2 text-[0.58rem]">{label}</p>
       {children}
+    </div>
+  );
+}
+
+function SelectField({
+  label,
+  value,
+  options,
+  onChange,
+}: {
+  label: string;
+  value: string;
+  options: { label: string; value: string }[];
+  onChange: (v: string) => void;
+}) {
+  return (
+    <div className="flex items-center justify-between gap-2">
+      <span className="text-[0.82rem] text-dim">{label}</span>
+      <select
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className="inner-card px-2 py-1.5 text-[0.8rem]"
+        style={{ color: "var(--ink)" }}
+      >
+        {options.map((o) => (
+          <option key={o.value} value={o.value} style={{ background: "#111" }}>
+            {o.label}
+          </option>
+        ))}
+      </select>
     </div>
   );
 }

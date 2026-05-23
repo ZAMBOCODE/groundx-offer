@@ -2,9 +2,11 @@
 
 import { useEffect, useRef } from "react";
 
-/* Optional background atmosphere, all gated by classes on <html> set from the
-   dev-panel: cursor glow (.fx-cursor), glassmorphism bubbles (.fx-bubbles),
-   floating brand mark (.fx-mark). All pointer-events:none, behind content. */
+/* Optional background atmosphere + graphics, driven by data-* / classes on
+   <html> set from the dev-panel. All pointer-events:none.
+   - data-shader: none|aurora|mesh|grain|grid|orbs|beams (background)
+   - data-cursor: off|glow|ring|spotlight
+   - .fx-bubbles / .fx-mark toggles */
 
 const BUBBLES = [
   { left: "8%", size: 120, dur: 26, delay: 0 },
@@ -16,16 +18,21 @@ const BUBBLES = [
 ];
 
 export function Atmosphere() {
-  const glow = useRef<HTMLDivElement>(null);
+  const cursor = useRef<HTMLDivElement>(null);
+  const spot = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const el = glow.current;
-    if (!el) return;
     let raf = 0;
     const onMove = (e: MouseEvent) => {
       cancelAnimationFrame(raf);
       raf = requestAnimationFrame(() => {
-        el.style.transform = `translate(${e.clientX}px, ${e.clientY}px)`;
+        if (cursor.current) {
+          cursor.current.style.transform = `translate(${e.clientX}px, ${e.clientY}px)`;
+        }
+        if (spot.current) {
+          spot.current.style.setProperty("--mx", `${e.clientX}px`);
+          spot.current.style.setProperty("--my", `${e.clientY}px`);
+        }
       });
     };
     window.addEventListener("mousemove", onMove);
@@ -37,6 +44,19 @@ export function Atmosphere() {
 
   return (
     <>
+      {/* shader backgrounds */}
+      <div className="shader-layer shader-aurora" aria-hidden />
+      <div className="shader-layer shader-mesh" aria-hidden />
+      <div className="shader-layer shader-grain" aria-hidden />
+      <div className="shader-layer shader-grid" aria-hidden />
+      <div className="shader-layer shader-orbs" aria-hidden>
+        <span />
+        <span />
+        <span />
+      </div>
+      <div className="shader-layer shader-beams" aria-hidden />
+
+      {/* bubbles + brand mark */}
       <div className="fx-layer fx-bubbles-layer" aria-hidden>
         {BUBBLES.map((b, i) => (
           <span
@@ -52,12 +72,16 @@ export function Atmosphere() {
           />
         ))}
       </div>
-
       <div className="fx-layer fx-mark-layer" aria-hidden>
         <span className="bg-mark">GROUND X</span>
       </div>
 
-      <div ref={glow} className="fx-cursor-glow" aria-hidden />
+      {/* cursor effects */}
+      <div ref={cursor} className="fx-cursor-wrap" aria-hidden>
+        <div className="cur-glow" />
+        <div className="cur-ring" />
+      </div>
+      <div ref={spot} className="fx-spotlight" aria-hidden />
     </>
   );
 }
