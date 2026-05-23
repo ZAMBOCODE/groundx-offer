@@ -175,10 +175,13 @@ export function DevPanel() {
             style={{
               borderRadius: "var(--r-card)",
               position: "fixed",
-              top: "1.25rem",
-              right: "1.25rem",
-              bottom: "5rem",
-              width: "320px",
+              top: "1rem",
+              right: "1rem",
+              bottom: "4.5rem",
+              width: "min(340px, calc(100vw - 2rem))",
+              background: "rgba(12, 11, 9, 0.94)",
+              backdropFilter: "blur(16px)",
+              WebkitBackdropFilter: "blur(16px)",
               zIndex: 50,
             }}
           >

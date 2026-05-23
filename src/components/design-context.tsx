@@ -21,7 +21,7 @@ const DEFAULTS: Variants = { angle: 0, capabilities: 0, work: 0, brand: 0 };
 export const VARIANT_COUNT: Record<SectionKey, number> = {
   angle: 2,
   capabilities: 3,
-  work: 3,
+  work: 4,
   brand: 2,
 };
 

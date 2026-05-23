@@ -4,6 +4,7 @@ import { motion } from "motion/react";
 import { TiltCard } from "./TiltCard";
 import { capabilities, cases, type CaseStudy } from "@/lib/data";
 import { useDesign } from "./design-context";
+import { StickyWork } from "./StickyWork";
 
 /* ---------------------------------------------------- shared helpers */
 
@@ -207,16 +208,30 @@ export function Capabilities() {
 export function Work() {
   const { variants } = useDesign();
   const v = variants.work;
+  const head = (
+    <SectionHead
+      eyebrow="Selected work"
+      title={
+        <>
+          Proof, <span className="accent-text">not promises.</span>
+        </>
+      }
+    />
+  );
+
+  // variant 3: sticky horizontal scroll (full-bleed)
+  if (v === 3) {
+    return (
+      <section id="work">
+        <div className="section pb-0">{head}</div>
+        <StickyWork />
+      </section>
+    );
+  }
+
   return (
     <section id="work" className="section">
-      <SectionHead
-        eyebrow="Selected work"
-        title={
-          <>
-            Proof, <span className="accent-text">not promises.</span>
-          </>
-        }
-      />
+      {head}
 
       {/* variant 0: 2-col image cards */}
       {v === 0 && (
