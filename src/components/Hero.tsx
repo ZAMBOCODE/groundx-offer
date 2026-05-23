@@ -6,14 +6,20 @@ import { TiltCard } from "./TiltCard";
 export function Hero() {
   return (
     <header className="relative flex min-h-screen flex-col items-center justify-center px-6 text-center">
-      <motion.p
+      <motion.div
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8 }}
-        className="eyebrow mb-6"
+        className="mb-6 flex flex-col items-center gap-4"
       >
-        Sambo Design &nbsp;·&nbsp; Proposal
-      </motion.p>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src="/assets/zambo-logo.png"
+          alt="ZamboDezigns"
+          className="h-12 w-12 opacity-90"
+        />
+        <p className="eyebrow">ZamboDezigns &nbsp;·&nbsp; Proposal</p>
+      </motion.div>
 
       {/* floating Ground X business card — the client's own gold/anthracite brand */}
       <motion.div

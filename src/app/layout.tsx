@@ -26,7 +26,7 @@ const jetbrainsMono = JetBrains_Mono({
 export const metadata: Metadata = {
   title: "Ground X — Visual & Marketing Partnership",
   description:
-    "A proposal by Sambo Design / ZamboDezigns: brand, AI visuals, web and content systems for Ground X.",
+    "A proposal by ZamboDezigns: brand, AI visuals, web and content systems for Ground X.",
 };
 
 export default function RootLayout({

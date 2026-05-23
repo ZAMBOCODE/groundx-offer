@@ -247,12 +247,14 @@ body {
   color: var(--accent-bright);
 }
 
-/* Sambo accent highlight in headlines / prices (orange) */
+/* Zambo accent highlight in headlines / prices (clearly orange, not peachy-white) */
 .accent-text {
-  background: linear-gradient(180deg, #fdba74 0%, var(--accent) 100%);
+  background: linear-gradient(180deg, #fb923c 0%, #f97316 100%);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
+  /* dev-panel-ready: highlight font is overridable via --highlight-font */
+  font-family: var(--highlight-font, inherit);
 }
 
 /* Ground X gold wordmark (the client's own brand, shown not adopted) */

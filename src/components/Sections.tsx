@@ -325,13 +325,36 @@ export function Contact() {
           Samples land first, the offer right behind. Take it to the table with your
           team, and we start.
         </p>
+
+        {/* who's behind it */}
+        <div className="card mx-auto mt-12 flex max-w-md items-center gap-5 p-5 text-left">
+          <div
+            className="h-20 w-16 shrink-0 overflow-hidden rounded-xl"
+            style={{ background: "linear-gradient(160deg, rgba(249,115,22,0.18), rgba(255,255,255,0.04))" }}
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/assets/samy.png"
+              alt="Samuel Heymig"
+              className="h-full w-full object-cover object-top"
+            />
+          </div>
+          <div>
+            <div className="display text-[1.05rem]">Samuel Heymig</div>
+            <div className="meta accent mt-0.5 text-[0.58rem]">ZamboDezigns · Stuttgart</div>
+            <p className="text-dim mt-1.5 text-[0.85rem] leading-snug">
+              Clean web design, optimized shops, and striking 3D &amp; motion work.
+            </p>
+          </div>
+        </div>
+
         <div className="mt-9 flex flex-wrap justify-center gap-3">
           <a href="#" className="btn btn-primary">
             Book a private consultation
           </a>
         </div>
         <p className="meta text-faint mt-16 text-[0.62rem]">
-          Sambo Design · Samuel Heymig · Böblingen, Germany
+          ZamboDezigns · Samuel Heymig · Stuttgart, Germany
         </p>
       </Reveal>
     </section>
