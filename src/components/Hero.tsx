@@ -12,26 +12,23 @@ export function Hero() {
         transition={{ duration: 0.8 }}
         className="eyebrow mb-6"
       >
-        ZamboDezigns &nbsp;·&nbsp; Proposal
+        Sambo Design &nbsp;·&nbsp; Proposal
       </motion.p>
 
-      {/* floating business card */}
+      {/* floating Ground X business card — the client's own gold/anthracite brand */}
       <motion.div
         initial={{ opacity: 0, y: 30, scale: 0.96 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
         transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
         className="mb-12"
       >
-        <TiltCard
-          max={10}
-          lift={10}
-          className="mx-auto flex aspect-[1.66/1] w-[330px] flex-col justify-between p-7 sm:w-[420px]"
-        >
+        <TiltCard className="mx-auto flex aspect-[1.66/1] w-[330px] flex-col justify-between p-7 sm:w-[420px]">
           <div className="flex items-start justify-between">
-            <span className="text-[0.62rem] tracking-[0.32em] text-faint uppercase">
-              Underground Sanctuaries
-            </span>
-            <span className="text-[0.62rem] tracking-[0.3em] accent uppercase">
+            <span className="meta text-[0.6rem] text-faint">Underground Sanctuaries</span>
+            <span
+              className="meta text-[0.6rem]"
+              style={{ color: "var(--gx-gold-hi)" }}
+            >
               Dubai
             </span>
           </div>
@@ -40,7 +37,7 @@ export function Hero() {
             <div className="gold-text display text-[2.6rem] sm:text-[3.4rem]">
               GROUND<span className="ml-2 font-light">X</span>
             </div>
-            <div className="mt-1 text-[0.7rem] tracking-[0.3em] text-dim uppercase">
+            <div className="meta mt-1 text-[0.62rem] text-dim">
               Private · Modular · Uncompromising
             </div>
           </div>
@@ -56,7 +53,7 @@ export function Hero() {
         className="display max-w-3xl text-[2.3rem] sm:text-[3.4rem]"
       >
         A brand that makes its mark
-        <span className="gold-text"> out of sight.</span>
+        <span className="accent-text"> out of sight.</span>
       </motion.h1>
 
       <motion.p

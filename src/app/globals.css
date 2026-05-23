@@ -1,107 +1,140 @@
 @import "tailwindcss";
 
 /* ============================================================
-   GROUND X OFFER — design system
-   AETHER glass aesthetic, single warm accent (copper/gold)
-   bridging AETHER-orange and Ground X gold. No card icons.
+   SAMBO DESIGN — brand identity (Playground SoT, Variant 7)
+   Black / dark-gray / white, orange accent only.
+   Frosted glass with volume, mouse-tracked white-light border,
+   3D tilt (perspective 1300), cubic-bezier(.2,.8,.2,1).
+   Red is reserved for hard errors only.
    ============================================================ */
 
 :root {
-  /* surfaces — deep warm near-black (anthracite) */
-  --bg: #0a0907;
-  --bg-2: #0e0c09;
-  --ink: #f4efe7;
-  --ink-dim: #b9b0a2;
-  --ink-faint: #6f685c;
+  /* text */
+  --ink: #fafafa;
+  --ink-2: #a3a3a3;
+  --ink-3: #525252;
+  --ink-dim: rgba(255, 255, 255, 0.35);
 
-  /* the one accent: copper/gold */
-  --accent: #c8862e;
-  --accent-hi: #e8b563;
-  --accent-deep: #8a5a1c;
+  /* the one accent: orange (Phoenix) */
+  --accent: #f97316;
+  --accent-bright: #fb923c;
+  --accent-amber: #fbbf24;
+  --accent-dim: rgba(249, 115, 22, 0.18);
 
   /* hard-error only */
-  --danger: #d6452f;
+  --danger: #ef4444;
 
-  /* glass */
-  --glass: rgba(255, 255, 255, 0.035);
-  --glass-2: rgba(255, 255, 255, 0.055);
-  --hair: rgba(255, 255, 255, 0.09);
-  --hair-strong: rgba(255, 255, 255, 0.16);
+  /* strokes */
+  --stroke-card: rgba(255, 255, 255, 0.08);
+  --stroke-hairline: rgba(255, 255, 255, 0.05);
+  --stroke-strong: rgba(255, 255, 255, 0.12);
+
+  /* radii */
+  --r-card: 1.75rem;
+  --r-hero: 2.25rem;
+  --r-control: 0.85rem;
+  --r-mini: 0.5rem;
+
+  /* the signature easing */
+  --ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+
+  /* Ground X brand (the client's own colors, used only in the GX wordmark/teaser) */
+  --gx-gold: #c8862e;
+  --gx-gold-hi: #e8b563;
 }
 
 @theme inline {
-  --color-bg: var(--bg);
   --color-ink: var(--ink);
   --color-accent: var(--accent);
   --font-sans: var(--font-sans);
+  --font-display: var(--font-display);
+  --font-mono: var(--font-mono);
 }
 
 * {
   box-sizing: border-box;
 }
-
 html {
   scroll-behavior: smooth;
 }
-
 body {
   margin: 0;
-  background: var(--bg);
   color: var(--ink);
-  font-family: var(--font-sans), system-ui, sans-serif;
+  font-family: var(--font-sans), Inter, system-ui, sans-serif;
+  font-weight: 400;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   overflow-x: hidden;
+  background: #050507;
 }
 
-/* warm ambient field + film grain (the imperfection rule) */
+/* app background: radial top light + warm floor-glow */
 .ambient {
   position: fixed;
   inset: 0;
   z-index: -2;
-  background:
-    radial-gradient(60% 50% at 50% -10%, rgba(200, 134, 46, 0.16), transparent 70%),
-    radial-gradient(40% 40% at 85% 20%, rgba(138, 90, 28, 0.1), transparent 70%),
-    radial-gradient(50% 50% at 10% 90%, rgba(200, 134, 46, 0.06), transparent 70%),
-    var(--bg);
+  background: radial-gradient(1400px 800px at 50% -10%, #18181b 0%, #050507 75%);
 }
-.grain {
+.ambient::after {
+  content: "";
   position: fixed;
-  inset: 0;
-  z-index: -1;
+  left: 50%;
+  bottom: -60px;
+  transform: translateX(-50%);
+  width: 70vw;
+  height: 120px;
+  background: radial-gradient(ellipse at center, var(--accent-dim) 0%, transparent 70%);
+  filter: blur(28px);
   pointer-events: none;
-  opacity: 0.05;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 
-/* glass card */
+/* ---------------------------------------- card surface (frosted glass + volume) */
 .card {
   position: relative;
-  background: var(--glass);
-  border: 1px solid var(--hair);
-  border-radius: 18px;
-  backdrop-filter: blur(14px) saturate(1.1);
-  -webkit-backdrop-filter: blur(14px) saturate(1.1);
+  border-radius: var(--r-card);
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.08) 0%,
+    rgba(255, 255, 255, 0.025) 40%,
+    rgba(255, 255, 255, 0.05) 100%
+  );
+  border: 1px solid var(--stroke-card);
+  backdrop-filter: blur(6px) saturate(140%);
+  -webkit-backdrop-filter: blur(6px) saturate(140%);
+  box-shadow:
+    0 1px 1px rgba(0, 0, 0, 0.5),
+    0 4px 8px rgba(0, 0, 0, 0.55),
+    0 16px 24px rgba(0, 0, 0, 0.6),
+    0 32px 56px rgba(0, 0, 0, 0.5),
+    0 64px 120px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.4),
+    inset 0 0 40px rgba(0, 0, 0, 0.2);
   transition:
-    border-color 0.4s ease,
-    transform 0.5s cubic-bezier(0.16, 1, 0.3, 1),
-    background 0.4s ease;
+    box-shadow 350ms var(--ease),
+    backdrop-filter 350ms,
+    transform 350ms var(--ease),
+    border-color 350ms;
+  transform-style: preserve-3d;
+  will-change: transform;
+  backface-visibility: hidden;
 }
 .card:hover {
-  border-color: var(--hair-strong);
-  background: var(--glass-2);
+  backdrop-filter: blur(12px) saturate(160%);
+  -webkit-backdrop-filter: blur(12px) saturate(160%);
+  box-shadow:
+    0 2px 2px rgba(0, 0, 0, 0.5),
+    0 8px 16px rgba(0, 0, 0, 0.6),
+    0 24px 40px rgba(0, 0, 0, 0.6),
+    0 48px 80px rgba(0, 0, 0, 0.55),
+    0 96px 160px rgba(0, 0, 0, 0.45),
+    0 0 0 1px rgba(255, 255, 255, 0.04),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.4),
+    inset 0 0 60px rgba(255, 255, 255, 0.02);
 }
 
-/* frosted inner card */
-.inner-card {
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid var(--hair);
-  border-radius: 12px;
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-}
-
-/* mouse-tracked gradient hairline border */
+/* mouse-tracked white-light hairline border */
 .glow-border::before {
   content: "";
   position: absolute;
@@ -109,9 +142,10 @@ body {
   border-radius: inherit;
   padding: 1px;
   background: radial-gradient(
-    220px circle at var(--mx, 50%) var(--my, 50%),
-    rgba(232, 181, 99, 0.7),
-    transparent 60%
+    260px circle at var(--mx, 50%) var(--my, 50%),
+    rgba(255, 255, 255, 0.9) 0%,
+    rgba(255, 255, 255, 0.2) 35%,
+    transparent 65%
   );
   -webkit-mask:
     linear-gradient(#000 0 0) content-box,
@@ -119,37 +153,111 @@ body {
   -webkit-mask-composite: xor;
   mask-composite: exclude;
   opacity: 0;
-  transition: opacity 0.4s ease;
+  transition: opacity 250ms;
   pointer-events: none;
 }
 .glow-border:hover::before {
   opacity: 1;
 }
 
-/* typography helpers */
+/* frosted inner-card */
+.inner-card {
+  border-radius: var(--r-control);
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  backdrop-filter: blur(10px) saturate(135%);
+  -webkit-backdrop-filter: blur(10px) saturate(135%);
+  transform: perspective(700px);
+  transition:
+    transform 220ms var(--ease),
+    box-shadow 220ms,
+    background 220ms,
+    border-color 220ms;
+}
+.inner-card:hover {
+  background: rgba(255, 255, 255, 0.055);
+  border-color: rgba(255, 255, 255, 0.12);
+  transform: perspective(700px) translateY(-2px) translateZ(8px) rotateX(1.4deg) scale(1.006);
+  box-shadow:
+    0 10px 22px rgba(0, 0, 0, 0.45),
+    0 3px 8px rgba(0, 0, 0, 0.4);
+}
+
+/* accent backlight bloom (orange behind frosted glass) */
+.accent-glow {
+  position: relative;
+  isolation: isolate;
+}
+.accent-glow::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  background: radial-gradient(70% 80% at 50% 115%, var(--accent) 0%, transparent 70%);
+  opacity: 0.3;
+  filter: blur(20px);
+  pointer-events: none;
+  transition: opacity 260ms ease, filter 260ms ease;
+}
+.accent-glow:hover::after {
+  opacity: 0.55;
+  filter: blur(26px);
+}
+
+/* ---------------------------------------- typography */
 .display {
+  font-family: var(--font-display), "Space Grotesk", system-ui, sans-serif;
   font-weight: 600;
   letter-spacing: -0.03em;
   line-height: 0.98;
 }
+.display-light {
+  font-family: var(--font-display), "Space Grotesk", system-ui, sans-serif;
+  font-weight: 300;
+  letter-spacing: -0.02em;
+}
 .eyebrow {
-  font-size: 0.72rem;
-  letter-spacing: 0.28em;
+  font-family: var(--font-mono), "JetBrains Mono", monospace;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.2em;
   text-transform: uppercase;
-  color: var(--accent-hi);
+  color: var(--accent);
+}
+.meta {
+  font-family: var(--font-mono), "JetBrains Mono", monospace;
+  font-size: 0.7rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+.text-2 {
+  color: var(--ink-2);
+}
+.text-3 {
+  color: var(--ink-3);
 }
 .text-dim {
-  color: var(--ink-dim);
+  color: var(--ink-2);
 }
 .text-faint {
-  color: var(--ink-faint);
+  color: var(--ink-3);
 }
 .accent {
-  color: var(--accent-hi);
+  color: var(--accent-bright);
 }
 
+/* Sambo accent highlight in headlines / prices (orange) */
+.accent-text {
+  background: linear-gradient(180deg, #fdba74 0%, var(--accent) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* Ground X gold wordmark (the client's own brand, shown not adopted) */
 .gold-text {
-  background: linear-gradient(180deg, #f6e3bf 0%, var(--accent-hi) 45%, var(--accent) 100%);
+  background: linear-gradient(180deg, #f6e3bf 0%, var(--gx-gold-hi) 45%, var(--gx-gold) 100%);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
@@ -157,43 +265,56 @@ body {
 
 .hairline {
   height: 1px;
-  background: linear-gradient(90deg, transparent, var(--hair-strong), transparent);
+  background: linear-gradient(90deg, transparent, var(--stroke-strong), transparent);
 }
 
-/* buttons */
+/* ---------------------------------------- buttons */
 .btn {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
   padding: 0.8rem 1.4rem;
   border-radius: 999px;
+  font-family: var(--font-sans), Inter, sans-serif;
   font-size: 0.9rem;
   font-weight: 500;
   letter-spacing: 0.01em;
-  transition: all 0.3s ease;
+  transition: all 0.3s var(--ease);
   cursor: pointer;
 }
 .btn-primary {
-  background: linear-gradient(180deg, var(--accent-hi), var(--accent));
-  color: #1a1206;
-  border: 1px solid var(--accent-hi);
+  background: linear-gradient(180deg, var(--accent-bright), var(--accent));
+  color: #1a0f04;
+  border: 1px solid var(--accent-bright);
 }
 .btn-primary:hover {
   filter: brightness(1.08);
-  transform: translateY(-1px);
-  box-shadow: 0 10px 30px -10px rgba(200, 134, 46, 0.5);
+  transform: translateY(-2px) translateZ(10px);
+  box-shadow: 0 14px 30px -8px rgba(249, 115, 22, 0.5);
 }
 .btn-ghost {
   background: transparent;
   color: var(--ink);
-  border: 1px solid var(--hair-strong);
+  border: 1px solid var(--stroke-strong);
 }
 .btn-ghost:hover {
   border-color: var(--accent);
-  color: var(--accent-hi);
+  color: var(--accent-bright);
 }
 
-/* section rhythm */
+/* ---------------------------------------- entry animation */
+@keyframes pg-rise {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ---------------------------------------- section rhythm */
 .section {
   max-width: 1120px;
   margin: 0 auto;
