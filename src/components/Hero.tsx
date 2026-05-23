@@ -40,10 +40,13 @@ export function Hero() {
           </div>
 
           <div className="text-left">
-            <div className="gold-text display text-[2.6rem] sm:text-[3.4rem]">
-              GROUND<span className="ml-2 font-light">X</span>
-            </div>
-            <div className="meta mt-1 text-[0.62rem] text-dim">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/assets/groundx-logo.png"
+              alt="GROUND X"
+              className="w-[200px] sm:w-[250px]"
+            />
+            <div className="meta mt-2 text-[0.62rem] text-dim">
               Private · Modular · Uncompromising
             </div>
           </div>

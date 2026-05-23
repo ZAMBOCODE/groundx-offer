@@ -341,10 +341,9 @@ export function BrandTeaser() {
           <TiltCard className="mt-12 p-8 sm:p-12">
             <div className="grid items-center gap-10 md:grid-cols-[1.1fr_1fr]">
               <div>
-                <div className="gold-text display text-[3.4rem] sm:text-[4.6rem]">
-                  GROUND<span className="ml-3 font-light">X</span>
-                </div>
-                <p className="meta text-dim mt-4 text-[0.72rem]">Discreet. Modular. Uncompromising.</p>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src="/assets/groundx-logo.png" alt="GROUND X" className="w-[280px] sm:w-[340px]" />
+                <p className="meta text-dim mt-5 text-[0.72rem]">Discreet. Modular. Uncompromising.</p>
                 <div className="mt-6 flex gap-3">
                   {palette.map((c) => (
                     <div
@@ -369,10 +368,9 @@ export function BrandTeaser() {
       ) : (
         <Reveal delay={0.1}>
           <TiltCard className="mt-12 flex flex-col items-center p-10 text-center sm:p-16">
-            <div className="gold-text display text-[3.8rem] sm:text-[6rem]">
-              GROUND<span className="ml-3 font-light">X</span>
-            </div>
-            <p className="meta text-dim mt-3 text-[0.78rem]">Discreet. Modular. Uncompromising.</p>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/assets/groundx-logo.png" alt="GROUND X" className="w-[300px] sm:w-[440px]" />
+            <p className="meta text-dim mt-4 text-[0.78rem]">Discreet. Modular. Uncompromising.</p>
             <div className="mt-7 flex gap-3">
               {palette.map((c) => (
                 <div
