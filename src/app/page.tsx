@@ -7,6 +7,7 @@ import {
   Offer,
   Contact,
 } from "@/components/Sections";
+import { DevPanel } from "@/components/DevPanel";
 
 export default function Page() {
   return (
@@ -19,6 +20,7 @@ export default function Page() {
       <BrandTeaser />
       <Offer />
       <Contact />
+      <DevPanel />
     </main>
   );
 }

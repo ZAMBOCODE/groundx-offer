@@ -247,13 +247,13 @@ body {
   color: var(--accent-bright);
 }
 
-/* Zambo accent highlight in headlines / prices (clearly orange, not peachy-white) */
+/* Zambo accent highlight in headlines / prices — driven by accent vars so the
+   dev-panel color picker changes them live. Font overridable via --highlight-font. */
 .accent-text {
-  background: linear-gradient(180deg, #fb923c 0%, #f97316 100%);
+  background: linear-gradient(180deg, var(--accent-bright) 0%, var(--accent) 100%);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
-  /* dev-panel-ready: highlight font is overridable via --highlight-font */
   font-family: var(--highlight-font, inherit);
 }
 
@@ -326,4 +326,14 @@ body {
   .section {
     padding: 4.5rem 1.25rem;
   }
+}
+
+/* dev-panel toggles: scroll-snap to section */
+html.snap {
+  scroll-snap-type: y proximity;
+}
+html.snap section,
+html.snap header {
+  scroll-snap-align: start;
+  scroll-snap-stop: normal;
 }
