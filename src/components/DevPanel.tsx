@@ -5,9 +5,23 @@ import { AnimatePresence, motion } from "motion/react";
 import {
   useDesign,
   VARIANT_COUNT,
+  VARIANT_NOTES,
   SECTION_LABEL,
   type SectionKey,
 } from "./design-context";
+import { useOffer } from "./OfferProvider";
+import type { SectionKey as ConfigSectionKey } from "@/lib/config";
+
+const ALL_SECTIONS: { key: ConfigSectionKey; label: string }[] = [
+  { key: "hero", label: "Hero" },
+  { key: "about", label: "About" },
+  { key: "angle", label: "Why me" },
+  { key: "capabilities", label: "Capabilities" },
+  { key: "work", label: "Work" },
+  { key: "brand", label: "Brand" },
+  { key: "offer", label: "Offer" },
+  { key: "contact", label: "Contact" },
+];
 
 /* Live design controls — the "Angebot builder" panel. Toggle with the FAB
    (or press "D"). Everything writes CSS custom properties on <html> and
@@ -135,7 +149,8 @@ function apply(s: Settings) {
 export function DevPanel() {
   const [open, setOpen] = useState(false);
   const [s, setS] = useState<Settings>(DEFAULTS);
-  const { variants, setVariant } = useDesign();
+  const { variants, setVariant, enabledOverride, toggleSection } = useDesign();
+  const offer = useOffer();
 
   // load + apply on mount
   useEffect(() => {
@@ -377,10 +392,46 @@ export function DevPanel() {
             />
 
             <div className="hairline" />
-            <p className="meta text-faint text-[0.58rem]">Section layouts</p>
+            <p className="meta text-faint text-[0.58rem]">Sections — on/off</p>
+            <div className="grid grid-cols-2 gap-1.5">
+              {ALL_SECTIONS.map(({ key, label }) => {
+                const cfgEnabled = offer.sections.find((s) => s.key === key)?.enabled ?? true;
+                const override = enabledOverride[key];
+                const on = override === undefined ? cfgEnabled : override;
+                return (
+                  <button
+                    key={key}
+                    onClick={() => toggleSection(key, !on)}
+                    className="inner-card flex items-center justify-between px-3 py-2"
+                    title={`${label}: ${on ? "on" : "off"}`}
+                  >
+                    <span className="text-[0.78rem]" style={{ color: on ? "var(--ink)" : "var(--ink-3)" }}>
+                      {label}
+                    </span>
+                    <span
+                      className="relative h-4 w-7 rounded-full transition"
+                      style={{ background: on ? "var(--accent)" : "rgba(255,255,255,0.1)" }}
+                    >
+                      <span
+                        className="absolute top-0.5 h-3 w-3 rounded-full bg-white transition-all"
+                        style={{ left: on ? "0.875rem" : "0.125rem" }}
+                      />
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+
+            <div className="hairline" />
+            <p className="meta text-faint text-[0.58rem]">Section layouts — 6 variants each</p>
             {(Object.keys(VARIANT_COUNT) as SectionKey[]).map((key) => (
-              <div key={key} className="flex items-center justify-between gap-2">
-                <span className="text-[0.82rem] text-dim">{SECTION_LABEL[key]}</span>
+              <div key={key} className="flex flex-col gap-1.5">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-[0.82rem] text-dim">{SECTION_LABEL[key]}</span>
+                  <span className="meta text-faint text-[0.55rem]">
+                    {VARIANT_NOTES[key]?.[variants[key]] ?? `Variant ${variants[key] + 1}`}
+                  </span>
+                </div>
                 <div className="flex gap-1">
                   {Array.from({ length: VARIANT_COUNT[key] }).map((_, idx) => {
                     const active = variants[key] === idx;
@@ -393,15 +444,15 @@ export function DevPanel() {
                             .getElementById(key)
                             ?.scrollIntoView({ behavior: "smooth", block: "start" });
                         }}
-                        className="inner-card h-7 w-7 text-[0.72rem] font-semibold"
+                        className="inner-card h-7 flex-1 text-[0.7rem] font-semibold"
                         style={{
                           color: active ? "#1a0f04" : "var(--ink-2)",
                           background: active ? "var(--accent)" : undefined,
                           borderColor: active ? "var(--accent)" : undefined,
                         }}
-                        title={`Variant ${String.fromCharCode(65 + idx)}`}
+                        title={VARIANT_NOTES[key]?.[idx] ?? `Variant ${idx + 1}`}
                       >
-                        {String.fromCharCode(65 + idx)}
+                        {idx + 1}
                       </button>
                     );
                   })}

@@ -5,6 +5,7 @@ import { Hero } from "./Hero";
 import { About, Angle, Capabilities, Work, BrandTeaser, Offer, Contact } from "./Sections";
 import { DevPanel } from "./DevPanel";
 import { useOffer } from "./OfferProvider";
+import { useDesign } from "./design-context";
 import type { SectionKey } from "@/lib/config";
 
 const REGISTRY: Record<SectionKey, ComponentType> = {
@@ -20,10 +21,16 @@ const REGISTRY: Record<SectionKey, ComponentType> = {
 
 export function DeckBody() {
   const cfg = useOffer();
+  const { enabledOverride } = useDesign();
   return (
     <main>
       {cfg.sections
-        .filter((s) => s.enabled)
+        .filter((s) => {
+          // DevPanel override wins over cfg.sections[].enabled.
+          if (enabledOverride[s.key] === false) return false;
+          if (enabledOverride[s.key] === true) return true;
+          return s.enabled;
+        })
         .map((s, i) => {
           const C = REGISTRY[s.key];
           if (!C) return null;
