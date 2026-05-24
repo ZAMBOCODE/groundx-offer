@@ -16,30 +16,49 @@ import type { SectionKey as ConfigSectionKey } from "@/lib/config";
    nicht generisch, sondern award-winning"). Per-section enabled-override
    ergänzt für DevPanel-Toggling ohne Config-Edit. */
 
-export type SectionKey = "angle" | "capabilities" | "work" | "brand";
+export type SectionKey = "hero" | "about" | "angle" | "capabilities" | "work" | "brand" | "offer" | "contact";
 
 export type Variants = Record<SectionKey, number>;
 
-const DEFAULTS: Variants = { angle: 0, capabilities: 0, work: 4, brand: 2 };
+const DEFAULTS: Variants = {
+  hero: 0, about: 0, angle: 0, capabilities: 0, work: 4, brand: 2, offer: 0, contact: 0,
+};
 
 /** how many variants each section offers (for the dev-panel selector) */
 export const VARIANT_COUNT: Record<SectionKey, number> = {
-  angle: 6,
-  capabilities: 6,
-  work: 6,
-  brand: 6,
+  hero: 6, about: 6, angle: 6, capabilities: 6, work: 6, brand: 6, offer: 6, contact: 6,
 };
 
 export const SECTION_LABEL: Record<SectionKey, string> = {
+  hero: "Hero",
+  about: "About",
   angle: "Why me",
   capabilities: "What I can do",
   work: "Selected work",
   brand: "Brand direction",
+  offer: "Offer",
+  contact: "Contact",
 };
 
 /** Award-tier inspiration the variant lineup draws on (for the variant tooltips
  *  + the on-screen variant label). Index = variant idx. */
 export const VARIANT_NOTES: Record<SectionKey, string[]> = {
+  hero: [
+    "Centered · card stack",
+    "Split · headline + card",
+    "Cinematic · minimal cover",
+    "Marquee · scrolling display",
+    "Hero strip · logo top",
+    "Stacked · vertical center",
+  ],
+  about: [
+    "Image left · skills right",
+    "Image right · mirror",
+    "Photo full-bleed · overlay",
+    "Avatar centered · inline",
+    "Split · stat-numbers",
+    "Minimal · bio only",
+  ],
   angle: [
     "Cards · tilt grid",
     "Editorial · numbered rows",
@@ -71,6 +90,22 @@ export const VARIANT_NOTES: Record<SectionKey, string[]> = {
     "Split-screen · logo + mood",
     "Magazine · serif cover",
     "Swatch · full-width bands",
+  ],
+  offer: [
+    "Tabs · 3-card grid",
+    "Accordion · vertical",
+    "Compare · columns",
+    "Phases · timeline",
+    "Scroll · pricing strip",
+    "Minimal · list",
+  ],
+  contact: [
+    "Centered · CTA + card",
+    "Full quote · single CTA",
+    "Split · CTA + channels",
+    "Cinematic · big display",
+    "Card row · contact rails",
+    "Footer · minimal sign-off",
   ],
 };
 

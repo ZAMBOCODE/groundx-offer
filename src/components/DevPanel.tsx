@@ -10,6 +10,7 @@ import {
   type SectionKey,
 } from "./design-context";
 import { useOffer } from "./OfferProvider";
+import { Presets } from "./Presets";
 import type { SectionKey as ConfigSectionKey } from "@/lib/config";
 
 const ALL_SECTIONS: { key: ConfigSectionKey; label: string }[] = [
@@ -247,6 +248,9 @@ export function DevPanel() {
               <p className="eyebrow">Design Panel</p>
               <p className="meta text-faint mt-1 text-[0.58rem]">Taste D zum Ein-/Ausblenden</p>
             </div>
+
+            <div className="hairline" />
+            <Presets />
 
             {/* accent */}
             <Field label="Accent color">

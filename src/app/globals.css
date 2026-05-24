@@ -346,6 +346,9 @@ body {
   .section {
     padding: 4.5rem 1.25rem;
   }
+  .display {
+    line-height: 1.08;
+  }
 }
 
 /* dev-panel toggles: scroll-snap to section */

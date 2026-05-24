@@ -41,11 +41,21 @@ export function TiltCard({ children, className, style }: Props) {
     el.style.transform = "perspective(1300px) rotateX(0) rotateY(0) translateZ(0)";
   }
 
+  function onTouchMove(e: React.TouchEvent<HTMLDivElement>) {
+    const el = ref.current;
+    const touch = e.touches[0];
+    if (!el || !touch) return;
+    const r = el.getBoundingClientRect();
+    el.style.setProperty("--mx", `${touch.clientX - r.left}px`);
+    el.style.setProperty("--my", `${touch.clientY - r.top}px`);
+  }
+
   return (
     <div
       ref={ref}
       onMouseMove={onMove}
       onMouseLeave={onLeave}
+      onTouchMove={onTouchMove}
       className={clsx("card glow-border", className)}
       style={style}
     >

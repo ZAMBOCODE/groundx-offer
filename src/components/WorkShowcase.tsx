@@ -64,7 +64,7 @@ function ShowcaseRow({
       </div>
 
       {/* right — staggered tilted screenshot cards */}
-      <div className="relative h-[320px] sm:h-[440px]">
+      <div className="relative h-[320px] overflow-hidden sm:h-[440px] sm:overflow-visible">
         {shots.map((src, i) => {
           const rot = (i - (shots.length - 1) / 2) * 6;
           const left = shots.length > 1 ? (i / (shots.length - 1)) * 34 : 8;

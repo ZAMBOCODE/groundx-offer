@@ -78,63 +78,192 @@ function CaseImage({ c, className }: { c: CaseStudy; className?: string }) {
   );
 }
 
-/* ==================================================== ABOUT */
+/* ==================================================== ABOUT (6 variants) */
+
+const ABOUT_SKILLS = [
+  "Web design & development",
+  "E-commerce & checkout",
+  "3D modeling & rendering",
+  "Motion design & animation",
+  "AI video generation",
+  "AI image / renderings",
+  "Branding & identity",
+  "Landing pages & copywriting",
+  "Dashboards & internal tools",
+  "Automation & AI agents",
+];
+const ABOUT_BIO =
+  "A freelancer from Stuttgart helping businesses grow with clean web design, optimized shops, and striking 3D and motion work. I build the whole system: brand, visuals, site, content and the automation behind it.";
+const ABOUT_PROOF = "50+ projects · 96% client satisfaction · 10+ years";
 
 export function About() {
-  const skills = [
-    "Web design & development",
-    "E-commerce & checkout",
-    "3D modeling & rendering",
-    "Motion design & animation",
-    "AI video generation",
-    "AI image / renderings",
-    "Branding & identity",
-    "Landing pages & copywriting",
-    "Dashboards & internal tools",
-    "Automation & AI agents",
-  ];
+  const { variants } = useDesign();
+  const v = variants.about;
   return (
     <section id="about" className="section">
       <Reveal>
         <p className="eyebrow mb-4">Who you&apos;re working with</p>
       </Reveal>
-      <div className="grid items-center gap-10 md:grid-cols-[0.8fr_1.2fr]">
+
+      {/* variant 0: image-left, skills right (default) */}
+      {v === 0 && (
+        <div className="grid items-center gap-10 md:grid-cols-[0.8fr_1.2fr]">
+          <Reveal>
+            <SamyPhoto />
+          </Reveal>
+          <Reveal delay={0.1}>
+            <AboutCopy />
+          </Reveal>
+        </div>
+      )}
+
+      {/* variant 1: image-right mirror */}
+      {v === 1 && (
+        <div className="grid items-center gap-10 md:grid-cols-[1.2fr_0.8fr]">
+          <Reveal>
+            <AboutCopy />
+          </Reveal>
+          <Reveal delay={0.1}>
+            <SamyPhoto />
+          </Reveal>
+        </div>
+      )}
+
+      {/* variant 2: photo full-bleed with text overlay bottom */}
+      {v === 2 && (
         <Reveal>
           <div
-            className="card glow-border mx-auto w-full max-w-[320px] overflow-hidden"
-            style={{ aspectRatio: "4 / 5" }}
+            className="relative mx-auto mt-4 w-full max-w-5xl overflow-hidden rounded-[var(--r-hero)] border border-[var(--stroke-card)]"
+            style={{ aspectRatio: "16 / 9" }}
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src="/assets/samy.png"
               alt="Samuel Heymig"
-              className="h-full w-full object-cover object-top"
-              style={{ background: "linear-gradient(160deg, rgba(249,115,22,0.16), rgba(255,255,255,0.03))" }}
+              className="absolute inset-0 h-full w-full object-cover object-top"
             />
+            <div
+              className="absolute inset-0"
+              style={{ background: "linear-gradient(180deg, transparent 30%, rgba(5,5,7,0.92) 92%)" }}
+            />
+            <div className="absolute inset-0 flex flex-col justify-end p-8 sm:p-12">
+              <h2 className="display text-[1.8rem] sm:text-[2.6rem]">
+                Samuel Heymig — <span className="accent-text">one person, full stack.</span>
+              </h2>
+              <p className="text-dim mt-3 max-w-2xl text-[0.95rem] leading-relaxed">{ABOUT_BIO}</p>
+              <p className="meta text-faint mt-4 text-[0.6rem]">{ABOUT_PROOF}</p>
+            </div>
           </div>
         </Reveal>
-        <Reveal delay={0.1}>
-          <h2 className="display text-[2rem] sm:text-[2.8rem]">
-            Samuel Heymig — <span className="accent-text">one person, full stack.</span>
-          </h2>
-          <p className="text-dim mt-5 max-w-xl text-[1.05rem] leading-relaxed">
-            A freelancer from Stuttgart helping businesses grow with clean web design,
-            optimized shops, and striking 3D and motion work. I build the whole system:
-            brand, visuals, site, content and the automation behind it.
-          </p>
-          <div className="mt-7 flex flex-wrap gap-2">
-            {skills.map((s) => (
-              <span key={s} className="inner-card px-3 py-1.5 text-[0.82rem] text-dim">
-                {s}
-              </span>
-            ))}
+      )}
+
+      {/* variant 3: avatar centered, name + bio + inline skill list */}
+      {v === 3 && (
+        <Reveal>
+          <div className="mx-auto mt-6 flex max-w-3xl flex-col items-center text-center">
+            <div
+              className="card glow-border h-32 w-32 overflow-hidden"
+              style={{ borderRadius: "50%" }}
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/assets/samy.png" alt="Samuel Heymig" className="h-full w-full object-cover object-top" />
+            </div>
+            <h2 className="display mt-6 text-[1.8rem] sm:text-[2.4rem]">
+              Samuel Heymig — <span className="accent-text">one person, full stack.</span>
+            </h2>
+            <p className="text-dim mt-4 max-w-xl text-[1rem] leading-relaxed">{ABOUT_BIO}</p>
+            <p className="text-dim mt-6 max-w-2xl text-[0.85rem] leading-relaxed">
+              {ABOUT_SKILLS.map((s, i) => (
+                <span key={s}>
+                  <span className="text-white">{s}</span>
+                  {i < ABOUT_SKILLS.length - 1 && <span className="accent">  ·  </span>}
+                </span>
+              ))}
+            </p>
+            <p className="meta text-faint mt-6 text-[0.6rem]">{ABOUT_PROOF}</p>
           </div>
-          <p className="meta text-faint mt-6 text-[0.6rem]">
-            50+ projects · 96% client satisfaction · 10+ years
-          </p>
         </Reveal>
-      </div>
+      )}
+
+      {/* variant 4: split — photo card + big stat numbers */}
+      {v === 4 && (
+        <div className="grid items-stretch gap-6 md:grid-cols-[0.8fr_1.2fr]">
+          <Reveal>
+            <SamyPhoto />
+          </Reveal>
+          <Reveal delay={0.1}>
+            <div className="flex h-full flex-col justify-between">
+              <h2 className="display text-[1.9rem] sm:text-[2.6rem]">
+                Samuel Heymig — <span className="accent-text">one person, full stack.</span>
+              </h2>
+              <p className="text-dim mt-5 text-[1rem] leading-relaxed">{ABOUT_BIO}</p>
+              <div className="mt-8 grid grid-cols-3 gap-3">
+                {[
+                  { n: "50+", l: "Projects" },
+                  { n: "96%", l: "Satisfaction" },
+                  { n: "10+", l: "Years" },
+                ].map((s) => (
+                  <TiltCard key={s.l} className="flex flex-col items-start p-5">
+                    <div className="display-light accent text-[2.2rem]">{s.n}</div>
+                    <div className="meta text-faint mt-1 text-[0.6rem]">{s.l}</div>
+                  </TiltCard>
+                ))}
+              </div>
+            </div>
+          </Reveal>
+        </div>
+      )}
+
+      {/* variant 5: minimal — just name + bio, no photo */}
+      {v === 5 && (
+        <Reveal>
+          <div className="mx-auto mt-6 max-w-3xl">
+            <h2 className="display text-[2.4rem] leading-[1.05] sm:text-[3.6rem]">
+              Samuel Heymig.{" "}
+              <span className="accent-text">One person, full stack.</span>
+            </h2>
+            <p className="text-dim mt-6 text-[1.1rem] leading-relaxed">{ABOUT_BIO}</p>
+            <p className="meta text-faint mt-6 text-[0.6rem]">{ABOUT_PROOF}</p>
+          </div>
+        </Reveal>
+      )}
     </section>
+  );
+}
+
+function SamyPhoto() {
+  return (
+    <div
+      className="card glow-border mx-auto w-full max-w-[320px] overflow-hidden"
+      style={{ aspectRatio: "4 / 5" }}
+    >
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src="/assets/samy.png"
+        alt="Samuel Heymig"
+        className="h-full w-full object-cover object-top"
+        style={{ background: "linear-gradient(160deg, rgba(249,115,22,0.16), rgba(255,255,255,0.03))" }}
+      />
+    </div>
+  );
+}
+
+function AboutCopy() {
+  return (
+    <>
+      <h2 className="display text-[2rem] sm:text-[2.8rem]">
+        Samuel Heymig — <span className="accent-text">one person, full stack.</span>
+      </h2>
+      <p className="text-dim mt-5 max-w-xl text-[1.05rem] leading-relaxed">{ABOUT_BIO}</p>
+      <div className="mt-7 flex flex-wrap gap-2">
+        {ABOUT_SKILLS.map((s) => (
+          <span key={s} className="inner-card px-3 py-1.5 text-[0.82rem] text-dim">
+            {s}
+          </span>
+        ))}
+      </div>
+      <p className="meta text-faint mt-6 text-[0.6rem]">{ABOUT_PROOF}</p>
+    </>
   );
 }
 
@@ -972,21 +1101,47 @@ function PriceGrid({ cards }: { cards: PriceCard[] }) {
 }
 
 export function Offer() {
-  const [tab, setTab] = useState(0);
+  const { variants } = useDesign();
+  const v = variants.offer;
   const co = useOffer().content.offer;
-  const active = co.tabs[tab]!;
+  const head = (
+    <SectionHead
+      eyebrow={co.eyebrow}
+      title={
+        <>
+          {co.title} <span className="accent-text">{co.titleAccent}</span>
+        </>
+      }
+      sub={co.sub}
+    />
+  );
   return (
     <section id="offer" className="section">
-      <SectionHead
-        eyebrow={co.eyebrow}
-        title={
-          <>
-            {co.title} <span className="accent-text">{co.titleAccent}</span>
-          </>
-        }
-        sub={co.sub}
-      />
-      {/* tabs */}
+      {head}
+      {v === 0 && <OfferTabs co={co} />}
+      {v === 1 && <OfferAccordion co={co} />}
+      {v === 2 && <OfferCompare co={co} />}
+      {v === 3 && <OfferPhases co={co} />}
+      {v === 4 && <OfferScrollStrip co={co} />}
+      {v === 5 && <OfferMinimalList co={co} />}
+    </section>
+  );
+}
+
+type OfferShape = {
+  tabs: {
+    label: string;
+    note: string;
+    cards: PriceCard[];
+  }[];
+};
+
+/* variant 0: tabs + 3-card grid (default) */
+function OfferTabs({ co }: { co: OfferShape }) {
+  const [tab, setTab] = useState(0);
+  const active = co.tabs[tab]!;
+  return (
+    <>
       <Reveal>
         <div className="mt-9 inline-flex flex-wrap gap-1.5 rounded-full p-1.5" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid var(--stroke-card)" }}>
           {co.tabs.map((t, i) => (
@@ -1006,56 +1161,367 @@ export function Offer() {
         <p className="text-dim mt-4 text-[0.95rem]">{active.note}</p>
       </Reveal>
       <PriceGrid cards={active.cards} />
+    </>
+  );
+}
+
+/* variant 1: accordion — each tab as expandable group */
+function OfferAccordion({ co }: { co: OfferShape }) {
+  const [openIdx, setOpenIdx] = useState(0);
+  return (
+    <div className="mt-10 flex flex-col gap-3">
+      {co.tabs.map((t, i) => {
+        const open = openIdx === i;
+        return (
+          <Reveal key={t.label} delay={i * 0.06}>
+            <TiltCard className="overflow-hidden">
+              <button
+                onClick={() => setOpenIdx(open ? -1 : i)}
+                className="flex w-full items-center justify-between p-6 text-left"
+              >
+                <div className="flex items-baseline gap-4">
+                  <span className="meta accent text-[0.6rem]">{String(i + 1).padStart(2, "0")}</span>
+                  <h3 className="display text-[1.3rem]">{t.label}</h3>
+                </div>
+                <span
+                  className="text-accent transition-transform"
+                  style={{ transform: open ? "rotate(45deg)" : "rotate(0deg)" }}
+                >
+                  +
+                </span>
+              </button>
+              {open && (
+                <div className="border-t border-[var(--stroke-card)] p-6 pt-5">
+                  <p className="text-dim mb-5 text-[0.95rem]">{t.note}</p>
+                  <div className="grid gap-4 md:grid-cols-3">
+                    {t.cards.map((p) => (
+                      <div key={p.name} className="inner-card p-5">
+                        <span className="meta text-faint text-[0.6rem]">{p.tag}</span>
+                        <h4 className="display mt-2 text-[1.1rem]">{p.name}</h4>
+                        <div className="accent-text display mt-1 text-[1.3rem]">{p.price}</div>
+                        <ul className="mt-3 flex flex-col gap-1.5">
+                          {p.items.map((it) => (
+                            <li key={it} className="text-dim flex gap-2 text-[0.82rem]">
+                              <span className="accent">—</span>
+                              {it}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </TiltCard>
+          </Reveal>
+        );
+      })}
+    </div>
+  );
+}
+
+/* variant 2: side-by-side comparison columns (all tabs visible) */
+function OfferCompare({ co }: { co: OfferShape }) {
+  return (
+    <div className="mt-10 grid gap-5" style={{ gridTemplateColumns: `repeat(${co.tabs.length}, minmax(0, 1fr))` }}>
+      {co.tabs.map((t, i) => (
+        <Reveal key={t.label} delay={i * 0.05}>
+          <TiltCard className="flex h-full flex-col p-6">
+            <div className="meta accent text-[0.6rem]">{String(i + 1).padStart(2, "0")}</div>
+            <h3 className="display mt-2 text-[1.2rem]">{t.label}</h3>
+            <p className="text-dim mt-2 flex-1 text-[0.85rem]">{t.note}</p>
+            <div className="hairline my-4" />
+            <div className="flex flex-col gap-3">
+              {t.cards.map((p) => (
+                <div key={p.name} className="inner-card flex items-baseline justify-between px-3 py-2">
+                  <span className="text-[0.82rem] text-white">{p.name}</span>
+                  <span className="accent meta text-[0.7rem]">{p.price}</span>
+                </div>
+              ))}
+            </div>
+          </TiltCard>
+        </Reveal>
+      ))}
+    </div>
+  );
+}
+
+/* variant 3: phases — horizontal timeline of offer-tabs as stations */
+function OfferPhases({ co }: { co: OfferShape }) {
+  return (
+    <div className="relative mt-14">
+      <div
+        className="absolute left-0 right-0 top-[14px] h-px"
+        style={{ background: "linear-gradient(90deg, transparent, var(--accent), transparent)" }}
+      />
+      <div className="grid gap-8" style={{ gridTemplateColumns: `repeat(${co.tabs.length}, minmax(0, 1fr))` }}>
+        {co.tabs.map((t, i) => (
+          <Reveal key={t.label} delay={i * 0.06}>
+            <div className="flex flex-col items-start">
+              <span
+                className="relative -ml-1 h-7 w-7 rounded-full border-2"
+                style={{ background: "var(--accent)", borderColor: "#050507", boxShadow: "0 0 0 4px rgba(249,115,22,0.18)" }}
+              />
+              <div className="meta accent mt-4 text-[0.6rem]">PHASE {i + 1}</div>
+              <h3 className="display mt-1 text-[1.2rem]">{t.label}</h3>
+              <p className="text-dim mt-2 text-[0.85rem] leading-relaxed">{t.note}</p>
+              <ul className="mt-3 flex flex-col gap-1.5">
+                {t.cards.map((p) => (
+                  <li key={p.name} className="text-dim text-[0.78rem]">
+                    <span className="accent">—</span> {p.name}{" "}
+                    <span className="meta text-faint">· {p.price}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </Reveal>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/* variant 4: full-bleed horizontal scroll-snap pricing strip */
+function OfferScrollStrip({ co }: { co: OfferShape }) {
+  const flat = co.tabs.flatMap((t) => t.cards.map((c) => ({ ...c, tab: t.label })));
+  return (
+    <Reveal>
+      <div className="mt-10 flex snap-x snap-mandatory overflow-x-auto pb-6" style={{ scrollbarWidth: "none" }}>
+        {flat.map((p, i) => (
+          <div key={`${p.tab}-${p.name}`} className="w-[320px] shrink-0 snap-start pr-4 last:pr-0 sm:w-[380px]">
+            <TiltCard
+              className={p.feature ? "accent-glow flex h-full flex-col p-7" : "flex h-full flex-col p-7"}
+              style={p.feature ? { borderColor: "var(--accent)", background: "rgba(249,115,22,0.06)" } : undefined}
+            >
+              <span className="meta text-faint text-[0.55rem]">{p.tab}</span>
+              <span className="meta accent mt-1 text-[0.6rem]">{p.tag}</span>
+              <h3 className="display mt-2 text-[1.25rem]">{p.name}</h3>
+              <div className="accent-text display mt-2 text-[1.6rem]">{p.price}</div>
+              <div className="hairline my-5" />
+              <ul className="flex flex-1 flex-col gap-2">
+                {p.items.map((it) => (
+                  <li key={it} className="text-dim flex gap-2 text-[0.85rem]">
+                    <span className="accent">—</span>
+                    {it}
+                  </li>
+                ))}
+              </ul>
+              <span className="meta text-faint mt-4 text-[0.55rem]">card {i + 1} / {flat.length}</span>
+            </TiltCard>
+          </div>
+        ))}
+      </div>
+    </Reveal>
+  );
+}
+
+/* variant 5: minimal list — text-only, no cards */
+function OfferMinimalList({ co }: { co: OfferShape }) {
+  return (
+    <div className="mx-auto mt-10 max-w-3xl">
+      {co.tabs.map((t, ti) => (
+        <Reveal key={t.label} delay={ti * 0.05}>
+          <div className="border-t border-[var(--stroke-card)] py-6 last:border-b">
+            <div className="flex items-baseline justify-between gap-4">
+              <h3 className="display text-[1.2rem]">{t.label}</h3>
+              <span className="meta text-faint text-[0.6rem]">{t.note}</span>
+            </div>
+            <ul className="mt-3 flex flex-col gap-2">
+              {t.cards.map((p) => (
+                <li key={p.name} className="grid grid-cols-[1fr_auto_auto] items-baseline gap-4 text-[0.9rem]">
+                  <span className="text-white">{p.name}</span>
+                  <span className="meta text-faint text-[0.62rem]">{p.tag}</span>
+                  <span className="accent">{p.price}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </Reveal>
+      ))}
+    </div>
+  );
+}
+
+/* =================================================== CONTACT (6 variants) */
+
+const CONTACT_CHANNELS = [
+  { label: "Mail", value: "matteo.abele@gmx.de", href: "mailto:matteo.abele@gmx.de" },
+  { label: "Web", value: "zambodezigns.com", href: "https://zambodezigns.com" },
+  { label: "Calendly", value: "private consultation · 30 min", href: "#" },
+];
+
+export function Contact() {
+  const cx = useOffer().content.contact;
+  const { variants } = useDesign();
+  const v = variants.contact;
+  return (
+    <section id="contact" className="section text-center">
+      {v === 0 && <ContactCentered cx={cx} />}
+      {v === 1 && <ContactQuote cx={cx} />}
+      {v === 2 && <ContactSplit cx={cx} />}
+      {v === 3 && <ContactCinematic cx={cx} />}
+      {v === 4 && <ContactCardRow cx={cx} />}
+      {v === 5 && <ContactMinimalFooter cx={cx} />}
     </section>
   );
 }
 
-/* =================================================== CONTACT */
+type CxContent = { eyebrow: string; headline: string; headlineAccent: string; sub: string };
 
-export function Contact() {
-  const cx = useOffer().content.contact;
+/* variant 0: centered + samy card (default) */
+function ContactCentered({ cx }: { cx: CxContent }) {
   return (
-    <section className="section text-center">
-      <Reveal>
-        <p className="eyebrow mb-4">{cx.eyebrow}</p>
-        <h2 className="display mx-auto max-w-2xl text-[2.2rem] sm:text-[3rem]">
+    <Reveal>
+      <p className="eyebrow mb-4">{cx.eyebrow}</p>
+      <h2 className="display mx-auto max-w-2xl text-[2.2rem] sm:text-[3rem]">
+        {cx.headline} <span className="accent-text">{cx.headlineAccent}</span>
+      </h2>
+      <p className="text-dim mx-auto mt-5 max-w-lg text-[1.02rem] leading-relaxed">{cx.sub}</p>
+      <div className="card mx-auto mt-12 flex max-w-md items-center gap-5 p-5 text-left">
+        <div
+          className="h-20 w-16 shrink-0 overflow-hidden rounded-xl"
+          style={{ background: "linear-gradient(160deg, rgba(249,115,22,0.18), rgba(255,255,255,0.04))" }}
+        >
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/assets/samy.png" alt="Samuel Heymig" className="h-full w-full object-cover object-top" />
+        </div>
+        <div>
+          <div className="display text-[1.05rem]">Samuel Heymig</div>
+          <div className="meta accent mt-0.5 text-[0.58rem]">ZamboDezigns · Stuttgart</div>
+          <p className="text-dim mt-1.5 text-[0.85rem] leading-snug">
+            Clean web design, optimized shops, and striking 3D &amp; motion work.
+          </p>
+        </div>
+      </div>
+      <div className="mt-9 flex flex-wrap justify-center gap-3">
+        <a href="#" className="btn btn-primary">Book a private consultation</a>
+      </div>
+      <p className="meta text-faint mt-16 text-[0.62rem]">
+        ZamboDezigns · Samuel Heymig · Stuttgart, Germany
+      </p>
+    </Reveal>
+  );
+}
+
+/* variant 1: full quote + single CTA */
+function ContactQuote({ cx }: { cx: CxContent }) {
+  return (
+    <Reveal>
+      <div className="mx-auto flex max-w-3xl flex-col items-center gap-10 py-12">
+        <span className="display select-none accent text-[5rem] leading-none">“</span>
+        <h2 className="display text-[2rem] leading-[1.15] sm:text-[2.8rem]">
           {cx.headline} <span className="accent-text">{cx.headlineAccent}</span>
         </h2>
-        <p className="text-dim mx-auto mt-5 max-w-lg text-[1.02rem] leading-relaxed">
-          {cx.sub}
-        </p>
+        <p className="text-dim max-w-xl text-[1rem] leading-relaxed">{cx.sub}</p>
+        <a href="#" className="btn btn-primary mt-4">Book a private consultation</a>
+        <p className="meta text-faint text-[0.6rem]">ZamboDezigns · Samuel Heymig · Stuttgart</p>
+      </div>
+    </Reveal>
+  );
+}
 
-        {/* who's behind it */}
-        <div className="card mx-auto mt-12 flex max-w-md items-center gap-5 p-5 text-left">
-          <div
-            className="h-20 w-16 shrink-0 overflow-hidden rounded-xl"
-            style={{ background: "linear-gradient(160deg, rgba(249,115,22,0.18), rgba(255,255,255,0.04))" }}
-          >
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src="/assets/samy.png"
-              alt="Samuel Heymig"
-              className="h-full w-full object-cover object-top"
-            />
-          </div>
+/* variant 2: split — CTA left, channels right */
+function ContactSplit({ cx }: { cx: CxContent }) {
+  return (
+    <div className="grid items-stretch gap-6 text-left md:grid-cols-2">
+      <Reveal>
+        <TiltCard className="flex h-full flex-col justify-between p-9">
           <div>
-            <div className="display text-[1.05rem]">Samuel Heymig</div>
-            <div className="meta accent mt-0.5 text-[0.58rem]">ZamboDezigns · Stuttgart</div>
-            <p className="text-dim mt-1.5 text-[0.85rem] leading-snug">
-              Clean web design, optimized shops, and striking 3D &amp; motion work.
-            </p>
+            <p className="eyebrow mb-3">{cx.eyebrow}</p>
+            <h2 className="display text-[1.8rem] sm:text-[2.4rem]">
+              {cx.headline} <span className="accent-text">{cx.headlineAccent}</span>
+            </h2>
+            <p className="text-dim mt-5 text-[1rem] leading-relaxed">{cx.sub}</p>
           </div>
-        </div>
-
-        <div className="mt-9 flex flex-wrap justify-center gap-3">
-          <a href="#" className="btn btn-primary">
-            Book a private consultation
-          </a>
-        </div>
-        <p className="meta text-faint mt-16 text-[0.62rem]">
-          ZamboDezigns · Samuel Heymig · Stuttgart, Germany
-        </p>
+          <a href="#" className="btn btn-primary mt-8 self-start">Book a private consultation</a>
+        </TiltCard>
       </Reveal>
-    </section>
+      <Reveal delay={0.1}>
+        <div className="flex h-full flex-col gap-3">
+          {CONTACT_CHANNELS.map((c) => (
+            <a key={c.label} href={c.href} className="inner-card flex flex-1 items-center justify-between px-6 py-5">
+              <span className="meta accent text-[0.6rem]">{c.label}</span>
+              <span className="text-[0.95rem] text-white">{c.value}</span>
+              <span className="accent text-[1.2rem]">→</span>
+            </a>
+          ))}
+        </div>
+      </Reveal>
+    </div>
+  );
+}
+
+/* variant 3: cinematic — big display + CTA, gradient bg */
+function ContactCinematic({ cx }: { cx: CxContent }) {
+  return (
+    <Reveal>
+      <div
+        className="relative mx-auto mt-4 flex min-h-[460px] flex-col items-center justify-center overflow-hidden rounded-[var(--r-hero)] border border-[var(--stroke-card)] p-12 text-center"
+        style={{
+          background:
+            "radial-gradient(100% 60% at 50% 0%, rgba(249,115,22,0.16), transparent 60%), radial-gradient(80% 60% at 50% 100%, rgba(232,181,99,0.10), transparent 55%)",
+        }}
+      >
+        <p className="eyebrow mb-6">{cx.eyebrow}</p>
+        <h2 className="display max-w-4xl text-[2.6rem] leading-[1.05] sm:text-[4.2rem]">
+          {cx.headline} <span className="accent-text">{cx.headlineAccent}</span>
+        </h2>
+        <p className="text-dim mt-6 max-w-xl text-[1.05rem] leading-relaxed">{cx.sub}</p>
+        <a href="#" className="btn btn-primary mt-10">Book a private consultation</a>
+      </div>
+    </Reveal>
+  );
+}
+
+/* variant 4: card row — three contact rails */
+function ContactCardRow({ cx }: { cx: CxContent }) {
+  return (
+    <Reveal>
+      <div className="text-center">
+        <p className="eyebrow mb-3">{cx.eyebrow}</p>
+        <h2 className="display mx-auto max-w-2xl text-[2rem] sm:text-[2.6rem]">
+          {cx.headline} <span className="accent-text">{cx.headlineAccent}</span>
+        </h2>
+      </div>
+      <div className="mt-10 grid gap-4 md:grid-cols-3">
+        {CONTACT_CHANNELS.map((c, i) => (
+          <Reveal key={c.label} delay={i * 0.07}>
+            <a href={c.href} className="block h-full">
+              <TiltCard className="flex h-full flex-col items-center p-7 text-center">
+                <span className="meta accent text-[0.6rem]">{c.label.toUpperCase()}</span>
+                <p className="display mt-3 text-[1.1rem]">{c.value}</p>
+                <span className="meta text-faint mt-4 text-[0.58rem]">→ open</span>
+              </TiltCard>
+            </a>
+          </Reveal>
+        ))}
+      </div>
+      <p className="meta text-faint mt-12 text-center text-[0.62rem]">
+        ZamboDezigns · Samuel Heymig · Stuttgart, Germany
+      </p>
+    </Reveal>
+  );
+}
+
+/* variant 5: minimal footer-style sign-off */
+function ContactMinimalFooter({ cx }: { cx: CxContent }) {
+  return (
+    <Reveal>
+      <div className="mx-auto flex max-w-4xl flex-col items-start gap-6 border-t border-[var(--stroke-card)] pt-12 text-left md:flex-row md:items-end md:justify-between">
+        <div>
+          <p className="eyebrow mb-3">{cx.eyebrow}</p>
+          <h2 className="display text-[1.8rem] sm:text-[2.3rem]">
+            {cx.headline} <span className="accent-text">{cx.headlineAccent}</span>
+          </h2>
+          <p className="text-dim mt-3 max-w-md text-[0.92rem] leading-relaxed">{cx.sub}</p>
+        </div>
+        <div className="flex flex-col items-start gap-2 md:items-end">
+          <a href="#" className="btn btn-primary">Book a consultation</a>
+          <p className="meta text-faint text-[0.6rem]">
+            ZamboDezigns · Stuttgart, Germany
+          </p>
+        </div>
+      </div>
+    </Reveal>
   );
 }
