@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { motion } from "motion/react";
 import { TiltCard } from "./TiltCard";
-import { capabilities, cases, type CaseStudy } from "@/lib/data";
+import { cases, type CaseStudy } from "@/lib/data";
 import { useDesign } from "./design-context";
 import { useOffer } from "./OfferProvider";
 import { StickyWork } from "./StickyWork";
@@ -209,7 +209,7 @@ export function Capabilities() {
       {/* variant 0: even 3-col cards */}
       {v === 0 && (
         <div className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {capabilities.map((c, i) => (
+          {c.items.map((c, i) => (
             <Reveal key={c.title} delay={(i % 3) * 0.07}>
               <TiltCard className="flex h-full flex-col p-6">
                 <h3 className="display text-[1.15rem]">{c.title}</h3>
@@ -227,7 +227,7 @@ export function Capabilities() {
       {/* variant 1: bento — first card featured */}
       {v === 1 && (
         <div className="mt-12 grid auto-rows-[minmax(150px,auto)] gap-5 sm:grid-cols-2 lg:grid-cols-4">
-          {capabilities.map((c, i) => {
+          {c.items.map((c, i) => {
             const big = i === 0;
             return (
               <Reveal key={c.title} delay={(i % 4) * 0.06}>
@@ -249,7 +249,7 @@ export function Capabilities() {
       {/* variant 2: compact rows */}
       {v === 2 && (
         <div className="mt-12 flex flex-col">
-          {capabilities.map((c, i) => (
+          {c.items.map((c, i) => (
             <Reveal key={c.title} delay={(i % 6) * 0.04}>
               <div className="grid grid-cols-1 items-center gap-2 border-t border-[var(--stroke-card)] py-5 md:grid-cols-[220px_1fr_auto] md:gap-8">
                 <h3 className="display text-[1.1rem]">{c.title}</h3>
@@ -462,101 +462,6 @@ export function BrandTeaser() {
 
 type PriceCard = { tag: string; name: string; price: string; items: string[]; feature?: boolean };
 
-const OFFER_TABS: { label: string; note: string; cards: PriceCard[] }[] = [
-  {
-    label: "Partnership",
-    note: "Setup once, then a system that runs every month.",
-    cards: [
-      {
-        tag: "Phase 1 · one-time",
-        name: "Setup & foundation",
-        price: "from €3,500",
-        items: [
-          "Brand guidelines finalized",
-          "10–15 photoreal AI renderings",
-          "Landing page, deployed",
-          "2–3 marketing videos",
-          "Social template set",
-          "Drive + content calendar",
-        ],
-      },
-      {
-        tag: "Phase 2 · monthly",
-        name: "Ongoing partnership",
-        price: "from €1,500 / mo",
-        items: [
-          "15–20 social posts",
-          "4–6 AI videos",
-          "3–5 new renderings",
-          "Content calendar & scheduling",
-          "Paid-ads management",
-          "Monthly analytics & optimization",
-        ],
-        feature: true,
-      },
-      {
-        tag: "Soft start · optional",
-        name: "Test month",
-        price: "€1,500 flat",
-        items: [
-          "One month, full output",
-          "No long commitment",
-          "Rolls into the retainer",
-          "De-risks the decision",
-        ],
-      },
-    ],
-  },
-  {
-    label: "One-time builds",
-    note: "Standalone projects, paid once. No retainer required.",
-    cards: [
-      {
-        tag: "Web",
-        name: "Informative website",
-        price: "€2,000–3,000",
-        items: ["EN + DE, responsive", "Lead-capture / consultation", "Deployed on Vercel", "Privacy-first analytics"],
-      },
-      {
-        tag: "Shop",
-        name: "Shopify rebuild",
-        price: "€1,500–2,500",
-        items: ["Premium theme", "Product pages per module", "AI renderings integrated", "Checkout optimization"],
-        feature: true,
-      },
-      {
-        tag: "3D",
-        name: "Module configurator",
-        price: "€2,000–4,000",
-        items: ["Build-your-module in 3D", "Real GLB models", "Browser-based", "Three.js / R3F"],
-      },
-    ],
-  },
-  {
-    label: "À la carte",
-    note: "Single deliverables, priced per item. Mix as you need.",
-    cards: [
-      {
-        tag: "Visual",
-        name: "Per deliverable",
-        price: "from €120",
-        items: ["AI rendering — from €120", "AI video / reel — from €250", "Logo animation — from €300", "Pitch-deck slide — from €90"],
-      },
-      {
-        tag: "Web add-ons",
-        name: "Web & content",
-        price: "from €500",
-        items: ["Landing page — from €900", "Arabic + RTL — €500–1,000", "Analytics dashboard — €1–2k", "Brand guidelines — from €700"],
-      },
-      {
-        tag: "Ongoing",
-        name: "Social & ads",
-        price: "from €40 / post",
-        items: ["Social post — from €40", "ManyChat DM funnel — from €400", "Ad campaign setup — from €350", "Monthly report — from €150"],
-      },
-    ],
-  },
-];
 
 function PriceGrid({ cards }: { cards: PriceCard[] }) {
   return (
@@ -588,8 +493,8 @@ function PriceGrid({ cards }: { cards: PriceCard[] }) {
 
 export function Offer() {
   const [tab, setTab] = useState(0);
-  const active = OFFER_TABS[tab]!;
   const co = useOffer().content.offer;
+  const active = co.tabs[tab]!;
   return (
     <section id="offer" className="section">
       <SectionHead
@@ -604,7 +509,7 @@ export function Offer() {
       {/* tabs */}
       <Reveal>
         <div className="mt-9 inline-flex flex-wrap gap-1.5 rounded-full p-1.5" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid var(--stroke-card)" }}>
-          {OFFER_TABS.map((t, i) => (
+          {co.tabs.map((t, i) => (
             <button
               key={t.label}
               onClick={() => setTab(i)}

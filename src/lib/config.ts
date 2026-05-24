@@ -32,10 +32,21 @@ export type OfferContent = {
     title: string;
     titleAccent: string;
     sub: string;
+    items: { title: string; blurb: string; proof: string }[];
   };
   work: { eyebrow: string; title: string; titleAccent: string };
   brand: { eyebrow: string; title: string; titleAccent: string; sub: string };
-  offer: { eyebrow: string; title: string; titleAccent: string; sub: string };
+  offer: {
+    eyebrow: string;
+    title: string;
+    titleAccent: string;
+    sub: string;
+    tabs: {
+      label: string;
+      note: string;
+      cards: { tag: string; name: string; price: string; items: string[]; feature?: boolean }[];
+    }[];
+  };
   contact: { eyebrow: string; headline: string; headlineAccent: string; sub: string };
 };
 
@@ -81,6 +92,16 @@ export const DEFAULT_CONFIG: OfferConfig = {
       title: "The full stack of a",
       titleAccent: "marketing department, in one person.",
       sub: "Each of these is something I have built and shipped, not a service line on a page.",
+      items: [
+        { title: "AI renderings & visual systems", blurb: "Photoreal interiors and exteriors from a controlled prompt system, not random AI output. Real camera profiles, consistent light, brand-locked.", proof: "12-prompt master system + enhancer pipeline built for Ground X" },
+        { title: "3D configurators", blurb: "Interactive product builders in the browser. Rotate, combine modules, see the result live. Built on React Three Fiber.", proof: "Container configurator already shipped (Next.js + R3F, deployed)" },
+        { title: "Premium websites", blurb: "Fast, multilingual, conversion-focused sites with cinematic motion. Lead capture, private-consultation flows, RTL-ready.", proof: "Gulf Rescue & Löwenhardt — live luxury/security sites" },
+        { title: "AI video production", blurb: "Cinematic walkthroughs, reels and timelapses from an AI pipeline. Sound, motion and grade, not slideshow exports.", proof: "End-to-end AI video pipeline in production" },
+        { title: "Social & automation", blurb: "Content calendars, scheduling, and DM funnels. ManyChat auto-reply and lead routing wired to the content plan.", proof: "ManyChat flows + content-plan system live on zZzlim" },
+        { title: "Dashboards & internal tools", blurb: "Custom dashboards that pull your data into one view: analytics, pipeline, performance. The same systems I build for myself.", proof: "AETHER operating system + zZzlim dashboard" },
+        { title: "Investor pitch decks", blurb: "Decks that raise: clear story, real numbers, design that signals a serious company. From narrative to final layout.", proof: "Athena and further investor decks delivered" },
+        { title: "Branding", blurb: "Logo, color, type and tone of voice into one guideline your team can actually use. Consistent across every surface.", proof: "Full brand systems across multiple clients" },
+      ],
     },
     work: { eyebrow: "Selected work", title: "Already built,", titleAccent: "already live." },
     brand: {
@@ -94,6 +115,35 @@ export const DEFAULT_CONFIG: OfferConfig = {
       title: "Pick how you want to",
       titleAccent: "work together.",
       sub: "For context: Dubai agencies charge $3,000–8,000/mo for this scope, and Ground X sells from $50,000 a module.",
+      tabs: [
+        {
+          label: "Partnership",
+          note: "Setup once, then a system that runs every month.",
+          cards: [
+            { tag: "Phase 1 · one-time", name: "Setup & foundation", price: "from €3,500", items: ["Brand guidelines finalized", "10–15 photoreal AI renderings", "Landing page, deployed", "2–3 marketing videos", "Social template set", "Drive + content calendar"] },
+            { tag: "Phase 2 · monthly", name: "Ongoing partnership", price: "from €1,500 / mo", items: ["15–20 social posts", "4–6 AI videos", "3–5 new renderings", "Content calendar & scheduling", "Paid-ads management", "Monthly analytics & optimization"], feature: true },
+            { tag: "Soft start · optional", name: "Test month", price: "€1,500 flat", items: ["One month, full output", "No long commitment", "Rolls into the retainer", "De-risks the decision"] },
+          ],
+        },
+        {
+          label: "One-time builds",
+          note: "Standalone projects, paid once. No retainer required.",
+          cards: [
+            { tag: "Web", name: "Informative website", price: "€2,000–3,000", items: ["EN + DE, responsive", "Lead-capture / consultation", "Deployed on Vercel", "Privacy-first analytics"] },
+            { tag: "Shop", name: "Shopify rebuild", price: "€1,500–2,500", items: ["Premium theme", "Product pages per module", "AI renderings integrated", "Checkout optimization"], feature: true },
+            { tag: "3D", name: "Module configurator", price: "€2,000–4,000", items: ["Build-your-module in 3D", "Real GLB models", "Browser-based", "Three.js / R3F"] },
+          ],
+        },
+        {
+          label: "À la carte",
+          note: "Single deliverables, priced per item. Mix as you need.",
+          cards: [
+            { tag: "Visual", name: "Per deliverable", price: "from €120", items: ["AI rendering — from €120", "AI video / reel — from €250", "Logo animation — from €300", "Pitch-deck slide — from €90"] },
+            { tag: "Web add-ons", name: "Web & content", price: "from €500", items: ["Landing page — from €900", "Arabic + RTL — €500–1,000", "Analytics dashboard — €1–2k", "Brand guidelines — from €700"] },
+            { tag: "Ongoing", name: "Social & ads", price: "from €40 / post", items: ["Social post — from €40", "ManyChat DM funnel — from €400", "Ad campaign setup — from €350", "Monthly report — from €150"] },
+          ],
+        },
+      ],
     },
     contact: {
       eyebrow: "Next step",
