@@ -7,6 +7,7 @@ import {
   useState,
   useCallback,
 } from "react";
+import { useOffer } from "./OfferProvider";
 
 /* Per-section layout variants, shared between the dev-panel (which picks them)
    and the sections (which render them). Persisted to localStorage. */
@@ -45,14 +46,25 @@ const DesignCtx = createContext<Ctx>({
 });
 
 export function DesignProvider({ children }: { children: React.ReactNode }) {
+  const cfg = useOffer();
   const [variants, setVariants] = useState<Variants>(DEFAULTS);
 
+  // Seed variants from the offer config (so the pipeline drives layout per
+  // client); a saved dev-panel choice in localStorage always wins.
   useEffect(() => {
     try {
       const raw = localStorage.getItem(KEY);
-      if (raw) setVariants({ ...DEFAULTS, ...JSON.parse(raw) });
+      if (raw) {
+        setVariants({ ...DEFAULTS, ...JSON.parse(raw) });
+        return;
+      }
     } catch {}
-  }, []);
+    const seeded: Variants = { ...DEFAULTS };
+    for (const s of cfg.sections) {
+      if (s.key in seeded) (seeded as Record<string, number>)[s.key] = s.variant;
+    }
+    setVariants(seeded);
+  }, [cfg]);
 
   const setVariant = useCallback((k: SectionKey, idx: number) => {
     setVariants((prev) => {
