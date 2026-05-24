@@ -1,31 +1,13 @@
-import { Hero } from "@/components/Hero";
-import {
-  About,
-  Angle,
-  Capabilities,
-  Work,
-  BrandTeaser,
-  Offer,
-  Contact,
-} from "@/components/Sections";
-import { DevPanel } from "@/components/DevPanel";
+import { OfferProvider } from "@/components/OfferProvider";
 import { DesignProvider } from "@/components/design-context";
+import { DeckBody } from "@/components/DeckBody";
 
 export default function Page() {
   return (
-    <DesignProvider>
-      <main>
-        <Hero />
-        <div className="hairline mx-auto max-w-5xl" />
-        <About />
-        <Angle />
-        <Capabilities />
-        <Work />
-        <BrandTeaser />
-        <Offer />
-        <Contact />
-        <DevPanel />
-      </main>
-    </DesignProvider>
+    <OfferProvider>
+      <DesignProvider>
+        <DeckBody />
+      </DesignProvider>
+    </OfferProvider>
   );
 }

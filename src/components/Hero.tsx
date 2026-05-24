@@ -2,8 +2,11 @@
 
 import { motion } from "motion/react";
 import { TiltCard } from "./TiltCard";
+import { useOffer } from "./OfferProvider";
 
 export function Hero() {
+  const { content } = useOffer();
+  const h = content.hero;
   return (
     <header className="relative flex min-h-screen flex-col items-center justify-center px-6 text-center">
       <motion.div
@@ -18,7 +21,7 @@ export function Hero() {
           alt="ZamboDezigns"
           className="h-12 w-12 opacity-90"
         />
-        <p className="eyebrow">ZamboDezigns &nbsp;·&nbsp; Proposal</p>
+        <p className="eyebrow">ZamboDezigns &nbsp;·&nbsp; {h.eyebrow}</p>
       </motion.div>
 
       {/* floating Ground X business card — the client's own gold/anthracite brand */}
@@ -59,10 +62,9 @@ export function Hero() {
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.9, delay: 0.15 }}
-        className="display max-w-3xl text-[2.3rem] sm:text-[3.4rem]"
+        className="display max-w-4xl text-[2.7rem] sm:text-[4rem]"
       >
-        A brand that makes its mark
-        <span className="accent-text"> out of sight.</span>
+        {h.headline} <span className="accent-text">{h.headlineAccent}</span>
       </motion.h1>
 
       <motion.p
@@ -71,9 +73,7 @@ export function Hero() {
         transition={{ duration: 0.9, delay: 0.3 }}
         className="text-dim mt-6 max-w-xl text-[1.05rem] leading-relaxed"
       >
-        Brand, AI visuals, web and content — built as one system for the GCC&apos;s
-        most private luxury product. This is what I&apos;d build for Ground X, and
-        the work that proves I can.
+        {h.sub}
       </motion.p>
 
       <motion.div

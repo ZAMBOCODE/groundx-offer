@@ -64,7 +64,7 @@ function ShowcaseRow({
       </div>
 
       {/* right — staggered tilted screenshot cards */}
-      <div className="relative h-[280px] sm:h-[360px]">
+      <div className="relative h-[320px] sm:h-[440px]">
         {shots.map((src, i) => {
           const rot = (i - (shots.length - 1) / 2) * 6;
           const left = shots.length > 1 ? (i / (shots.length - 1)) * 34 : 8;
@@ -79,7 +79,7 @@ function ShowcaseRow({
                   "--r": `${rot}deg`,
                   left: `${left}%`,
                   top: `${top}px`,
-                  width: "66%",
+                  width: "72%",
                   aspectRatio: "16 / 10",
                   zIndex: i + 1,
                 } as CSSProperties

@@ -19,7 +19,9 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 
 const URL = process.argv[2] || "http://localhost:3939";
-const OUT = process.argv[3] || "groundx-offer.pdf";
+const OFFER = process.argv[4] || "";
+const TARGET = OFFER ? `${URL}${URL.includes("?") ? "&" : "?"}offer=${encodeURIComponent(OFFER)}` : URL;
+const OUT = process.argv[3] || (OFFER ? `offer-${OFFER}.pdf` : "groundx-offer.pdf");
 
 // resolve playwright locally, else from the global npm root
 function loadPlaywright() {
@@ -41,7 +43,7 @@ const page = await browser.newPage({
   viewport: { width: VW, height: VH },
   deviceScaleFactor: 2,
 });
-await page.goto(URL, { waitUntil: "networkidle" });
+await page.goto(TARGET, { waitUntil: "networkidle" });
 // neutral defaults for the static export, hide the dev-panel FAB
 await page.evaluate(() => {
   localStorage.removeItem("groundx.variants");

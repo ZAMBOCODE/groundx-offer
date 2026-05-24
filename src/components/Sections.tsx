@@ -5,6 +5,7 @@ import { motion } from "motion/react";
 import { TiltCard } from "./TiltCard";
 import { capabilities, cases, type CaseStudy } from "@/lib/data";
 import { useDesign } from "./design-context";
+import { useOffer } from "./OfferProvider";
 import { StickyWork } from "./StickyWork";
 import { WorkShowcase } from "./WorkShowcase";
 import { MockupShowcase } from "./MockupShowcase";
@@ -43,8 +44,8 @@ function SectionHead({
   return (
     <Reveal>
       <p className="eyebrow mb-4">{eyebrow}</p>
-      <h2 className="display max-w-2xl text-[2rem] sm:text-[2.8rem]">{title}</h2>
-      {sub && <p className="text-dim mt-5 max-w-2xl text-[1.05rem] leading-relaxed">{sub}</p>}
+      <h2 className="display max-w-3xl text-[2.4rem] sm:text-[3.3rem]">{title}</h2>
+      {sub && <p className="text-dim mt-5 max-w-2xl text-[1.12rem] leading-relaxed">{sub}</p>}
     </Reveal>
   );
 }
@@ -141,23 +142,18 @@ export function About() {
 
 export function Angle() {
   const { variants } = useDesign();
-  const points = [
-    { k: "Dubai", v: "I already build for the GCC market and its buyers." },
-    { k: "Luxury + security", v: "Gulf Rescue, Löwenhardt — the exact tone Ground X needs." },
-    { k: "Containers", v: "I have shipped a 3D container configurator already." },
-    { k: "Systems", v: "AETHER and zZzlim prove I run marketing as a system." },
-  ];
+  const c = useOffer().content.angle;
+  const points = c.points;
   return (
     <section id="angle" className="section">
       <SectionHead
-        eyebrow="Why me, for this"
+        eyebrow={c.eyebrow}
         title={
           <>
-            Not a generalist. Someone who has already built{" "}
-            <span className="accent-text">your exact world.</span>
+            {c.title} <span className="accent-text">{c.titleAccent}</span>
           </>
         }
-        sub="Ground X needs Dubai fluency, a luxury-security tone, container know-how and a systems mindset. Those four overlap with work I have already delivered."
+        sub={c.sub}
       />
 
       {variants.angle === 0 ? (
@@ -197,16 +193,17 @@ export function Angle() {
 export function Capabilities() {
   const { variants } = useDesign();
   const v = variants.capabilities;
+  const c = useOffer().content.capabilities;
   return (
     <section id="capabilities" className="section">
       <SectionHead
-        eyebrow="What I can do"
+        eyebrow={c.eyebrow}
         title={
           <>
-            The full stack of a <span className="accent-text">marketing department</span>, in one person.
+            {c.title} <span className="accent-text">{c.titleAccent}</span>
           </>
         }
-        sub="Each of these is something I have built and shipped, not a service line on a page."
+        sub={c.sub}
       />
 
       {/* variant 0: even 3-col cards */}
@@ -272,12 +269,13 @@ export function Capabilities() {
 export function Work() {
   const { variants } = useDesign();
   const v = variants.work;
+  const c = useOffer().content.work;
   const head = (
     <SectionHead
-      eyebrow="Selected work"
+      eyebrow={c.eyebrow}
       title={
         <>
-          Already built, <span className="accent-text">already live.</span>
+          {c.title} <span className="accent-text">{c.titleAccent}</span>
         </>
       }
     />
@@ -303,7 +301,7 @@ export function Work() {
           {cases.map((c, i) => (
             <Reveal key={c.name} delay={(i % 2) * 0.1}>
               <TiltCard className="group flex h-full flex-col overflow-hidden">
-                <CaseImage c={c} className="h-52 w-full" />
+                <CaseImage c={c} className="h-64 w-full" />
                 <div className="flex flex-1 flex-col p-6">
                   <h3 className="display text-[1.3rem]">{c.name}</h3>
                   <p className="text-dim mt-3 text-[0.92rem] leading-relaxed">{c.what}</p>
@@ -377,6 +375,7 @@ export function Work() {
 
 export function BrandTeaser() {
   const { variants } = useDesign();
+  const cb = useOffer().content.brand;
   const moods = [
     "Cognac leather",
     "Dark walnut",
@@ -389,13 +388,13 @@ export function BrandTeaser() {
   return (
     <section id="brand" className="section">
       <SectionHead
-        eyebrow="Brand direction"
+        eyebrow={cb.eyebrow}
         title={
           <>
-            How Ground X could <span className="accent-text">feel.</span>
+            {cb.title} <span className="accent-text">{cb.titleAccent}</span>
           </>
         }
-        sub="A first taste of the visual language: a gentleman's-club world, not a survival product. Final brand locks once your assets land."
+        sub={cb.sub}
       />
 
       {variants.brand === 2 ? (
@@ -590,16 +589,17 @@ function PriceGrid({ cards }: { cards: PriceCard[] }) {
 export function Offer() {
   const [tab, setTab] = useState(0);
   const active = OFFER_TABS[tab]!;
+  const co = useOffer().content.offer;
   return (
     <section id="offer" className="section">
       <SectionHead
-        eyebrow="The offer"
+        eyebrow={co.eyebrow}
         title={
           <>
-            Pick how you want to <span className="accent-text">work together.</span>
+            {co.title} <span className="accent-text">{co.titleAccent}</span>
           </>
         }
-        sub="For context: Dubai agencies charge $3,000–8,000/mo for this scope, and Ground X sells from $50,000 a module."
+        sub={co.sub}
       />
       {/* tabs */}
       <Reveal>
@@ -628,16 +628,16 @@ export function Offer() {
 /* =================================================== CONTACT */
 
 export function Contact() {
+  const cx = useOffer().content.contact;
   return (
     <section className="section text-center">
       <Reveal>
-        <p className="eyebrow mb-4">Next step</p>
+        <p className="eyebrow mb-4">{cx.eyebrow}</p>
         <h2 className="display mx-auto max-w-2xl text-[2.2rem] sm:text-[3rem]">
-          Let&apos;s build the first <span className="accent-text">renderings.</span>
+          {cx.headline} <span className="accent-text">{cx.headlineAccent}</span>
         </h2>
         <p className="text-dim mx-auto mt-5 max-w-lg text-[1.02rem] leading-relaxed">
-          Samples land first, the offer right behind. Take it to the table with your
-          team, and we start.
+          {cx.sub}
         </p>
 
         {/* who's behind it */}
