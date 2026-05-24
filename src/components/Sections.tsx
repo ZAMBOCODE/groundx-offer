@@ -1,11 +1,13 @@
 "use client";
 
+import { useState } from "react";
 import { motion } from "motion/react";
 import { TiltCard } from "./TiltCard";
 import { capabilities, cases, type CaseStudy } from "@/lib/data";
 import { useDesign } from "./design-context";
 import { StickyWork } from "./StickyWork";
 import { WorkShowcase } from "./WorkShowcase";
+import { MockupShowcase } from "./MockupShowcase";
 
 /* ---------------------------------------------------- shared helpers */
 
@@ -72,6 +74,66 @@ function CaseImage({ c, className }: { c: CaseStudy; className?: string }) {
       <div className="absolute inset-0 bg-gradient-to-t from-[#050507] via-transparent to-transparent" />
       <span className="meta accent absolute bottom-3 left-4 text-[0.6rem]">{c.tag}</span>
     </div>
+  );
+}
+
+/* ==================================================== ABOUT */
+
+export function About() {
+  const skills = [
+    "Web design & development",
+    "E-commerce & checkout",
+    "3D modeling & rendering",
+    "Motion design & animation",
+    "AI video generation",
+    "AI image / renderings",
+    "Branding & identity",
+    "Landing pages & copywriting",
+    "Dashboards & internal tools",
+    "Automation & AI agents",
+  ];
+  return (
+    <section id="about" className="section">
+      <Reveal>
+        <p className="eyebrow mb-4">Who you&apos;re working with</p>
+      </Reveal>
+      <div className="grid items-center gap-10 md:grid-cols-[0.8fr_1.2fr]">
+        <Reveal>
+          <div
+            className="card glow-border mx-auto w-full max-w-[320px] overflow-hidden"
+            style={{ aspectRatio: "4 / 5" }}
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/assets/samy.png"
+              alt="Samuel Heymig"
+              className="h-full w-full object-cover object-top"
+              style={{ background: "linear-gradient(160deg, rgba(249,115,22,0.16), rgba(255,255,255,0.03))" }}
+            />
+          </div>
+        </Reveal>
+        <Reveal delay={0.1}>
+          <h2 className="display text-[2rem] sm:text-[2.8rem]">
+            Samuel Heymig — <span className="accent-text">one person, full stack.</span>
+          </h2>
+          <p className="text-dim mt-5 max-w-xl text-[1.05rem] leading-relaxed">
+            A freelancer from Stuttgart helping businesses grow with clean web design,
+            optimized shops, and striking 3D and motion work. I build the whole system:
+            brand, visuals, site, content and the automation behind it.
+          </p>
+          <div className="mt-7 flex flex-wrap gap-2">
+            {skills.map((s) => (
+              <span key={s} className="inner-card px-3 py-1.5 text-[0.82rem] text-dim">
+                {s}
+              </span>
+            ))}
+          </div>
+          <p className="meta text-faint mt-6 text-[0.6rem]">
+            50+ projects · 96% client satisfaction · 10+ years
+          </p>
+        </Reveal>
+      </div>
+    </section>
   );
 }
 
@@ -336,7 +398,9 @@ export function BrandTeaser() {
         sub="A first taste of the visual language: a gentleman's-club world, not a survival product. Final brand locks once your assets land."
       />
 
-      {variants.brand === 0 ? (
+      {variants.brand === 2 ? (
+        <MockupShowcase />
+      ) : variants.brand === 0 ? (
         <Reveal delay={0.1}>
           <TiltCard className="mt-12 p-8 sm:p-12">
             <div className="grid items-center gap-10 md:grid-cols-[1.1fr_1fr]">
@@ -397,93 +461,166 @@ export function BrandTeaser() {
 
 /* =================================================== OFFER (no variants) */
 
+type PriceCard = { tag: string; name: string; price: string; items: string[]; feature?: boolean };
+
+const OFFER_TABS: { label: string; note: string; cards: PriceCard[] }[] = [
+  {
+    label: "Partnership",
+    note: "Setup once, then a system that runs every month.",
+    cards: [
+      {
+        tag: "Phase 1 · one-time",
+        name: "Setup & foundation",
+        price: "from €3,500",
+        items: [
+          "Brand guidelines finalized",
+          "10–15 photoreal AI renderings",
+          "Landing page, deployed",
+          "2–3 marketing videos",
+          "Social template set",
+          "Drive + content calendar",
+        ],
+      },
+      {
+        tag: "Phase 2 · monthly",
+        name: "Ongoing partnership",
+        price: "from €1,500 / mo",
+        items: [
+          "15–20 social posts",
+          "4–6 AI videos",
+          "3–5 new renderings",
+          "Content calendar & scheduling",
+          "Paid-ads management",
+          "Monthly analytics & optimization",
+        ],
+        feature: true,
+      },
+      {
+        tag: "Soft start · optional",
+        name: "Test month",
+        price: "€1,500 flat",
+        items: [
+          "One month, full output",
+          "No long commitment",
+          "Rolls into the retainer",
+          "De-risks the decision",
+        ],
+      },
+    ],
+  },
+  {
+    label: "One-time builds",
+    note: "Standalone projects, paid once. No retainer required.",
+    cards: [
+      {
+        tag: "Web",
+        name: "Informative website",
+        price: "€2,000–3,000",
+        items: ["EN + DE, responsive", "Lead-capture / consultation", "Deployed on Vercel", "Privacy-first analytics"],
+      },
+      {
+        tag: "Shop",
+        name: "Shopify rebuild",
+        price: "€1,500–2,500",
+        items: ["Premium theme", "Product pages per module", "AI renderings integrated", "Checkout optimization"],
+        feature: true,
+      },
+      {
+        tag: "3D",
+        name: "Module configurator",
+        price: "€2,000–4,000",
+        items: ["Build-your-module in 3D", "Real GLB models", "Browser-based", "Three.js / R3F"],
+      },
+    ],
+  },
+  {
+    label: "À la carte",
+    note: "Single deliverables, priced per item. Mix as you need.",
+    cards: [
+      {
+        tag: "Visual",
+        name: "Per deliverable",
+        price: "from €120",
+        items: ["AI rendering — from €120", "AI video / reel — from €250", "Logo animation — from €300", "Pitch-deck slide — from €90"],
+      },
+      {
+        tag: "Web add-ons",
+        name: "Web & content",
+        price: "from €500",
+        items: ["Landing page — from €900", "Arabic + RTL — €500–1,000", "Analytics dashboard — €1–2k", "Brand guidelines — from €700"],
+      },
+      {
+        tag: "Ongoing",
+        name: "Social & ads",
+        price: "from €40 / post",
+        items: ["Social post — from €40", "ManyChat DM funnel — from €400", "Ad campaign setup — from €350", "Monthly report — from €150"],
+      },
+    ],
+  },
+];
+
+function PriceGrid({ cards }: { cards: PriceCard[] }) {
+  return (
+    <div className="mt-8 grid gap-5 md:grid-cols-3">
+      {cards.map((p, i) => (
+        <Reveal key={p.name} delay={i * 0.07}>
+          <TiltCard
+            className={p.feature ? "accent-glow flex h-full flex-col p-7" : "flex h-full flex-col p-7"}
+            style={p.feature ? { borderColor: "var(--accent)", background: "rgba(249,115,22,0.06)" } : undefined}
+          >
+            <span className="meta text-faint text-[0.6rem]">{p.tag}</span>
+            <h3 className="display mt-2 text-[1.3rem]">{p.name}</h3>
+            <div className="accent-text display mt-2 text-[1.6rem]">{p.price}</div>
+            <div className="hairline my-5" />
+            <ul className="flex flex-1 flex-col gap-2.5">
+              {p.items.map((it) => (
+                <li key={it} className="text-dim flex gap-2 text-[0.9rem]">
+                  <span className="accent">—</span>
+                  {it}
+                </li>
+              ))}
+            </ul>
+          </TiltCard>
+        </Reveal>
+      ))}
+    </div>
+  );
+}
+
 export function Offer() {
-  const phases = [
-    {
-      tag: "Phase 1 · one-time",
-      name: "Setup & foundation",
-      price: "from €3,500",
-      items: [
-        "Brand guidelines finalized",
-        "10–15 photoreal AI renderings",
-        "Landing page, deployed",
-        "2–3 marketing videos",
-        "Social template set",
-        "Drive + content calendar",
-      ],
-      feature: false,
-    },
-    {
-      tag: "Phase 2 · monthly",
-      name: "Ongoing partnership",
-      price: "from €1,500 / mo",
-      items: [
-        "15–20 social posts",
-        "4–6 AI videos",
-        "3–5 new renderings",
-        "Content calendar & scheduling",
-        "Paid-ads management",
-        "Monthly analytics & optimization",
-      ],
-      feature: true,
-    },
-    {
-      tag: "Soft start · optional",
-      name: "Test month",
-      price: "€1,500 flat",
-      items: [
-        "One month, full output",
-        "No long commitment",
-        "Rolls into the retainer",
-        "De-risks the decision",
-      ],
-      feature: false,
-    },
-  ];
+  const [tab, setTab] = useState(0);
+  const active = OFFER_TABS[tab]!;
   return (
     <section id="offer" className="section">
       <SectionHead
         eyebrow="The offer"
         title={
           <>
-            A setup that lasts, then a <span className="accent-text">system that runs.</span>
+            Pick how you want to <span className="accent-text">work together.</span>
           </>
         }
         sub="For context: Dubai agencies charge $3,000–8,000/mo for this scope, and Ground X sells from $50,000 a module."
       />
-      <div className="mt-12 grid gap-5 md:grid-cols-3">
-        {phases.map((p, i) => (
-          <Reveal key={p.name} delay={i * 0.08}>
-            <TiltCard
-              className={p.feature ? "accent-glow flex h-full flex-col p-7" : "flex h-full flex-col p-7"}
-              style={
-                p.feature
-                  ? { borderColor: "var(--accent)", background: "rgba(249,115,22,0.06)" }
-                  : undefined
-              }
+      {/* tabs */}
+      <Reveal>
+        <div className="mt-9 inline-flex flex-wrap gap-1.5 rounded-full p-1.5" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid var(--stroke-card)" }}>
+          {OFFER_TABS.map((t, i) => (
+            <button
+              key={t.label}
+              onClick={() => setTab(i)}
+              className="rounded-full px-4 py-2 text-[0.82rem] font-medium transition"
+              style={{
+                color: i === tab ? "#1a0f04" : "var(--ink-2)",
+                background: i === tab ? "linear-gradient(180deg, var(--accent-bright), var(--accent))" : "transparent",
+              }}
             >
-              <span className="meta text-faint text-[0.6rem]">{p.tag}</span>
-              <h3 className="display mt-2 text-[1.3rem]">{p.name}</h3>
-              <div className="accent-text display mt-2 text-[1.7rem]">{p.price}</div>
-              <div className="hairline my-5" />
-              <ul className="flex flex-1 flex-col gap-2.5">
-                {p.items.map((it) => (
-                  <li key={it} className="text-dim flex gap-2 text-[0.9rem]">
-                    <span className="accent">—</span>
-                    {it}
-                  </li>
-                ))}
-              </ul>
-            </TiltCard>
-          </Reveal>
-        ))}
-      </div>
-      <Reveal delay={0.1}>
-        <p className="text-faint mt-6 text-center text-[0.82rem]">
-          Extensions on request: full website (€2–3k) · Shopify rebuild (€1.5–2.5k) · 3D
-          configurator (€2–4k) · Arabic + RTL (€0.5–1k) · analytics dashboard (€1–2k)
-        </p>
+              {t.label}
+            </button>
+          ))}
+        </div>
+        <p className="text-dim mt-4 text-[0.95rem]">{active.note}</p>
       </Reveal>
+      <PriceGrid cards={active.cards} />
     </section>
   );
 }

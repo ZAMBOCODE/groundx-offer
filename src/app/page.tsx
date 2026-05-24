@@ -1,5 +1,6 @@
 import { Hero } from "@/components/Hero";
 import {
+  About,
   Angle,
   Capabilities,
   Work,
@@ -16,6 +17,7 @@ export default function Page() {
       <main>
         <Hero />
         <div className="hairline mx-auto max-w-5xl" />
+        <About />
         <Angle />
         <Capabilities />
         <Work />
