@@ -14,7 +14,7 @@
  */
 import { createRequire } from "node:module";
 import { execSync, spawnSync } from "node:child_process";
-import { mkdtempSync } from "node:fs";
+import { mkdtempSync, readFileSync, existsSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
@@ -53,11 +53,28 @@ const page = await browser.newPage({
   deviceScaleFactor: 2,
 });
 await page.goto(TARGET, { waitUntil: "networkidle" });
-// neutral defaults for the static export, hide the dev-panel FAB
-await page.evaluate(() => {
-  localStorage.removeItem("groundx.variants");
-  localStorage.removeItem("groundx.devpanel");
-});
+
+// If data/preset.json exists, seed localStorage from it so the PDF
+// inherits the look Samy tuned in the DevPanel. Otherwise clear to
+// neutral defaults. The preset file is written by the DevPanel's
+// "💾 DISK" button (POST /api/save-preset).
+const presetPath = join(process.cwd(), "data", "preset.json");
+const preset = existsSync(presetPath) ? JSON.parse(readFileSync(presetPath, "utf8")) : null;
+
+if (preset) {
+  console.log("→ seeding localStorage from data/preset.json");
+  await page.evaluate((p) => {
+    if (p.settings) localStorage.setItem("groundx.devpanel", JSON.stringify(p.settings));
+    if (p.customFonts) localStorage.setItem("groundx.customFonts", JSON.stringify(p.customFonts));
+    if (p.variants) localStorage.setItem("groundx.variants", JSON.stringify(p.variants));
+    if (p.copyVariants) localStorage.setItem("groundx.copyVariants", JSON.stringify(p.copyVariants));
+  }, preset);
+} else {
+  await page.evaluate(() => {
+    localStorage.removeItem("groundx.variants");
+    localStorage.removeItem("groundx.devpanel");
+  });
+}
 await page.reload({ waitUntil: "networkidle" });
 // give usePdfMode()'s useEffect time to flip dynamic→static fallbacks
 // (BrandScrollThrough, CapabilitiesStickyStack, …). The swap renders

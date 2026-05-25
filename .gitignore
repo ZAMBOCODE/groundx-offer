@@ -7,3 +7,6 @@ next-env.d.ts
 .DS_Store
 .env*
 .vercel
+
+# DevPanel "💾 DISK" snapshot — per-machine, not source-of-truth
+/data/preset.json

@@ -386,23 +386,32 @@ export function DevPanel() {
                   />
                   AUTO-SAVED
                 </span>
-                <PresetIO settings={s} customFonts={customFonts} onImport={(snap) => {
-                  if (snap.settings) {
-                    setS(snap.settings);
-                    apply(snap.settings);
-                    try { localStorage.setItem(KEY, JSON.stringify(snap.settings)); } catch {}
-                  }
-                  if (Array.isArray(snap.customFonts)) {
-                    snap.customFonts.forEach((f: CustomFont) => ensureGoogleFontLoaded(f.name));
-                    setCustomFonts(snap.customFonts);
-                    saveCustomFonts(snap.customFonts);
-                  }
-                  if (snap.variants) {
-                    for (const [k, v] of Object.entries(snap.variants)) {
-                      if (typeof v === "number") setVariant(k as SectionKey, v);
+                <PresetIO
+                  settings={s}
+                  customFonts={customFonts}
+                  copyVariants={copySel}
+                  onImport={(snap) => {
+                    if (snap.settings) {
+                      setS(snap.settings);
+                      apply(snap.settings);
+                      try { localStorage.setItem(KEY, JSON.stringify(snap.settings)); } catch {}
                     }
-                  }
-                }} />
+                    if (Array.isArray(snap.customFonts)) {
+                      snap.customFonts.forEach((f: CustomFont) => ensureGoogleFontLoaded(f.name));
+                      setCustomFonts(snap.customFonts);
+                      saveCustomFonts(snap.customFonts);
+                    }
+                    if (snap.variants) {
+                      for (const [k, v] of Object.entries(snap.variants)) {
+                        if (typeof v === "number") setVariant(k as SectionKey, v);
+                      }
+                    }
+                    if (snap.copyVariants) {
+                      saveCopyVariantSelections(snap.copyVariants);
+                      setCopySel(snap.copyVariants);
+                    }
+                  }}
+                />
               </div>
             </div>
 
@@ -822,28 +831,37 @@ function Toggle({
 function PresetIO({
   settings,
   customFonts,
+  copyVariants,
   onImport,
 }: {
   settings: Settings;
   customFonts: CustomFont[];
+  copyVariants: CopyVariantSelections;
   onImport: (snap: {
     settings?: Settings;
     customFonts?: CustomFont[];
     variants?: Partial<Record<SectionKey, number>>;
+    copyVariants?: CopyVariantSelections;
   }) => void;
 }) {
-  const exportSnapshot = useCallback(() => {
+  const [savedAt, setSavedAt] = useState<string | null>(null);
+  const buildSnapshot = useCallback(() => {
     let variants: Partial<Record<SectionKey, number>> = {};
     try {
       const raw = localStorage.getItem("groundx.variants");
       if (raw) variants = JSON.parse(raw);
     } catch {}
-    const snap = {
-      meta: { exportedAt: new Date().toISOString(), app: "groundx-offer", schema: 1 },
+    return {
+      meta: { exportedAt: new Date().toISOString(), app: "groundx-offer", schema: 2 },
       settings,
       customFonts,
       variants,
+      copyVariants,
     };
+  }, [settings, customFonts, copyVariants]);
+
+  const exportSnapshot = useCallback(() => {
+    const snap = buildSnapshot();
     const blob = new Blob([JSON.stringify(snap, null, 2)], { type: "application/json" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -870,6 +888,7 @@ function PresetIO({
           settings: snap.settings,
           customFonts: snap.customFonts,
           variants: snap.variants,
+          copyVariants: snap.copyVariants,
         });
       } catch (e) {
         alert("Invalid preset file: " + (e instanceof Error ? e.message : String(e)));
@@ -878,22 +897,57 @@ function PresetIO({
     input.click();
   }, [onImport]);
 
+  const saveToDisk = useCallback(async () => {
+    const snap = buildSnapshot();
+    try {
+      const res = await fetch("/api/save-preset", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(snap),
+      });
+      if (!res.ok) {
+        const j = await res.json().catch(() => ({}));
+        alert(`Save failed (${res.status}): ${j.error ?? "unknown"}`);
+        return;
+      }
+      const stamp = new Date().toLocaleTimeString();
+      setSavedAt(stamp);
+      window.setTimeout(() => setSavedAt(null), 2200);
+    } catch (e) {
+      alert("Save failed: " + (e instanceof Error ? e.message : String(e)));
+    }
+  }, [buildSnapshot]);
+
   return (
-    <div className="flex gap-1">
-      <button
-        onClick={exportSnapshot}
-        className="meta text-faint rounded-[var(--r-mini)] border border-[var(--stroke-card)] px-1.5 py-0.5 text-[0.55rem] tracking-[0.2em] hover:border-[var(--accent)] hover:text-[var(--accent-bright)]"
-        title="Download current settings as JSON"
-      >
-        ↓ EXPORT
-      </button>
-      <button
-        onClick={importSnapshot}
-        className="meta text-faint rounded-[var(--r-mini)] border border-[var(--stroke-card)] px-1.5 py-0.5 text-[0.55rem] tracking-[0.2em] hover:border-[var(--accent)] hover:text-[var(--accent-bright)]"
-        title="Load settings from a previously exported JSON"
-      >
-        ↑ IMPORT
-      </button>
+    <div className="flex flex-col items-end gap-0.5">
+      <div className="flex gap-1">
+        <button
+          onClick={saveToDisk}
+          className="meta rounded-[var(--r-mini)] border px-1.5 py-0.5 text-[0.55rem] tracking-[0.2em]"
+          style={{
+            color: savedAt ? "#1a0f04" : "var(--accent-bright)",
+            background: savedAt ? "var(--accent)" : "transparent",
+            borderColor: "var(--accent)",
+          }}
+          title="Write current settings to data/preset.json (dev only). PDF + fresh visits inherit it."
+        >
+          {savedAt ? `SAVED · ${savedAt}` : "💾 DISK"}
+        </button>
+        <button
+          onClick={exportSnapshot}
+          className="meta text-faint rounded-[var(--r-mini)] border border-[var(--stroke-card)] px-1.5 py-0.5 text-[0.55rem] tracking-[0.2em] hover:border-[var(--accent)] hover:text-[var(--accent-bright)]"
+          title="Download current settings as JSON"
+        >
+          ↓ EXPORT
+        </button>
+        <button
+          onClick={importSnapshot}
+          className="meta text-faint rounded-[var(--r-mini)] border border-[var(--stroke-card)] px-1.5 py-0.5 text-[0.55rem] tracking-[0.2em] hover:border-[var(--accent)] hover:text-[var(--accent-bright)]"
+          title="Load settings from a previously exported JSON"
+        >
+          ↑ IMPORT
+        </button>
+      </div>
     </div>
   );
 }
