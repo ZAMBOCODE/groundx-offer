@@ -1,7 +1,7 @@
 "use client";
 
-import { useRef, useState } from "react";
-import { motion } from "motion/react";
+import { useEffect, useRef, useState } from "react";
+import { motion, useInView, animate } from "motion/react";
 import { TiltCard } from "./TiltCard";
 import { cases, type CaseStudy } from "@/lib/data";
 import { useDesign } from "./design-context";
@@ -350,6 +350,41 @@ function SamyPhoto({ transparent = false }: { transparent?: boolean } = {}) {
   );
 }
 
+/* Big stencil number that smoothly counts 0 → target when scrolled into
+   view. Used by Angle v4. PDF export sees the final value because the
+   animation completes well before the Playwright snapshot. */
+function CountUpNumeral({ target }: { target: number }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const inView = useInView(ref, { once: true, margin: "-25% 0px" });
+  const [n, setN] = useState(0);
+
+  useEffect(() => {
+    if (!inView) return;
+    const ctrl = animate(0, target, {
+      duration: 2.2,
+      ease: [0.22, 1, 0.36, 1],
+      onUpdate: (v) => setN(Math.round(v)),
+    });
+    return () => ctrl.stop();
+  }, [inView, target]);
+
+  return (
+    <div
+      ref={ref}
+      className="display select-none text-[6rem] leading-none tabular-nums md:text-[10rem]"
+      style={{
+        background:
+          "linear-gradient(180deg, rgba(255,255,255,0.18), rgba(255,255,255,0.02))",
+        WebkitBackgroundClip: "text",
+        WebkitTextFillColor: "transparent",
+        textShadow: "0 0 60px rgba(249,115,22,0.12)",
+      }}
+    >
+      {String(n).padStart(2, "0")}
+    </div>
+  );
+}
+
 function AboutCopy() {
   return (
     <>
@@ -473,7 +508,9 @@ export function Angle() {
         </div>
       )}
 
-      {/* variant 4: big-numeral split — alternating, huge stencil number */}
+      {/* variant 4: big-numeral split — alternating, huge stencil number that
+         counts up from 0 to target as it scrolls into view. PDF capture sees
+         the final value (animation triggers on mount in print mode). */}
       {v === 4 && (
         <div className="mt-14 flex flex-col gap-10">
           {points.map((p, i) => (
@@ -487,18 +524,7 @@ export function Angle() {
                   <h3 className="display text-[1.5rem]">{p.k}</h3>
                   <p className="text-dim mt-3 text-[1rem] leading-relaxed">{p.v}</p>
                 </div>
-                <div
-                  className="display select-none text-[6rem] leading-none md:text-[10rem]"
-                  style={{
-                    background:
-                      "linear-gradient(180deg, rgba(255,255,255,0.18), rgba(255,255,255,0.02))",
-                    WebkitBackgroundClip: "text",
-                    WebkitTextFillColor: "transparent",
-                    textShadow: "0 0 60px rgba(249,115,22,0.12)",
-                  }}
-                >
-                  0{i + 1}
-                </div>
+                <CountUpNumeral target={i + 1} />
               </div>
             </Reveal>
           ))}
