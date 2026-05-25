@@ -97,17 +97,74 @@ const ACCENT_PRESETS = [
   "#f43f5e", // rose
 ];
 
-const FONTS = [
-  { label: "Default (Space Grotesk)", value: "inherit" },
-  { label: "Inter — clean", value: "var(--font-sans)" },
-  { label: "Bricolage — editorial", value: "var(--font-bricolage)" },
-  { label: "Syne — futuristic", value: "var(--font-syne)" },
-  { label: "Fraunces — luxury serif", value: "var(--font-fraunces)" },
-  { label: "Instrument — serif", value: "var(--font-instrument)" },
-  { label: "Unbounded — bold", value: "var(--font-unbounded)" },
-  { label: "Sora — geometric", value: "var(--font-sora)" },
-  { label: "JetBrains — mono", value: "var(--font-mono)" },
+type FontOption = { label: string; value: string; group?: string };
+
+/* Grouped by style+emotion so Samy can scan by intent. Expanded 2026-05-25.
+   The values reference next/font/google CSS variables declared in layout.tsx.
+   Custom Google Fonts can be added live via the "Custom font" input below —
+   those get persisted and appended to this list at runtime. */
+const FONTS: FontOption[] = [
+  { label: "Default (Space Grotesk)", value: "inherit", group: "Default" },
+
+  { label: "Inter — clean", value: "var(--font-sans)", group: "Grotesk · clean" },
+  { label: "Inter Tight — condensed", value: "var(--font-inter-tight)", group: "Grotesk · clean" },
+  { label: "Manrope — modern", value: "var(--font-manrope)", group: "Grotesk · clean" },
+  { label: "DM Sans — friendly", value: "var(--font-dm-sans)", group: "Grotesk · clean" },
+  { label: "Outfit — geometric", value: "var(--font-outfit)", group: "Grotesk · clean" },
+  { label: "Sora — geometric", value: "var(--font-sora)", group: "Grotesk · clean" },
+
+  { label: "Bricolage — editorial", value: "var(--font-bricolage)", group: "Display · editorial" },
+  { label: "Unbounded — bold", value: "var(--font-unbounded)", group: "Display · editorial" },
+  { label: "Anton — brutalist", value: "var(--font-anton)", group: "Display · editorial" },
+  { label: "Bebas Neue — caps", value: "var(--font-bebas)", group: "Display · editorial" },
+
+  { label: "Fraunces — luxury serif", value: "var(--font-fraunces)", group: "Serif · luxury" },
+  { label: "Playfair Display — classic", value: "var(--font-playfair)", group: "Serif · luxury" },
+  { label: "Cormorant Garamond — high-end", value: "var(--font-cormorant)", group: "Serif · luxury" },
+  { label: "DM Serif Display — magazine", value: "var(--font-dm-serif)", group: "Serif · luxury" },
+  { label: "Instrument — serif", value: "var(--font-instrument)", group: "Serif · luxury" },
+
+  { label: "Syne — futuristic", value: "var(--font-syne)", group: "Display · futuristic" },
+  { label: "Orbitron — sci-fi", value: "var(--font-orbitron)", group: "Display · futuristic" },
+  { label: "Audiowide — retro-future", value: "var(--font-audiowide)", group: "Display · futuristic" },
+
+  { label: "JetBrains — mono", value: "var(--font-mono)", group: "Mono" },
+  { label: "IBM Plex — mono", value: "var(--font-plex-mono)", group: "Mono" },
 ];
+
+/* Custom-font runtime registry: pasting a Google-Font name (e.g. "Sign
+   Futuristic") injects a <link> and adds an entry to this list, persisted
+   in localStorage so it survives reloads. */
+const KEY_CUSTOM_FONTS = "groundx.customFonts";
+
+type CustomFont = { name: string; family: string }; // family = quoted CSS family value
+
+function loadCustomFonts(): CustomFont[] {
+  try {
+    const raw = localStorage.getItem(KEY_CUSTOM_FONTS);
+    return raw ? (JSON.parse(raw) as CustomFont[]) : [];
+  } catch {
+    return [];
+  }
+}
+
+function saveCustomFonts(list: CustomFont[]) {
+  try {
+    localStorage.setItem(KEY_CUSTOM_FONTS, JSON.stringify(list));
+  } catch {}
+}
+
+/** inject the Google Fonts <link> for `name` (idempotent per name). */
+function ensureGoogleFontLoaded(name: string) {
+  const id = `gf-${name.replace(/\s+/g, "-").toLowerCase()}`;
+  if (document.getElementById(id)) return;
+  const fam = name.replace(/\s+/g, "+");
+  const link = document.createElement("link");
+  link.id = id;
+  link.rel = "stylesheet";
+  link.href = `https://fonts.googleapis.com/css2?family=${fam}:wght@300;400;500;600;700&display=swap`;
+  document.head.appendChild(link);
+}
 
 /** lighten a hex toward white by amount (0..1) */
 function lighten(hex: string, amt: number): string {
@@ -158,10 +215,12 @@ function apply(s: Settings) {
 export function DevPanel() {
   const [open, setOpen] = useState(false);
   const [s, setS] = useState<Settings>(DEFAULTS);
+  const [customFonts, setCustomFonts] = useState<CustomFont[]>([]);
+  const [fontInput, setFontInput] = useState("");
   const { variants, setVariant, enabledOverride, toggleSection, workProjects, setWorkProjects } = useDesign();
   const offer = useOffer();
 
-  // load + apply on mount
+  // load + apply on mount (settings + custom fonts)
   useEffect(() => {
     try {
       const raw = localStorage.getItem(KEY);
@@ -171,7 +230,37 @@ export function DevPanel() {
     } catch {
       apply(DEFAULTS);
     }
+    const cf = loadCustomFonts();
+    cf.forEach((f) => ensureGoogleFontLoaded(f.name));
+    setCustomFonts(cf);
   }, []);
+
+  const addCustomFont = useCallback((rawName: string) => {
+    const name = rawName.trim();
+    if (!name) return;
+    ensureGoogleFontLoaded(name);
+    const family = `"${name}", system-ui, sans-serif`;
+    setCustomFonts((prev) => {
+      if (prev.some((f) => f.name.toLowerCase() === name.toLowerCase())) return prev;
+      const next = [...prev, { name, family }];
+      saveCustomFonts(next);
+      return next;
+    });
+    setFontInput("");
+  }, []);
+
+  /** All font options shown in the three pickers — curated list + custom. */
+  const allFonts: FontOption[] = [
+    ...FONTS,
+    ...customFonts.map((f) => ({ label: `${f.name} — custom`, value: f.family, group: "Custom" })),
+  ];
+
+  /** Group options for <optgroup> rendering. */
+  const fontGroups = allFonts.reduce<Record<string, FontOption[]>>((acc, f) => {
+    const g = f.group ?? "Other";
+    (acc[g] ??= []).push(f);
+    return acc;
+  }, {});
 
   // keyboard toggle
   useEffect(() => {
@@ -313,52 +402,82 @@ export function DevPanel() {
               />
             </Field>
 
-            {/* highlight font — the accent-text gradient */}
-            <Field label="Highlight font (accent)">
-              <select
-                value={s.highlightFont}
-                onChange={(e) => update({ highlightFont: e.target.value })}
-                className="inner-card w-full px-2.5 py-2 text-[0.82rem]"
-                style={{ color: "var(--ink)" }}
-              >
-                {FONTS.map((f) => (
-                  <option key={f.value} value={f.value} style={{ background: "#111" }}>
-                    {f.label}
-                  </option>
-                ))}
-              </select>
-            </Field>
+            {/* font pickers — three slots, all share the same grouped catalog */}
+            {(
+              [
+                { label: "Highlight font (accent)", key: "highlightFont" as const },
+                { label: "Display font (headlines)", key: "displayFont" as const },
+                { label: "Body font (text)", key: "bodyFont" as const },
+              ]
+            ).map(({ label, key }) => (
+              <Field key={key} label={label}>
+                <select
+                  value={s[key]}
+                  onChange={(e) => update({ [key]: e.target.value } as Partial<Settings>)}
+                  className="inner-card w-full px-2.5 py-2 text-[0.82rem]"
+                  style={{ color: "var(--ink)" }}
+                >
+                  {Object.entries(fontGroups).map(([group, list]) => (
+                    <optgroup key={group} label={group} style={{ background: "#111" }}>
+                      {list.map((f) => (
+                        <option key={f.value} value={f.value} style={{ background: "#111" }}>
+                          {f.label}
+                        </option>
+                      ))}
+                    </optgroup>
+                  ))}
+                </select>
+              </Field>
+            ))}
 
-            {/* display font — big headlines (.display, .display-light) */}
-            <Field label="Display font (headlines)">
-              <select
-                value={s.displayFont}
-                onChange={(e) => update({ displayFont: e.target.value })}
-                className="inner-card w-full px-2.5 py-2 text-[0.82rem]"
-                style={{ color: "var(--ink)" }}
-              >
-                {FONTS.map((f) => (
-                  <option key={f.value} value={f.value} style={{ background: "#111" }}>
-                    {f.label}
-                  </option>
-                ))}
-              </select>
-            </Field>
-
-            {/* body font — paragraph text */}
-            <Field label="Body font (text)">
-              <select
-                value={s.bodyFont}
-                onChange={(e) => update({ bodyFont: e.target.value })}
-                className="inner-card w-full px-2.5 py-2 text-[0.82rem]"
-                style={{ color: "var(--ink)" }}
-              >
-                {FONTS.map((f) => (
-                  <option key={f.value} value={f.value} style={{ background: "#111" }}>
-                    {f.label}
-                  </option>
-                ))}
-              </select>
+            {/* custom Google Font: paste the exact name (e.g. "Sign Futuristic",
+                "Inter Tight", "Big Shoulders Display"); appears in all three
+                font pickers above + persists across reloads. */}
+            <Field label="+ Custom Google Font">
+              <div className="flex gap-1.5">
+                <input
+                  type="text"
+                  value={fontInput}
+                  onChange={(e) => setFontInput(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      addCustomFont(fontInput);
+                    }
+                  }}
+                  placeholder="e.g. Sign Futuristic"
+                  className="inner-card flex-1 px-2.5 py-1.5 text-[0.78rem]"
+                  style={{ color: "var(--ink)" }}
+                />
+                <button
+                  onClick={() => addCustomFont(fontInput)}
+                  className="rounded-[var(--r-control)] px-3 py-1.5 text-[0.7rem] font-semibold"
+                  style={{
+                    color: "#1a0f04",
+                    background: "linear-gradient(180deg, var(--accent-bright), var(--accent))",
+                  }}
+                >
+                  Add
+                </button>
+              </div>
+              {customFonts.length > 0 && (
+                <div className="mt-2 flex flex-wrap gap-1">
+                  {customFonts.map((f) => (
+                    <button
+                      key={f.name}
+                      onClick={() => {
+                        const next = customFonts.filter((x) => x.name !== f.name);
+                        setCustomFonts(next);
+                        saveCustomFonts(next);
+                      }}
+                      className="meta text-faint rounded-[var(--r-mini)] border border-[var(--stroke-card)] px-2 py-0.5 text-[0.55rem] hover:border-[var(--accent)]"
+                      title="Remove"
+                    >
+                      {f.name} ×
+                    </button>
+                  ))}
+                </div>
+              )}
             </Field>
 
             {/* side padding — 0 = edge-to-edge, N = clear px from viewport edges */}
