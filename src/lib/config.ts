@@ -8,13 +8,16 @@
 
 export type SectionKey =
   | "hero"
+  | "trustedBy"
   | "about"
   | "angle"
   | "capabilities"
   | "work"
+  | "testimonials"
   | "brand"
   | "offer"
   | "process"
+  | "faq"
   | "contact";
 
 export type SectionSpec = { key: SectionKey; enabled: boolean; variant: number };
@@ -55,6 +58,23 @@ export type OfferContent = {
       cards: { tag: string; name: string; price: string; items: string[]; feature?: boolean }[];
     }[];
   };
+  trustedBy: {
+    eyebrow: string;
+    logos: { name: string; src: string }[];
+  };
+  testimonials: {
+    eyebrow: string;
+    title: string;
+    titleAccent: string;
+    items: { quote: string; author: string; role: string; logo?: string }[];
+  };
+  faq: {
+    eyebrow: string;
+    title: string;
+    titleAccent: string;
+    sub?: string;
+    items: { q: string; a: string }[];
+  };
   contact: { eyebrow: string; headline: string; headlineAccent: string; sub: string };
 };
 
@@ -85,13 +105,16 @@ export const DEFAULT_CONFIG: OfferConfig = {
   },
   sections: [
     { key: "hero", enabled: true, variant: 0 },
+    { key: "trustedBy", enabled: true, variant: 0 },
     { key: "about", enabled: true, variant: 4 },
     { key: "angle", enabled: true, variant: 4 },
     { key: "capabilities", enabled: true, variant: 3 },
     { key: "work", enabled: true, variant: 4 },
+    { key: "testimonials", enabled: true, variant: 0 },
     { key: "brand", enabled: true, variant: 1 },
     { key: "offer", enabled: true, variant: 0 },
     { key: "process", enabled: true, variant: 0 },
+    { key: "faq", enabled: true, variant: 0 },
     { key: "contact", enabled: true, variant: 4 },
   ],
   content: {
@@ -227,6 +250,75 @@ export const DEFAULT_CONFIG: OfferConfig = {
         },
       ],
     },
+    trustedBy: {
+      eyebrow: "Trusted by",
+      logos: [
+        { name: "Gulf Rescue", src: "/assets/gulfrescue-logo.svg" },
+        { name: "Löwenhardt", src: "/assets/loewenhardt-logo.png" },
+        { name: "AETHER", src: "/assets/aether.png" },
+        { name: "ZamboDezigns", src: "/assets/zambo-logo.png" },
+      ],
+    },
+    // PLACEHOLDER quotes — replace with real client words. Samy 2026-05-25.
+    testimonials: {
+      eyebrow: "What clients say",
+      title: "Real words, real",
+      titleAccent: "deliveries.",
+      items: [
+        {
+          quote:
+            "Samy built the full brand world plus the website in three weeks. The renderings landed before the engineering team finished the prototype.",
+          author: "Stefan",
+          role: "Founder · Gulf Rescue",
+          logo: "/assets/gulfrescue-logo.svg",
+        },
+        {
+          quote:
+            "One person, full marketing stack. We stopped juggling three agencies. The Shopify rebuild paid for itself in the first month.",
+          author: "Anonymous",
+          role: "Co-founder · Löwenhardt",
+          logo: "/assets/loewenhardt-logo.png",
+        },
+        {
+          quote:
+            "What we got back wasn't a deck of mood-boards. It was a working configurator, real models, deployed. Two weeks.",
+          author: "Anonymous",
+          role: "CEO · Module Configurator client",
+        },
+      ],
+    },
+    faq: {
+      eyebrow: "Common questions",
+      title: "Everything you'd ask",
+      titleAccent: "before the call.",
+      sub: "Short answers. If something's missing, the consultation slot answers it.",
+      items: [
+        {
+          q: "How fast can we start?",
+          a: "Kickoff within a week of signing. First renderings inside two weeks. The Process section above breaks it down day by day.",
+        },
+        {
+          q: "Who owns the assets?",
+          a: "Ground X owns everything I produce — renderings, brand files, site source, configurator code. Delivered into your Drive + GitHub.",
+        },
+        {
+          q: "What if we want to stop the retainer?",
+          a: "Monthly cancellation. You keep everything shipped to date. No exit fee, no IP held back.",
+        },
+        {
+          q: "What's not included?",
+          a: "Paid-media spend itself (only management). Photography on location. Translation outside DE / EN / AR. Each is quotable separately.",
+        },
+        {
+          q: "How do we communicate?",
+          a: "Async-first via a shared Drive folder + WhatsApp / email for fast threads. Weekly 30-min call during build, bi-weekly once the retainer is running.",
+        },
+        {
+          q: "Do you sub-contract?",
+          a: "No. I build everything personally. AETHER (my own operating system) handles the repetitive work; the creative + strategic decisions are mine.",
+        },
+      ],
+    },
     contact: {
       eyebrow: "Next step",
       headline: "Let's build the first",
@@ -250,6 +342,9 @@ export function mergeConfig(partial: Partial<OfferConfig> | null | undefined): O
       brand: { ...DEFAULT_CONFIG.content.brand, ...(partial.content?.brand ?? {}) },
       offer: { ...DEFAULT_CONFIG.content.offer, ...(partial.content?.offer ?? {}) },
       process: { ...DEFAULT_CONFIG.content.process, ...(partial.content?.process ?? {}) },
+      trustedBy: { ...DEFAULT_CONFIG.content.trustedBy, ...(partial.content?.trustedBy ?? {}) },
+      testimonials: { ...DEFAULT_CONFIG.content.testimonials, ...(partial.content?.testimonials ?? {}) },
+      faq: { ...DEFAULT_CONFIG.content.faq, ...(partial.content?.faq ?? {}) },
       contact: { ...DEFAULT_CONFIG.content.contact, ...(partial.content?.contact ?? {}) },
     },
   };

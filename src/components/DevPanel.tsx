@@ -25,13 +25,16 @@ import {
 
 const ALL_SECTIONS: { key: ConfigSectionKey; label: string }[] = [
   { key: "hero", label: "Hero" },
+  { key: "trustedBy", label: "Trusted by" },
   { key: "about", label: "About" },
   { key: "angle", label: "Why me" },
   { key: "capabilities", label: "Capabilities" },
   { key: "work", label: "Work" },
+  { key: "testimonials", label: "Testimonials" },
   { key: "brand", label: "Brand" },
   { key: "offer", label: "Offer" },
   { key: "process", label: "Process" },
+  { key: "faq", label: "FAQ" },
   { key: "contact", label: "Contact" },
 ];
 

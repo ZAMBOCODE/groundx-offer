@@ -16,28 +16,33 @@ import type { SectionKey as ConfigSectionKey } from "@/lib/config";
    nicht generisch, sondern award-winning"). Per-section enabled-override
    ergänzt für DevPanel-Toggling ohne Config-Edit. */
 
-export type SectionKey = "hero" | "about" | "angle" | "capabilities" | "work" | "brand" | "offer" | "process" | "contact";
+export type SectionKey = "hero" | "trustedBy" | "about" | "angle" | "capabilities" | "work" | "testimonials" | "brand" | "offer" | "process" | "faq" | "contact";
 
 export type Variants = Record<SectionKey, number>;
 
 const DEFAULTS: Variants = {
-  hero: 0, about: 4, angle: 4, capabilities: 3, work: 4, brand: 1, offer: 0, process: 0, contact: 4,
+  hero: 0, trustedBy: 0, about: 4, angle: 4, capabilities: 3, work: 4,
+  testimonials: 0, brand: 1, offer: 0, process: 0, faq: 0, contact: 4,
 };
 
 /** how many variants each section offers (for the dev-panel selector) */
 export const VARIANT_COUNT: Record<SectionKey, number> = {
-  hero: 6, about: 6, angle: 6, capabilities: 6, work: 6, brand: 6, offer: 6, process: 3, contact: 6,
+  hero: 6, trustedBy: 2, about: 6, angle: 6, capabilities: 6, work: 6,
+  testimonials: 3, brand: 6, offer: 6, process: 3, faq: 2, contact: 6,
 };
 
 export const SECTION_LABEL: Record<SectionKey, string> = {
   hero: "Hero",
+  trustedBy: "Trusted by",
   about: "About",
   angle: "Why me",
   capabilities: "What I can do",
   work: "Selected work",
+  testimonials: "Testimonials",
   brand: "Brand direction",
   offer: "Offer",
   process: "Process",
+  faq: "FAQ",
   contact: "Contact",
 };
 
@@ -104,6 +109,19 @@ export const VARIANT_NOTES: Record<SectionKey, string[]> = {
     "Milestones · vertical timeline",
     "Sticky · scroll-reveal",
     "Phases · horizontal stations",
+  ],
+  trustedBy: [
+    "Marquee · auto-scroll",
+    "Static · centered row",
+  ],
+  testimonials: [
+    "Cards · 3 col",
+    "Marquee · auto-scroll",
+    "Feature · one big quote",
+  ],
+  faq: [
+    "Accordion · single column",
+    "Columns · 2 col",
   ],
   contact: [
     "Centered · CTA + card",

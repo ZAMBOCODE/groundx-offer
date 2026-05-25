@@ -38,7 +38,10 @@ await page.addStyleTag({
 });
 await page.waitForTimeout(800);
 
-const SECTIONS = ["hero", "about", "angle", "capabilities", "work", "brand", "offer", "process", "contact"];
+const SECTIONS = [
+  "hero", "trustedBy", "about", "angle", "capabilities", "work",
+  "testimonials", "brand", "offer", "process", "faq", "contact",
+];
 
 for (const id of SECTIONS) {
   await page.evaluate((sectionId) => {

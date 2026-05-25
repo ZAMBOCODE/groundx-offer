@@ -2312,6 +2312,290 @@ function useContactChannels() {
   ];
 }
 
+/* ==================================================== TRUSTED BY (2 variants) */
+
+export function TrustedBy() {
+  const t = useOffer().content.trustedBy;
+  const { variants } = useDesign();
+  const v = variants.trustedBy ?? 0;
+  if (!t || t.logos.length === 0) return null;
+  return (
+    <section
+      id="trustedBy"
+      className="section"
+      style={{ minHeight: "auto", paddingBlock: "3rem" }}
+    >
+      <p className="meta accent mb-6 text-center text-[0.6rem] tracking-[0.4em]">
+        — {t.eyebrow.toUpperCase()} —
+      </p>
+      {v === 0 ? <LogoMarquee logos={t.logos} /> : <LogoRow logos={t.logos} />}
+    </section>
+  );
+}
+
+function LogoMarquee({ logos }: { logos: { name: string; src: string }[] }) {
+  const track = [...logos, ...logos, ...logos];
+  return (
+    <div
+      className="relative w-full overflow-hidden"
+      style={{
+        maskImage: "linear-gradient(90deg, transparent, black 10%, black 90%, transparent)",
+        WebkitMaskImage: "linear-gradient(90deg, transparent, black 10%, black 90%, transparent)",
+      }}
+    >
+      <motion.div
+        className="flex w-max items-center gap-16"
+        animate={{ x: ["0%", "-33.333%"] }}
+        transition={{ duration: 40, ease: "linear", repeat: Infinity }}
+      >
+        {track.map((l, i) => (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            key={i}
+            src={l.src}
+            alt={l.name}
+            className="h-9 w-auto opacity-50 grayscale transition-all duration-300 hover:opacity-90 hover:grayscale-0 sm:h-12"
+          />
+        ))}
+      </motion.div>
+    </div>
+  );
+}
+
+function LogoRow({ logos }: { logos: { name: string; src: string }[] }) {
+  return (
+    <div className="flex flex-wrap items-center justify-center gap-12">
+      {logos.map((l) => (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          key={l.src}
+          src={l.src}
+          alt={l.name}
+          className="h-9 w-auto opacity-60 grayscale transition-all duration-300 hover:opacity-95 hover:grayscale-0 sm:h-12"
+        />
+      ))}
+    </div>
+  );
+}
+
+/* ==================================================== TESTIMONIALS (3 variants) */
+
+export function Testimonials() {
+  const t = useOffer().content.testimonials;
+  const { variants } = useDesign();
+  const v = variants.testimonials ?? 0;
+  if (!t || t.items.length === 0) return null;
+  return (
+    <section id="testimonials" className="section">
+      <SectionHead
+        eyebrow={t.eyebrow}
+        title={
+          <>
+            {t.title} <span className="accent-text">{t.titleAccent}</span>
+          </>
+        }
+      />
+      {v === 0 && <TestimonialCards items={t.items} />}
+      {v === 1 && <TestimonialMarquee items={t.items} />}
+      {v === 2 && <TestimonialFeature items={t.items} />}
+    </section>
+  );
+}
+
+type Testimonial = { quote: string; author: string; role: string; logo?: string };
+
+function TestimonialCards({ items }: { items: Testimonial[] }) {
+  return (
+    <div className="mt-12 grid gap-5 md:grid-cols-3">
+      {items.map((t, i) => (
+        <Reveal key={t.author + i} delay={i * 0.07}>
+          <TiltCard className="flex h-full flex-col p-7">
+            <span
+              className="display-light accent select-none text-[3rem] leading-none"
+              aria-hidden
+            >
+              “
+            </span>
+            <p className="text-dim mt-2 flex-1 text-[0.98rem] leading-relaxed">{t.quote}</p>
+            <div className="mt-6 flex items-center gap-3">
+              {t.logo && (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={t.logo} alt="" className="h-6 w-auto opacity-80" />
+              )}
+              <div>
+                <div className="text-[0.88rem] text-white">{t.author}</div>
+                <div className="meta text-faint text-[0.58rem]">{t.role}</div>
+              </div>
+            </div>
+          </TiltCard>
+        </Reveal>
+      ))}
+    </div>
+  );
+}
+
+function TestimonialMarquee({ items }: { items: Testimonial[] }) {
+  const track = [...items, ...items];
+  return (
+    <div
+      className="mt-12 w-full overflow-hidden"
+      style={{
+        maskImage: "linear-gradient(90deg, transparent, black 8%, black 92%, transparent)",
+        WebkitMaskImage: "linear-gradient(90deg, transparent, black 8%, black 92%, transparent)",
+      }}
+    >
+      <motion.div
+        className="flex w-max gap-5"
+        animate={{ x: ["0%", "-50%"] }}
+        transition={{ duration: 60, ease: "linear", repeat: Infinity }}
+      >
+        {track.map((t, i) => (
+          <div key={i} className="w-[460px] shrink-0">
+            <TiltCard className="flex h-full flex-col p-6">
+              <p className="text-dim text-[0.95rem] leading-relaxed">“{t.quote}”</p>
+              <div className="meta text-faint mt-5 text-[0.58rem] tracking-[0.25em]">
+                {t.author.toUpperCase()} · {t.role.toUpperCase()}
+              </div>
+            </TiltCard>
+          </div>
+        ))}
+      </motion.div>
+    </div>
+  );
+}
+
+function TestimonialFeature({ items }: { items: Testimonial[] }) {
+  const [idx, setIdx] = useState(0);
+  const t = items[idx]!;
+  return (
+    <div className="mt-12">
+      <Reveal>
+        <div className="mx-auto max-w-3xl text-center">
+          <span className="display-light accent select-none text-[5rem] leading-none">“</span>
+          <p
+            className="display mt-4 text-[1.6rem] leading-snug sm:text-[2.1rem]"
+            style={{ fontFamily: "var(--display-font, inherit)" }}
+          >
+            {t.quote}
+          </p>
+          <div className="mt-8 flex items-center justify-center gap-3">
+            {t.logo && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={t.logo} alt="" className="h-8 w-auto opacity-80" />
+            )}
+            <div className="text-left">
+              <div className="text-[0.95rem] text-white">{t.author}</div>
+              <div className="meta text-faint text-[0.6rem]">{t.role}</div>
+            </div>
+          </div>
+        </div>
+      </Reveal>
+      <div className="mt-8 flex justify-center gap-2">
+        {items.map((_, i) => (
+          <button
+            key={i}
+            onClick={() => setIdx(i)}
+            className="h-1.5 rounded-full transition-all"
+            style={{
+              width: idx === i ? 28 : 10,
+              background: idx === i ? "var(--accent)" : "var(--stroke-strong)",
+            }}
+            aria-label={`Quote ${i + 1}`}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/* ==================================================== FAQ (2 variants) */
+
+export function FAQ() {
+  const f = useOffer().content.faq;
+  const { variants } = useDesign();
+  const v = variants.faq ?? 0;
+  if (!f || f.items.length === 0) return null;
+  return (
+    <section id="faq" className="section">
+      <SectionHead
+        eyebrow={f.eyebrow}
+        title={
+          <>
+            {f.title} <span className="accent-text">{f.titleAccent}</span>
+          </>
+        }
+        sub={f.sub}
+      />
+      {v === 0 ? <FAQAccordion items={f.items} /> : <FAQColumns items={f.items} />}
+    </section>
+  );
+}
+
+type FAQItem = { q: string; a: string };
+
+function FAQAccordion({ items }: { items: FAQItem[] }) {
+  const [openIdx, setOpenIdx] = useState<number | null>(0);
+  return (
+    <div className="mx-auto mt-12 flex w-full max-w-3xl flex-col">
+      {items.map((it, i) => {
+        const open = openIdx === i;
+        return (
+          <div key={it.q} className="border-t border-[var(--stroke-card)] last:border-b">
+            <button
+              type="button"
+              onClick={() => setOpenIdx(open ? null : i)}
+              className="flex w-full items-center justify-between gap-6 py-5 text-left"
+              aria-expanded={open}
+            >
+              <span className="display text-[1.1rem] sm:text-[1.25rem]">{it.q}</span>
+              <span
+                className="text-accent shrink-0 text-[1.3rem] transition-transform"
+                style={{
+                  transform: open ? "rotate(45deg)" : "rotate(0deg)",
+                  color: "var(--accent-bright)",
+                }}
+              >
+                +
+              </span>
+            </button>
+            <AnimatePresence initial={false}>
+              {open && (
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: "auto", opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  transition={{ duration: 0.3, ease: [0.2, 0.8, 0.2, 1] }}
+                  style={{ overflow: "hidden" }}
+                >
+                  <p className="text-dim pb-6 text-[1rem] leading-relaxed">{it.a}</p>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+function FAQColumns({ items }: { items: FAQItem[] }) {
+  return (
+    <div className="mt-12 grid gap-x-10 gap-y-8 md:grid-cols-2">
+      {items.map((it, i) => (
+        <Reveal key={it.q} delay={i * 0.05}>
+          <div>
+            <h3 className="display text-[1.1rem]">
+              <span className="accent-text mr-3">{String(i + 1).padStart(2, "0")}</span>
+              {it.q}
+            </h3>
+            <p className="text-dim mt-3 text-[0.95rem] leading-relaxed">{it.a}</p>
+          </div>
+        </Reveal>
+      ))}
+    </div>
+  );
+}
+
 /* ==================================================== PROCESS (3 variants) */
 
 export function Process() {

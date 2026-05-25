@@ -13,7 +13,7 @@
  */
 import type { OfferContent, SectionKey } from "./config";
 
-export type SectionCopyKey = Exclude<SectionKey, "about">;
+export type SectionCopyKey = Exclude<SectionKey, "about" | "trustedBy">;
 
 /** Patch shape per section — only the user-facing copy fields, not data. */
 export type CopyPatch =
@@ -24,6 +24,8 @@ export type CopyPatch =
   | Partial<OfferContent["brand"]>
   | Partial<Omit<OfferContent["offer"], "tabs">>
   | Partial<Omit<OfferContent["process"], "milestones">>
+  | Partial<Omit<OfferContent["testimonials"], "items">>
+  | Partial<Omit<OfferContent["faq"], "items">>
   | Partial<OfferContent["contact"]>;
 
 export type CopyVariant = {
@@ -268,6 +270,75 @@ export const COPY_VARIANTS: Record<SectionCopyKey, CopyVariant[]> = {
         title: "Sign Monday.",
         titleAccent: "First renderings by Friday week 2.",
         sub: "No discovery month. No 'we'll get back to you'. Five named milestones, each with a hard deliverable.",
+      },
+    },
+  ],
+
+  testimonials: [
+    {
+      id: "direct",
+      label: "Direct",
+      vibe: "Plain proof framing",
+      patch: {
+        eyebrow: "What clients say",
+        title: "Real words, real",
+        titleAccent: "deliveries.",
+      },
+    },
+    {
+      id: "editorial",
+      label: "Editorial",
+      vibe: "Quiet credibility",
+      patch: {
+        eyebrow: "On the record",
+        title: "Three people who already",
+        titleAccent: "trusted me with theirs.",
+      },
+    },
+    {
+      id: "punchy",
+      label: "Punchy",
+      vibe: "Receipts not promises",
+      patch: {
+        eyebrow: "Proof",
+        title: "No fluff.",
+        titleAccent: "Just what they said.",
+      },
+    },
+  ],
+
+  faq: [
+    {
+      id: "direct",
+      label: "Direct",
+      vibe: "Plain Q&A framing",
+      patch: {
+        eyebrow: "Common questions",
+        title: "Everything you'd ask",
+        titleAccent: "before the call.",
+        sub: "Short answers. If something's missing, the consultation slot answers it.",
+      },
+    },
+    {
+      id: "editorial",
+      label: "Editorial",
+      vibe: "Frequent objections, calm tone",
+      patch: {
+        eyebrow: "Before you book",
+        title: "Six answers,",
+        titleAccent: "thirty seconds each.",
+        sub: "The questions that come up in every first call, pre-answered so the call can be about your project.",
+      },
+    },
+    {
+      id: "punchy",
+      label: "Punchy",
+      vibe: "Objection-handling, no apology",
+      patch: {
+        eyebrow: "FAQ",
+        title: "What you're",
+        titleAccent: "really asking.",
+        sub: "Hard questions, short answers.",
       },
     },
   ],
