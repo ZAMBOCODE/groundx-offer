@@ -71,15 +71,18 @@ function Slide({
 }) {
   // Each slide owns 1/total of the scroll. Outside its window it sits in the
   // stack (tilted, dimmed); inside, it rises to the foreground.
+  // All breakpoints stay within [0, 1] — Motion's Web Animations API rejects
+  // non-monotonic / out-of-range offsets.
   const start = index / total;
   const peak = (index + 0.5) / total;
   const end = (index + 1) / total;
+  const range: [number, number, number] = [start, peak, end];
 
-  const opacity = useTransform(progress, [start - 0.1, start, peak, end, end + 0.1], [0.15, 0.55, 1, 0.55, 0.15]);
-  const y = useTransform(progress, [start, peak, end], [120, 0, -120]);
-  const rotateX = useTransform(progress, [start, peak, end], [38, 0, -38]);
-  const scale = useTransform(progress, [start, peak, end], [0.85, 1, 0.85]);
-  const z = useTransform(progress, [start, peak, end], [-220, 0, -220]);
+  const opacity = useTransform(progress, range, [0.4, 1, 0.4]);
+  const y = useTransform(progress, range, [120, 0, -120]);
+  const rotateX = useTransform(progress, range, [38, 0, -38]);
+  const scale = useTransform(progress, range, [0.85, 1, 0.85]);
+  const z = useTransform(progress, range, [-220, 0, -220]);
 
   return (
     <motion.div
