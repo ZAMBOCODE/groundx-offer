@@ -18,6 +18,7 @@ import {
   loadCopyVariantSelections,
   saveCopyVariantSelections,
   VARIANTS_CHANGE_EVENT,
+  type CopyVariant,
   type CopyVariantSelections,
   type SectionCopyKey,
 } from "@/lib/copyVariants";
@@ -227,8 +228,48 @@ export function DevPanel() {
   const [fontInput, setFontInput] = useState("");
   const [copySel, setCopySel] = useState<CopyVariantSelections>({});
   const [openCopyKey, setOpenCopyKey] = useState<SectionCopyKey | null>(null);
+  // Agent-generated copy variants per section (overrides the curated set).
+  const [dynamicCopy, setDynamicCopy] = useState<Partial<Record<SectionCopyKey, CopyVariant[]>>>({});
+  const [copyBusy, setCopyBusy] = useState<SectionCopyKey | null>(null);
   const { variants, setVariant, enabledOverride, toggleSection, workProjects, setWorkProjects } = useDesign();
   const offer = useOffer();
+
+  const generateCopyVariants = useCallback(
+    async (section: SectionCopyKey) => {
+      const currentCopy = (offer.content as Record<string, unknown>)[section];
+      if (!currentCopy) return;
+      setCopyBusy(section);
+      try {
+        const res = await fetch("/api/copy-variants", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            section,
+            currentCopy,
+            client: {
+              name: offer.brand.name,
+              tagline: offer.brand.tagline,
+              voice:
+                "Ground X brand rules: NEVER use 'bunker'. Lifestyle-first, sanctuary-second. Twilight + cognac + brushed-gold visual register. Villa always in frame. Discreet, never loud. Avoid em-dashes (use commas / periods).",
+            },
+          }),
+        });
+        const j = (await res.json()) as { ok?: boolean; variants?: CopyVariant[]; error?: string };
+        if (!res.ok || !j.variants) {
+          alert(`Generate failed: ${j.error ?? res.status}`);
+          return;
+        }
+        setDynamicCopy((prev) => ({ ...prev, [section]: j.variants }));
+        // Auto-open the picker so the new variants are immediately visible.
+        setOpenCopyKey(section);
+      } catch (e) {
+        alert(`Generate failed: ${e instanceof Error ? e.message : String(e)}`);
+      } finally {
+        setCopyBusy(null);
+      }
+    },
+    [offer],
+  );
 
   // load + apply on mount (settings + custom fonts)
   useEffect(() => {
@@ -683,6 +724,9 @@ export function DevPanel() {
                       setOpenCopyKey((prev) => (prev === key ? null : (key as SectionCopyKey)))
                     }
                     onPick={(id) => applyCopyVariant(key as SectionCopyKey, id)}
+                    overrideVariants={dynamicCopy[key as SectionCopyKey]}
+                    busy={copyBusy === key}
+                    onGenerate={() => generateCopyVariants(key as SectionCopyKey)}
                   />
                 )}
                 {/* Project-filter only for Work — Samy 2026-05-24: "ich will auswählen welche Projekte gezeigt werden" */}
@@ -964,31 +1008,56 @@ function CopyVariantPicker({
   open,
   onToggle,
   onPick,
+  overrideVariants,
+  busy,
+  onGenerate,
 }: {
   section: SectionCopyKey;
   selectedId: string | undefined;
   open: boolean;
   onToggle: () => void;
   onPick: (id: string | null) => void;
+  overrideVariants?: CopyVariant[];
+  busy?: boolean;
+  onGenerate?: () => void;
 }) {
-  const variants = COPY_VARIANTS[section] ?? [];
+  const variants = overrideVariants ?? COPY_VARIANTS[section] ?? [];
   if (variants.length === 0) return null;
   const active = variants.find((v) => v.id === selectedId);
   const label = selectedId ? active?.label ?? selectedId : "Default";
+  const sourceLabel = overrideVariants ? "AI" : "CURATED";
 
   return (
     <div className="mt-1.5 flex flex-col gap-1">
-      <button
-        type="button"
-        onClick={onToggle}
-        className="meta text-faint flex items-center justify-between gap-2 rounded-[var(--r-mini)] border border-[var(--stroke-card)] px-2.5 py-1.5 text-[0.58rem] tracking-[0.2em] hover:border-[var(--accent)] hover:text-[var(--accent-bright)]"
-        aria-expanded={open}
-      >
-        <span>
-          <span style={{ color: "var(--accent-bright)" }}>✦</span> COPY · {label.toUpperCase()}
-        </span>
-        <span style={{ transform: open ? "rotate(90deg)" : "rotate(0deg)", transition: "transform 200ms" }}>›</span>
-      </button>
+      <div className="flex gap-1">
+        <button
+          type="button"
+          onClick={onToggle}
+          className="meta text-faint flex flex-1 items-center justify-between gap-2 rounded-[var(--r-mini)] border border-[var(--stroke-card)] px-2.5 py-1.5 text-[0.58rem] tracking-[0.2em] hover:border-[var(--accent)] hover:text-[var(--accent-bright)]"
+          aria-expanded={open}
+        >
+          <span>
+            <span style={{ color: "var(--accent-bright)" }}>✦</span> COPY · {label.toUpperCase()}
+            <span className="text-faint ml-2 text-[0.5rem] opacity-60">{sourceLabel}</span>
+          </span>
+          <span style={{ transform: open ? "rotate(90deg)" : "rotate(0deg)", transition: "transform 200ms" }}>›</span>
+        </button>
+        {onGenerate && (
+          <button
+            type="button"
+            onClick={onGenerate}
+            disabled={busy}
+            className="meta rounded-[var(--r-mini)] border px-2 py-1.5 text-[0.58rem] tracking-[0.2em] transition-colors disabled:opacity-60"
+            style={{
+              color: busy ? "var(--ink-3)" : "var(--accent-bright)",
+              borderColor: "var(--accent)",
+            }}
+            title="Generate 3 fresh copy variants via Claude (needs ANTHROPIC_API_KEY in .env.local)"
+          >
+            {busy ? "…" : "✨ AI"}
+          </button>
+        )}
+      </div>
       {open && (
         <div className="flex flex-col gap-1">
           <CopyOption
