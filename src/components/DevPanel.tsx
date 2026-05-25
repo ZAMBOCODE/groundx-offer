@@ -32,9 +32,10 @@ const ALL_SECTIONS: { key: ConfigSectionKey; label: string }[] = [
 type Settings = {
   accent: string;
   radius: number; // base card radius in px
-  highlightFont: string; // CSS font-family value
-  bodyFont: string; // normal/body font
-  sidePad: number; // section horizontal padding in px
+  highlightFont: string; // accent-text gradient font
+  displayFont: string; // .display / .display-light (headlines)
+  bodyFont: string; // body paragraphs
+  sidePad: number; // section horizontal padding in px (clamped >=0)
   smoothScroll: boolean;
   snap: boolean;
   cursorFx: string;
@@ -48,6 +49,7 @@ const DEFAULTS: Settings = {
   accent: "#f97316",
   radius: 28,
   highlightFont: "inherit",
+  displayFont: "inherit",
   bodyFont: "inherit",
   sidePad: 24,
   smoothScroll: true,
@@ -135,10 +137,15 @@ function apply(s: Settings) {
   root.style.setProperty("--r-mini", `${Math.round(s.radius * 0.3)}px`);
   root.style.setProperty("--highlight-font", s.highlightFont);
   root.style.setProperty(
+    "--display-font",
+    s.displayFont === "inherit" ? "var(--font-display)" : s.displayFont,
+  );
+  root.style.setProperty(
     "--body-font",
     s.bodyFont === "inherit" ? "var(--font-sans)" : s.bodyFont,
   );
-  root.style.setProperty("--side-pad", `${s.sidePad}px`);
+  // clamp >=0 so stale negatives in localStorage don't break layout
+  root.style.setProperty("--side-pad", `${Math.max(0, s.sidePad)}px`);
   root.style.scrollBehavior = s.smoothScroll ? "smooth" : "auto";
   root.classList.toggle("snap", s.snap);
   root.classList.toggle("fx-bubbles", s.bubbles);
@@ -306,8 +313,8 @@ export function DevPanel() {
               />
             </Field>
 
-            {/* highlight font */}
-            <Field label="Highlight font">
+            {/* highlight font — the accent-text gradient */}
+            <Field label="Highlight font (accent)">
               <select
                 value={s.highlightFont}
                 onChange={(e) => update({ highlightFont: e.target.value })}
@@ -322,8 +329,24 @@ export function DevPanel() {
               </select>
             </Field>
 
-            {/* body font */}
-            <Field label="Body font">
+            {/* display font — big headlines (.display, .display-light) */}
+            <Field label="Display font (headlines)">
+              <select
+                value={s.displayFont}
+                onChange={(e) => update({ displayFont: e.target.value })}
+                className="inner-card w-full px-2.5 py-2 text-[0.82rem]"
+                style={{ color: "var(--ink)" }}
+              >
+                {FONTS.map((f) => (
+                  <option key={f.value} value={f.value} style={{ background: "#111" }}>
+                    {f.label}
+                  </option>
+                ))}
+              </select>
+            </Field>
+
+            {/* body font — paragraph text */}
+            <Field label="Body font (text)">
               <select
                 value={s.bodyFont}
                 onChange={(e) => update({ bodyFont: e.target.value })}
@@ -338,13 +361,13 @@ export function DevPanel() {
               </select>
             </Field>
 
-            {/* side padding — kann negativ gehen, Samy 2026-05-24: "S minus für mehr Freiheit" */}
-            <Field label={`Side padding — ${s.sidePad}px`}>
+            {/* side padding — 0 = edge-to-edge, N = clear px from viewport edges */}
+            <Field label={`Side padding — ${Math.max(0, s.sidePad)}px`}>
               <input
                 type="range"
-                min={-200}
+                min={0}
                 max={200}
-                value={s.sidePad}
+                value={Math.max(0, s.sidePad)}
                 onChange={(e) => update({ sidePad: Number(e.target.value) })}
                 className="w-full accent-[var(--accent)]"
               />

@@ -227,13 +227,13 @@ body {
 
 /* ---------------------------------------- typography */
 .display {
-  font-family: var(--font-display), "Space Grotesk", system-ui, sans-serif;
+  font-family: var(--display-font, var(--font-display)), "Space Grotesk", system-ui, sans-serif;
   font-weight: 600;
   letter-spacing: -0.03em;
   line-height: 0.98;
 }
 .display-light {
-  font-family: var(--font-display), "Space Grotesk", system-ui, sans-serif;
+  font-family: var(--display-font, var(--font-display)), "Space Grotesk", system-ui, sans-serif;
   font-weight: 300;
   letter-spacing: -0.02em;
 }
@@ -336,15 +336,20 @@ body {
   }
 }
 
-/* ---------------------------------------- section rhythm */
+/* ---------------------------------------- section rhythm
+   No outer max-width cap — the side-pad slider in DevPanel is the sole
+   horizontal control. Slider value = clear px from viewport edges.
+   Split into padding-block / padding-inline so a 0 inline value never
+   breaks the vertical 7rem (the old `padding: 7rem var(--side-pad)`
+   shorthand was discarded when --side-pad went negative). */
 .section {
-  max-width: 1120px;
   margin: 0 auto;
-  padding: 7rem var(--side-pad, 1.5rem);
+  padding-block: 7rem;
+  padding-inline: max(0px, var(--side-pad, 24px));
 }
 @media (max-width: 640px) {
   .section {
-    padding: 4.5rem 1.25rem;
+    padding-block: 4.5rem;
   }
   .display {
     line-height: 1.08;

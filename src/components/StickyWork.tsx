@@ -60,7 +60,7 @@ export function StickyWork({ cases }: { cases?: CaseStudy[] } = {}) {
           style={{ x }}
           className="flex gap-6"
         >
-          <div className="shrink-0" style={{ width: "max(1.5rem, calc((100vw - 1120px) / 2))" }} />
+          <div className="shrink-0" style={{ width: "max(var(--side-pad, 24px), 1.5rem)" }} />
           {list.map((c) => (
             <div key={c.name} className="w-[78vw] max-w-[540px] shrink-0">
               <Card c={c} />
