@@ -142,6 +142,7 @@ export const DEFAULT_CONFIG: OfferConfig = {
             { tag: "Web", name: "Informative website", price: "€2,000–3,000", items: ["EN + DE, responsive", "Lead-capture / consultation", "Deployed on Vercel", "Privacy-first analytics"] },
             { tag: "Shop", name: "Shopify rebuild", price: "€1,500–2,500", items: ["Premium theme", "Product pages per module", "AI renderings integrated", "Checkout optimization"] },
             { tag: "3D", name: "Module configurator", price: "€2,000–4,000", items: ["Build-your-module in 3D", "Real GLB models", "Browser-based", "Three.js / R3F"] },
+            { tag: "Deck", name: "Investor pitch deck", price: "€1,500–3,500", items: ["Narrative + structure", "Real numbers, no fluff", "10–15 slides, custom-designed", "Optional Loom voice-over"] },
           ],
         },
         {

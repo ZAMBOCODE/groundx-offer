@@ -9,7 +9,8 @@
     "lint": "eslint",
     "pdf": "node scripts/export-pdf.mjs",
     "caps-check": "node scripts/caps-check.mjs",
-    "caps-fix": "node scripts/caps-check.mjs --fix"
+    "caps-fix": "node scripts/caps-check.mjs --fix",
+    "shots": "node scripts/section-shots.mjs"
   },
   "dependencies": {
     "clsx": "^2.1.1",

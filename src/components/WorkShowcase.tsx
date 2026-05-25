@@ -24,8 +24,14 @@ export function WorkShowcase() {
   const rest = cases.slice(1);
   return (
     <>
-      <div className="mt-14">
-        {first && <ShowcaseRow c={first} flip={false} onOpen={setLightbox} />}
+      {/* First case fills the section's first viewport so the layout
+         doesn't leave dead-space above the sticky wheel that follows. */}
+      <div className="flex min-h-[calc(100vh-12rem)] items-center">
+        {first && (
+          <div className="w-full">
+            <ShowcaseRow c={first} flip={false} onOpen={setLightbox} />
+          </div>
+        )}
       </div>
       {rest.length > 0 && <WorkWheel cases={rest} onOpen={setLightbox} />}
       <AnimatePresence>

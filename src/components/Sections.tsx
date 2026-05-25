@@ -793,11 +793,30 @@ function StickyStackCard({
 
   const restingY = index * 14; // stacked offset
   const restingTilt = index * 0.7; // slight rotation accent
-  const enterY = useTransform(progress, [start, end], [120, restingY]);
-  const tiltZ = useTransform(progress, [start, end], [restingTilt + 1.6, restingTilt]);
-  const enterScale = useTransform(progress, [start, end], [0.96, 1]);
-  // Below the threshold the card is offstage — fully hidden.
-  const opacity = useTransform(progress, [Math.max(0, start - 0.05), start], [0, 1]);
+  // Card 0 must already be in its resting position at scroll=0 so the
+  // section isn't empty when the buyer lands on it. Subsequent cards
+  // slide in from below during their respective scroll windows.
+  const isFirst = index === 0;
+  const enterY = useTransform(
+    progress,
+    isFirst ? [0, 0.001] : [start, end],
+    isFirst ? [restingY, restingY] : [120, restingY],
+  );
+  const tiltZ = useTransform(
+    progress,
+    isFirst ? [0, 0.001] : [start, end],
+    isFirst ? [restingTilt, restingTilt] : [restingTilt + 1.6, restingTilt],
+  );
+  const enterScale = useTransform(
+    progress,
+    isFirst ? [0, 0.001] : [start, end],
+    isFirst ? [1, 1] : [0.96, 1],
+  );
+  const opacity = useTransform(
+    progress,
+    isFirst ? [0, 0.001] : [Math.max(0, start - 0.05), start],
+    isFirst ? [1, 1] : [0, 1],
+  );
 
   return (
     <motion.div
@@ -1736,6 +1755,7 @@ const TAG_ICON: Record<string, IconRenderer> = {
   Web: (s) => <Monitor size={s} strokeWidth={1.8} />,
   Shop: (s) => <ShopifyGlyph size={s} />,
   "3D": (s) => <Box size={s} strokeWidth={1.8} />,
+  Deck: (s) => <Presentation size={s} strokeWidth={1.8} />,
   Setup: (s) => <Sparkles size={s} strokeWidth={1.8} />,
   Monthly: (s) => <Repeat size={s} strokeWidth={1.8} />,
   "Soft start": (s) => <Sparkles size={s} strokeWidth={1.8} />,
@@ -1745,8 +1765,13 @@ const TAG_ICON: Record<string, IconRenderer> = {
 };
 
 function PriceGrid({ cards }: { cards: PriceCard[] }) {
+  // Layout adapts to card count: 3 → 3-col, 4 → 2x2 on md / 4-col on lg.
+  const cols =
+    cards.length === 4
+      ? "md:grid-cols-2 lg:grid-cols-4"
+      : "md:grid-cols-3";
   return (
-    <div className="mt-8 grid gap-5 md:grid-cols-3">
+    <div className={`mt-8 grid gap-5 ${cols}`}>
       {cards.map((p, i) => {
         const icon = TAG_ICON[p.tag] ?? ((s: number) => <ShoppingBag size={s} strokeWidth={1.8} />);
         return (
@@ -2061,6 +2086,11 @@ const OFFER_COMPARE_MATRIX: Array<{
     category: "Multilingual (DE/EN/AR)",
     detail: "RTL-ready Arabic optional",
     cells: { Partnership: "✓", "One-time builds": "+€500–1K", "À la carte": "+€500" },
+  },
+  {
+    category: "Investor pitch deck",
+    detail: "Narrative + numbers + 10–15 slides",
+    cells: { Partnership: "+€1.5K", "One-time builds": "€1.5–3.5K", "À la carte": "from €90 / slide" },
   },
 ];
 

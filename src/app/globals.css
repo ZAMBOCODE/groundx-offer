@@ -356,11 +356,13 @@ body {
 }
 /* Sticky-scroll containers (height-driven children) opt out of the flex
    centering — they manage their own vertical rhythm. The data-attribute
-   is added by such sections (StickyWork, IsometricScrollStack). */
+   is added by such sections (StickyWork, IsometricScrollStack). Keep
+   min-height: 100vh so the section's intro content (head + first card)
+   fills the viewport instead of leaving a dead-zone above the sticky
+   child's own scroll range. */
 .section[data-scroll-driven="true"] {
   display: block;
   justify-content: unset;
-  min-height: unset;
 }
 @media (max-width: 640px) {
   .section {
