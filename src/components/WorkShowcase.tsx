@@ -4,6 +4,7 @@ import { useRef, useState, type CSSProperties } from "react";
 import { motion, AnimatePresence, useScroll, useTransform, type MotionValue } from "motion/react";
 import { Maximize2 } from "lucide-react";
 import { cases, type CaseStudy } from "@/lib/data";
+import { usePdfMode } from "@/lib/pdfMode";
 
 /* Samy 2026-05-25, Selected Work pick = v5 (this WorkShowcase).
    Changes from prior:
@@ -148,6 +149,30 @@ function ShowcaseRow({
    Each slot shows the project's logo, tag, three thumbs, and a hover
    line. */
 function WorkWheel({ cases: list, onOpen }: { cases: CaseStudy[]; onOpen: (src: string) => void }) {
+  const pdf = usePdfMode();
+  if (pdf) return <WorkWheelStatic list={list} onOpen={onOpen} />;
+  return <WorkWheelDynamic list={list} onOpen={onOpen} />;
+}
+
+/* PDF fallback: same per-case WheelCard but rendered in a vertical
+   2-col grid instead of a sticky horizontal wheel. */
+function WorkWheelStatic({ list, onOpen }: { list: CaseStudy[]; onOpen: (src: string) => void }) {
+  return (
+    <div className="mt-16">
+      <div className="mb-8 text-center">
+        <p className="eyebrow">More work</p>
+      </div>
+      <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+        {list.map((c) => {
+          const shots = (c.shots ?? (c.image ? [c.image] : [])).slice(0, 3);
+          return <WheelCard key={c.name} c={c} shots={shots} onOpen={onOpen} />;
+        })}
+      </div>
+    </div>
+  );
+}
+
+function WorkWheelDynamic({ list, onOpen }: { list: CaseStudy[]; onOpen: (src: string) => void }) {
   const outer = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({
     target: outer,
