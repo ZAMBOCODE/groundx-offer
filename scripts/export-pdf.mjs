@@ -51,7 +51,10 @@ await page.evaluate(() => {
 });
 await page.reload({ waitUntil: "networkidle" });
 await page.addStyleTag({
-  content: '[aria-label="Toggle design panel"]{display:none !important;}',
+  // hide the dev-panel FAB + everything explicitly marked as interactive-only
+  // (Calendly pill, WhatsApp float, …). Samy 2026-05-24: "pdf-version braucht
+  // eine alternative" — handled via data-pdf-hide.
+  content: '[aria-label="Toggle design panel"], [data-pdf-hide]{display:none !important;}',
 });
 
 const dir = mkdtempSync(join(tmpdir(), "deckpdf-"));

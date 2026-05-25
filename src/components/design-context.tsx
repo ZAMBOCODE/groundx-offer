@@ -21,7 +21,7 @@ export type SectionKey = "hero" | "about" | "angle" | "capabilities" | "work" | 
 export type Variants = Record<SectionKey, number>;
 
 const DEFAULTS: Variants = {
-  hero: 0, about: 0, angle: 0, capabilities: 0, work: 4, brand: 2, offer: 0, contact: 0,
+  hero: 0, about: 0, angle: 0, capabilities: 0, work: 4, brand: 3, offer: 0, contact: 0,
 };
 
 /** how many variants each section offers (for the dev-panel selector) */
@@ -84,12 +84,12 @@ export const VARIANT_NOTES: Record<SectionKey, string[]> = {
     "Polaroid · tilt stack",
   ],
   brand: [
-    "Side-by-side · tilt card",
-    "Centered · logo focal",
-    "Mockup showcase",
-    "Split-screen · logo + mood",
-    "Magazine · serif cover",
-    "Swatch · full-width bands",
+    "Brand · editorial codex",
+    "Brand · cinematic palette wall",
+    "Brand · type specimen sheet",
+    "Mockup · device frames",
+    "Mockup · magazine spread",
+    "Mockup · isometric scroll stack",
   ],
   offer: [
     "Tabs · 3-card grid",
@@ -111,6 +111,7 @@ export const VARIANT_NOTES: Record<SectionKey, string[]> = {
 
 const KEY = "groundx.variants";
 const KEY_ENABLED = "groundx.sectionEnabled";
+const KEY_WORK_PROJECTS = "groundx.workProjects";
 
 type Ctx = {
   variants: Variants;
@@ -118,6 +119,9 @@ type Ctx = {
   /** per-section runtime enabled-override (DevPanel toggle, beats cfg.sections). */
   enabledOverride: Partial<Record<ConfigSectionKey, boolean>>;
   toggleSection: (k: ConfigSectionKey, on: boolean) => void;
+  /** Whitelist of work-project names to show in Selected Work. Empty = all. */
+  workProjects: string[];
+  setWorkProjects: (names: string[]) => void;
 };
 
 const DesignCtx = createContext<Ctx>({
@@ -125,12 +129,15 @@ const DesignCtx = createContext<Ctx>({
   setVariant: () => {},
   enabledOverride: {},
   toggleSection: () => {},
+  workProjects: [],
+  setWorkProjects: () => {},
 });
 
 export function DesignProvider({ children }: { children: React.ReactNode }) {
   const cfg = useOffer();
   const [variants, setVariants] = useState<Variants>(DEFAULTS);
   const [enabledOverride, setEnabledOverride] = useState<Partial<Record<ConfigSectionKey, boolean>>>({});
+  const [workProjects, setWorkProjectsState] = useState<string[]>([]);
 
   // Seed variants from the offer config (so the pipeline drives layout per
   // client); a saved dev-panel choice in localStorage always wins.
@@ -150,6 +157,10 @@ export function DesignProvider({ children }: { children: React.ReactNode }) {
     try {
       const rawE = localStorage.getItem(KEY_ENABLED);
       if (rawE) setEnabledOverride(JSON.parse(rawE));
+    } catch {}
+    try {
+      const rawP = localStorage.getItem(KEY_WORK_PROJECTS);
+      if (rawP) setWorkProjectsState(JSON.parse(rawP));
     } catch {}
   }, [cfg]);
 
@@ -171,8 +182,13 @@ export function DesignProvider({ children }: { children: React.ReactNode }) {
     });
   }, []);
 
+  const setWorkProjects = useCallback((names: string[]) => {
+    setWorkProjectsState(names);
+    try { localStorage.setItem(KEY_WORK_PROJECTS, JSON.stringify(names)); } catch {}
+  }, []);
+
   return (
-    <DesignCtx.Provider value={{ variants, setVariant, enabledOverride, toggleSection }}>
+    <DesignCtx.Provider value={{ variants, setVariant, enabledOverride, toggleSection, workProjects, setWorkProjects }}>
       {children}
     </DesignCtx.Provider>
   );

@@ -11,6 +11,7 @@ import {
 } from "./design-context";
 import { useOffer } from "./OfferProvider";
 import { Presets } from "./Presets";
+import { cases as ALL_CASES } from "@/lib/data";
 import type { SectionKey as ConfigSectionKey } from "@/lib/config";
 
 const ALL_SECTIONS: { key: ConfigSectionKey; label: string }[] = [
@@ -150,7 +151,7 @@ function apply(s: Settings) {
 export function DevPanel() {
   const [open, setOpen] = useState(false);
   const [s, setS] = useState<Settings>(DEFAULTS);
-  const { variants, setVariant, enabledOverride, toggleSection } = useDesign();
+  const { variants, setVariant, enabledOverride, toggleSection, workProjects, setWorkProjects } = useDesign();
   const offer = useOffer();
 
   // load + apply on mount
@@ -337,12 +338,12 @@ export function DevPanel() {
               </select>
             </Field>
 
-            {/* side padding */}
+            {/* side padding — kann negativ gehen, Samy 2026-05-24: "S minus für mehr Freiheit" */}
             <Field label={`Side padding — ${s.sidePad}px`}>
               <input
                 type="range"
-                min={8}
-                max={160}
+                min={-200}
+                max={200}
                 value={s.sidePad}
                 onChange={(e) => update({ sidePad: Number(e.target.value) })}
                 className="w-full accent-[var(--accent)]"
@@ -461,6 +462,55 @@ export function DevPanel() {
                     );
                   })}
                 </div>
+                {/* Project-filter only for Work — Samy 2026-05-24: "ich will auswählen welche Projekte gezeigt werden" */}
+                {key === "work" && (
+                  <div className="mt-1.5 flex flex-col gap-1">
+                    <div className="flex items-center justify-between">
+                      <span className="meta text-faint text-[0.55rem]">
+                        Projects ({workProjects.length === 0 ? `all (${ALL_CASES.length})` : `${workProjects.length}/${ALL_CASES.length}`})
+                      </span>
+                      <button
+                        onClick={() => setWorkProjects([])}
+                        className="meta text-faint hover:text-accent-bright text-[0.55rem] underline-offset-2 hover:underline"
+                        title="Alle zeigen (Filter aus)"
+                      >
+                        all
+                      </button>
+                    </div>
+                    <div className="flex flex-wrap gap-1">
+                      {ALL_CASES.map((c) => {
+                        const explicit = workProjects.length > 0;
+                        const on = !explicit || workProjects.includes(c.name);
+                        return (
+                          <button
+                            key={c.name}
+                            onClick={() => {
+                              if (!explicit) {
+                                // first click flips to whitelist mode minus this one
+                                setWorkProjects(ALL_CASES.map((x) => x.name).filter((n) => n !== c.name));
+                              } else {
+                                const next = on
+                                  ? workProjects.filter((n) => n !== c.name)
+                                  : [...workProjects, c.name];
+                                setWorkProjects(next);
+                              }
+                            }}
+                            className="inner-card px-2 py-1 text-[0.6rem]"
+                            style={{
+                              color: on ? "var(--ink)" : "var(--ink-3)",
+                              background: on ? "rgba(249,115,22,0.12)" : undefined,
+                              borderColor: on ? "var(--accent)" : undefined,
+                              opacity: on ? 1 : 0.55,
+                            }}
+                            title={on ? "abwählen" : "zeigen"}
+                          >
+                            {c.name}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
               </div>
             ))}
 

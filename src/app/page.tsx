@@ -1,7 +1,8 @@
 import { OfferProvider } from "@/components/OfferProvider";
 import { DesignProvider } from "@/components/design-context";
 import { LanguageProvider } from "@/components/language-context";
-import { LangToggle } from "@/components/LangToggle";
+import { HeaderActions } from "@/components/HeaderActions";
+import { WhatsAppFloat } from "@/components/WhatsAppFloat";
 import { DeckBody } from "@/components/DeckBody";
 
 export default function Page() {
@@ -9,8 +10,9 @@ export default function Page() {
     <OfferProvider>
       <LanguageProvider>
         <DesignProvider>
-          <LangToggle />
+          <HeaderActions />
           <DeckBody />
+          <WhatsAppFloat />
         </DesignProvider>
       </LanguageProvider>
     </OfferProvider>

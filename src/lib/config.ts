@@ -51,13 +51,30 @@ export type OfferContent = {
 };
 
 export type OfferConfig = {
-  brand: { name: string; accent: string; tagline?: string };
+  brand: {
+    name: string;
+    accent: string;
+    tagline?: string;
+    /** Calendly booking URL — rendered as "Book a call" in the top header. */
+    calendly?: string;
+    /** WhatsApp number in international format (e.g. "491702234567") — fixed floating button bottom-right. */
+    whatsapp?: string;
+    /** Optional prefilled WhatsApp message. */
+    whatsappMessage?: string;
+  };
   sections: SectionSpec[];
   content: OfferContent;
 };
 
 export const DEFAULT_CONFIG: OfferConfig = {
-  brand: { name: "Ground X", accent: "#f97316", tagline: "Underground Sanctuaries" },
+  brand: {
+    name: "Ground X",
+    accent: "#f97316",
+    tagline: "Underground Sanctuaries",
+    calendly: "https://calendly.com/zambodezigns/30min",
+    whatsapp: "491702234567",
+    whatsappMessage: "Hi Samy, I just saw the deck.",
+  },
   sections: [
     { key: "hero", enabled: true, variant: 0 },
     { key: "about", enabled: true, variant: 0 },

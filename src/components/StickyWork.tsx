@@ -2,13 +2,14 @@
 
 import { useEffect, useRef, useState } from "react";
 import { motion, useScroll, useTransform } from "motion/react";
-import { cases } from "@/lib/data";
+import { cases as ALL_CASES, type CaseStudy } from "@/lib/data";
 import { TiltCard } from "./TiltCard";
 
 /* Sticky horizontal scroll: vertical scroll pins the viewport and translates a
    horizontal track of case cards. Falls back to a vertical stack on mobile. */
 
-export function StickyWork() {
+export function StickyWork({ cases }: { cases?: CaseStudy[] } = {}) {
+  const list = cases ?? ALL_CASES;
   const outer = useRef<HTMLDivElement>(null);
   const track = useRef<HTMLDivElement>(null);
   const maxX = useRef(0);
@@ -44,7 +45,7 @@ export function StickyWork() {
   if (!isDesktop) {
     return (
       <div className="section grid gap-5 pt-0">
-        {cases.map((c) => (
+        {list.map((c) => (
           <Card key={c.name} c={c} />
         ))}
       </div>
@@ -52,7 +53,7 @@ export function StickyWork() {
   }
 
   return (
-    <div ref={outer} style={{ height: `${cases.length * 85 + 30}vh` }}>
+    <div ref={outer} style={{ height: `${list.length * 85 + 30}vh` }}>
       <div className="sticky top-0 flex h-screen items-center overflow-hidden">
         <motion.div
           ref={track}
@@ -60,7 +61,7 @@ export function StickyWork() {
           className="flex gap-6"
         >
           <div className="shrink-0" style={{ width: "max(1.5rem, calc((100vw - 1120px) / 2))" }} />
-          {cases.map((c) => (
+          {list.map((c) => (
             <div key={c.name} className="w-[78vw] max-w-[540px] shrink-0">
               <Card c={c} />
             </div>
@@ -72,7 +73,7 @@ export function StickyWork() {
   );
 }
 
-function Card({ c }: { c: (typeof cases)[number] }) {
+function Card({ c }: { c: CaseStudy }) {
   return (
     <TiltCard className="group flex h-full flex-col overflow-hidden">
       <div
@@ -102,7 +103,6 @@ function Card({ c }: { c: (typeof cases)[number] }) {
         <h3 className="display text-[1.3rem]">{c.name}</h3>
         <p className="text-dim mt-3 text-[0.92rem] leading-relaxed">{c.what}</p>
         <p className="accent mt-3 text-[0.88rem] italic">{c.why}</p>
-        <p className="meta text-faint mt-4 text-[0.6rem]">{c.stack}</p>
       </div>
     </TiltCard>
   );

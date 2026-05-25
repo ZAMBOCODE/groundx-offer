@@ -81,7 +81,7 @@ export const cases: CaseStudy[] = [
     what:
       "Brand and site for an armored VIP transfer service. Cinematic 3D vehicle, multilingual, map-driven coverage, ballistic-spec storytelling.",
     why: "Same market, same buyer, same discretion as Ground X.",
-    stack: "Next.js 16 · React Three Fiber · Mapbox",
+    stack: "",
     image: "/assets/gulfrescue-vehicle.png",
     logo: "/assets/gulfrescue-logo.svg",
     tags: ["3D animation", "AI video", "Web design", "Branding", "Multilingual", "Motion"],
@@ -93,7 +93,7 @@ export const cases: CaseStudy[] = [
     what:
       "Production site for an armored-vehicle and VIP-transport partner platform with a partner ecosystem.",
     why: "Built trust in the Dubai security/luxury world already.",
-    stack: "Next.js 14 · React · TypeScript",
+    stack: "",
     image: "/assets/loewenhardt-logo.png",
     fit: "contain",
     logo: "/assets/loewenhardt-logo.png",
@@ -105,17 +105,73 @@ export const cases: CaseStudy[] = [
     what:
       "Interactive 3D configurator for a container builder. Real GLB models, live interior parts, browser-based.",
     why: "Ground X sells containers. This already exists.",
-    stack: "Next.js · React Three Fiber · Three.js",
+    stack: "",
     tags: ["3D / R3F", "Configurator", "Product viz", "Web app"],
   },
   {
-    name: "AETHER + zZzlim",
-    tag: "Systems · automation",
+    name: "AETHER",
+    tag: "Personal operating system",
     what:
-      "A personal operating system (AETHER) and a full content/automation dashboard (zZzlim) — proof I build whole systems, not one-offs.",
-    why: "Shows I can run your marketing as a system, not a task list.",
-    stack: "React · TypeScript · AI agents · ManyChat",
+      "A pantheon of specialized AI co-workers, a unified dashboard across repos, finance, content and trading research. Self-improving, dreams, proactively surfaces what matters next.",
+    why: "Shows I build entire systems, not one-off tasks.",
+    stack: "",
     image: "/assets/aether.png",
-    tags: ["Dashboards", "AI agents", "Automation", "ManyChat", "Systems"],
+    tags: ["Dashboards", "AI agents", "Automation", "Self-heal", "Systems"],
+  },
+  {
+    name: "zZzlim",
+    tag: "Content engine · automation",
+    what:
+      "Full content/automation dashboard for the zZzlim brand: scripts, hooks, captions, ManyChat funnels, performance tracking — wired into one pipeline.",
+    why: "Same marketing-as-a-system thinking I'd run for you.",
+    stack: "",
+    tags: ["Content", "ManyChat", "Automation", "Dashboards", "Pipelines"],
+  },
+  {
+    name: "Sambo Trades",
+    tag: "Trading research · ML",
+    what:
+      "Quantitative research, signal pipelines and content channel for trading. ML on Windows VM, daily decision dashboards, hook-driven YouTube content.",
+    why: "I think in systems, not just visuals.",
+    stack: "",
+    tags: ["ML", "Research", "Trading", "YouTube", "Pipelines"],
+  },
+  {
+    name: "Athena Pitch Deck",
+    tag: "Investor deck · narrative",
+    what:
+      "Investor deck for a venture: clear story, real numbers, design that signals a serious company. From narrative to final layout.",
+    why: "Decks that raise — same craft I'd put into yours.",
+    stack: "",
+    tags: ["Deck design", "Narrative", "Pitch", "Branding"],
+  },
+  {
+    name: "Sambo Design Playground",
+    tag: "Brand-identity SoT",
+    what:
+      "Live brand-identity Playground where every Sambo Design surface is authored. Locked variant propagates into Angebote, dashboards, content templates.",
+    why: "Lab + factory in one — that's how this deck was built.",
+    stack: "",
+    tags: ["Brand system", "Design tokens", "Live preview", "Playground"],
+  },
+  {
+    name: "groundx-offer",
+    tag: "Sales deck · this very page",
+    what:
+      "Reusable offer-builder (Techne) seeded by the Ground X proposal: per-client content + 6 variants per section, toggleable, DE/EN, preset save/load. Meta but real.",
+    why: "You are reading the proof.",
+    stack: "",
+    image: "/assets/groundx-logo.png",
+    fit: "contain",
+    tags: ["Next.js", "Per-client config", "Variants", "Preset system"],
+  },
+  {
+    name: "Croesus Finance",
+    tag: "Personal finance dashboard",
+    what:
+      "Standalone finance app feeding into AETHER's revenue/net surface: Sparkasse sync, invoices, P&L, tax. Built for myself, dogfooded daily.",
+    why: "I run my own books on my own software.",
+    stack: "",
+    tags: ["Finance", "Sparkasse", "P&L", "Dashboard"],
   },
 ];

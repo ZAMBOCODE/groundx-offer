@@ -9,6 +9,8 @@ import { useOffer } from "./OfferProvider";
 import { StickyWork } from "./StickyWork";
 import { WorkShowcase } from "./WorkShowcase";
 import { MockupShowcase } from "./MockupShowcase";
+import { MagazineSpread } from "./MagazineSpread";
+import { IsometricScrollStack } from "./IsometricScrollStack";
 
 /* ---------------------------------------------------- shared helpers */
 
@@ -682,12 +684,21 @@ function CapabilitiesScrollSnap({ items }: { items: Array<{ title: string; blurb
   );
 }
 
-/* ============================================== WORK (3 variants) */
+/* ============================================== WORK (6 variants) */
+
+/** Filter cases by DevPanel's project-whitelist. Empty = show all. */
+function useVisibleCases() {
+  const { workProjects } = useDesign();
+  if (workProjects.length === 0) return cases;
+  const set = new Set(workProjects);
+  return cases.filter((c) => set.has(c.name));
+}
 
 export function Work() {
   const { variants } = useDesign();
   const v = variants.work;
   const c = useOffer().content.work;
+  const visible = useVisibleCases();
   const head = (
     <SectionHead
       eyebrow={c.eyebrow}
@@ -704,10 +715,14 @@ export function Work() {
     return (
       <section id="work">
         <div className="section pb-0">{head}</div>
-        <StickyWork />
+        <StickyWork cases={visible} />
       </section>
     );
   }
+
+  // variant 4 was extracted into the WorkShowcase component (logo + facts +
+  // staggered tilted shots). Samy 2026-05-24: "Var 5 war gut so, style und
+  // anordnung perfekt" — kept as-is, rendered below in the regular flow.
 
   return (
     <section id="work" className="section">
@@ -716,7 +731,7 @@ export function Work() {
       {/* variant 0: 2-col image cards */}
       {v === 0 && (
         <div className="mt-12 grid gap-5 md:grid-cols-2">
-          {cases.map((c, i) => (
+          {visible.map((c, i) => (
             <Reveal key={c.name} delay={(i % 2) * 0.1}>
               <TiltCard className="group flex h-full flex-col overflow-hidden">
                 <CaseImage c={c} className="h-64 w-full" />
@@ -724,7 +739,6 @@ export function Work() {
                   <h3 className="display text-[1.3rem]">{c.name}</h3>
                   <p className="text-dim mt-3 text-[0.92rem] leading-relaxed">{c.what}</p>
                   <p className="accent mt-3 text-[0.88rem] italic">{c.why}</p>
-                  <p className="meta text-faint mt-4 text-[0.6rem]">{c.stack}</p>
                 </div>
               </TiltCard>
             </Reveal>
@@ -735,7 +749,7 @@ export function Work() {
       {/* variant 1: alternating wide rows */}
       {v === 1 && (
         <div className="mt-12 flex flex-col gap-5">
-          {cases.map((c, i) => (
+          {visible.map((c, i) => (
             <Reveal key={c.name} delay={0.05}>
               <TiltCard
                 className={`group flex flex-col overflow-hidden md:flex-row ${
@@ -747,7 +761,6 @@ export function Work() {
                   <h3 className="display text-[1.6rem]">{c.name}</h3>
                   <p className="text-dim mt-3 max-w-md text-[0.95rem] leading-relaxed">{c.what}</p>
                   <p className="accent mt-3 text-[0.9rem] italic">{c.why}</p>
-                  <p className="meta text-faint mt-4 text-[0.6rem]">{c.stack}</p>
                 </div>
               </TiltCard>
             </Reveal>
@@ -762,7 +775,7 @@ export function Work() {
             className="mt-12 flex gap-5 overflow-x-auto pb-4"
             style={{ scrollSnapType: "x mandatory" }}
           >
-            {cases.map((c) => (
+            {visible.map((c) => (
               <div
                 key={c.name}
                 className="shrink-0"
@@ -787,13 +800,13 @@ export function Work() {
       {v === 4 && <WorkShowcase />}
 
       {/* variant 5: polaroid stack — overlapping tilted cards spread on hover */}
-      {v === 5 && <WorkPolaroidStack />}
+      {v === 5 && <WorkPolaroidStack cases={visible} />}
     </section>
   );
 }
 
 /* variant 5 helper — polaroid stack. Cards overlap tilted, hover spreads them. */
-function WorkPolaroidStack() {
+function WorkPolaroidStack({ cases }: { cases: CaseStudy[] }) {
   const [hover, setHover] = useState<number | null>(null);
   return (
     <Reveal>
@@ -873,197 +886,290 @@ export function BrandTeaser() {
         sub={cb.sub}
       />
 
-      {/* variant 0: side-by-side tilt card (logo + mood-chips) */}
-      {v === 0 && (
-        <Reveal delay={0.1}>
-          <TiltCard className="mt-12 p-8 sm:p-12">
-            <div className="grid items-center gap-10 md:grid-cols-[1.1fr_1fr]">
-              <div>
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src="/assets/groundx-logo.png" alt="GROUND X" className="w-[280px] sm:w-[340px]" />
-                <p className="meta text-dim mt-5 text-[0.72rem]">Discreet. Modular. Uncompromising.</p>
-                <div className="mt-6 flex gap-3">
-                  {BRAND_PALETTE.map((c) => (
-                    <div
-                      key={c}
-                      className="h-9 w-9 rounded-full border border-[var(--stroke-card)]"
-                      style={{ background: c }}
-                      title={c}
-                    />
-                  ))}
-                </div>
+      {/* ============================================================
+          v0..v2 = PURE BRAND (mood / palette / typography, NO mockups)
+          v3..v5 = MOCKUP-DRIVEN ("how it could feel" on real surfaces)
+          ============================================================ */}
+
+      {/* v0: Editorial Codex — broadsheet / type-foundry brandbook */}
+      {v === 0 && <BrandEditorialCodex />}
+
+      {/* v1: Cinematic Palette Wall — full-bleed color slabs, mood drift */}
+      {v === 1 && <BrandPaletteWall />}
+
+      {/* v2: Type Specimen Sheet — Klim-style foundry spec page */}
+      {v === 2 && <BrandTypeSpecimen />}
+
+      {/* v3: Device Frames (browser + phone + business card) */}
+      {v === 3 && <MockupShowcase />}
+
+      {/* v4: Magazine Spread — print-style two-page editorial */}
+      {v === 4 && <MagazineSpread />}
+
+      {/* v5: Isometric Scroll Stack — sticky scroll, 3D layered mockups */}
+      {v === 5 && <IsometricScrollStack />}
+    </section>
+  );
+}
+
+/* ---------------------------------------------------- brand sub-variants */
+
+/* v0 — Editorial Codex.
+   Broadsheet brandbook. Big wordmark headline, three editorial columns,
+   palette as a printer's CMYK-style bar, no logo focal, no card chrome. */
+function BrandEditorialCodex() {
+  return (
+    <Reveal delay={0.1}>
+      <div className="mt-12 border-y border-[var(--stroke-card)] py-14">
+        <div className="flex items-baseline justify-between border-b border-[var(--stroke-card)] pb-3">
+          <span className="meta text-faint text-[0.6rem] tracking-[0.4em]">VOL. 01</span>
+          <span className="meta text-faint text-[0.6rem] tracking-[0.4em]">THE GROUND X CODEX</span>
+          <span className="meta text-faint text-[0.6rem] tracking-[0.4em]">DXB · 2025</span>
+        </div>
+
+        <h3
+          className="display mt-10 text-[clamp(3rem,9vw,7.6rem)] leading-[0.9]"
+          style={{ fontFamily: "var(--highlight-font, inherit)" }}
+        >
+          GROUND <span className="accent-text italic">X</span>
+        </h3>
+        <p className="meta text-dim mt-3 text-[0.78rem] tracking-[0.32em]">
+          A BRANDBOOK FOR UNDERGROUND SANCTUARIES
+        </p>
+
+        <div className="mt-12 grid gap-10 md:grid-cols-3">
+          <div>
+            <span className="meta accent text-[0.55rem] tracking-[0.35em]">§01 — VOICE</span>
+            <p className="text-dim mt-4 text-[0.92rem] leading-relaxed">
+              Discreet. Confident. Never loud. The brand speaks the way the
+              spaces feel: low light, slow tempo, certain of itself. Lifestyle
+              first, engineering implied.
+            </p>
+          </div>
+          <div>
+            <span className="meta accent text-[0.55rem] tracking-[0.35em]">§02 — MOOD</span>
+            <ul className="mt-4 grid grid-cols-1 gap-1.5">
+              {BRAND_MOODS.map((m) => (
+                <li
+                  key={m}
+                  className="text-dim flex items-baseline gap-3 border-b border-[var(--stroke-card)] py-1.5 text-[0.92rem]"
+                >
+                  <span className="meta accent text-[0.55rem]">·</span>
+                  {m}
+                </li>
+              ))}
+            </ul>
+          </div>
+          <div>
+            <span className="meta accent text-[0.55rem] tracking-[0.35em]">§03 — RULE</span>
+            <p
+              className="display mt-4 text-[1.5rem] leading-[1.15]"
+              style={{ fontFamily: "var(--highlight-font, inherit)" }}
+            >
+              Never the word
+              <br />
+              that begins with <span className="accent-text">B</span>.
+            </p>
+            <p className="meta text-faint mt-3 text-[0.65rem]">
+              No "bunker". Lifestyle, sanctuary, retreat, vault, atelier.
+            </p>
+          </div>
+        </div>
+
+        {/* printer's color bar */}
+        <div className="mt-14 border-t border-[var(--stroke-card)] pt-5">
+          <span className="meta text-faint text-[0.55rem] tracking-[0.4em]">
+            COLOR REGISTRATION
+          </span>
+          <div className="mt-3 flex h-10 w-full overflow-hidden">
+            {BRAND_PALETTE.map((c) => (
+              <div key={c} className="flex-1" style={{ background: c }} />
+            ))}
+          </div>
+          <div className="mt-2 flex justify-between font-mono text-[0.62rem] text-faint">
+            {BRAND_PALETTE.map((c) => (
+              <span key={c}>{c.toUpperCase()}</span>
+            ))}
+          </div>
+        </div>
+      </div>
+    </Reveal>
+  );
+}
+
+/* v1 — Cinematic Palette Wall.
+   Full-bleed: five vertical palette slabs with mood words drifting over
+   each, wordmark centered as an overlay, type-only typography sample,
+   hover-expand. No card chrome, total immersion. */
+function BrandPaletteWall() {
+  const PALETTE_LABELS = ["Onyx", "Walnut", "Cognac", "Brushed Gold", "Sunlit Sand"];
+  return (
+    <Reveal delay={0.1}>
+      <div className="relative mt-12 overflow-hidden">
+        <div className="relative flex h-[640px] w-full">
+          {BRAND_PALETTE.map((c, i) => (
+            <div
+              key={c}
+              className="group relative flex-1 transition-[flex] duration-700 hover:flex-[1.8]"
+              style={{ background: c }}
+            >
+              {/* vertical mood word, drifting up on hover */}
+              <span
+                className="meta absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 whitespace-nowrap text-[0.7rem] tracking-[0.4em] transition-all duration-700 group-hover:-translate-y-[120%] group-hover:opacity-100"
+                style={{
+                  writingMode: "vertical-rl",
+                  transform: "translate(-50%, -50%) rotate(180deg)",
+                  color: i < 2 ? "rgba(232,181,99,0.7)" : "rgba(10,9,7,0.7)",
+                  opacity: 0.55,
+                }}
+              >
+                {BRAND_MOODS[i] ?? PALETTE_LABELS[i]}
+              </span>
+              {/* swatch label corner */}
+              <div
+                className="absolute bottom-4 left-4 transition-opacity duration-500 group-hover:opacity-100"
+                style={{ color: i < 2 ? "rgba(232,181,99,0.8)" : "rgba(10,9,7,0.85)", opacity: 0.6 }}
+              >
+                <div className="meta text-[0.55rem] tracking-[0.3em]">{PALETTE_LABELS[i]}</div>
+                <div className="meta font-mono mt-1 text-[0.6rem]">{c.toUpperCase()}</div>
               </div>
-              <div className="grid grid-cols-2 gap-3">
-                {BRAND_MOODS.map((m) => (
-                  <div key={m} className="inner-card px-4 py-3 text-[0.85rem] text-dim">
-                    {m}
+            </div>
+          ))}
+        </div>
+
+        {/* center overlay: wordmark + tagline + type sample */}
+        <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center text-center">
+          <span className="meta text-faint mb-3 text-[0.6rem] tracking-[0.5em]" style={{ color: "rgba(255,255,255,0.55)" }}>
+            BRAND WORLD
+          </span>
+          <h3
+            className="display text-[clamp(3.5rem,10vw,7.5rem)] leading-none text-white"
+            style={{
+              fontFamily: "var(--highlight-font, inherit)",
+              textShadow: "0 4px 30px rgba(0,0,0,0.8)",
+              mixBlendMode: "screen",
+            }}
+          >
+            ground <span className="italic" style={{ color: "var(--gx-gold-hi, #e8b563)" }}>x</span>
+          </h3>
+          <p
+            className="meta accent mt-5 text-[0.7rem] tracking-[0.45em]"
+            style={{ textShadow: "0 2px 16px rgba(0,0,0,0.7)" }}
+          >
+            DISCREET · MODULAR · UNCOMPROMISING
+          </p>
+        </div>
+
+        {/* corner hint */}
+        <span className="meta absolute right-4 top-4 text-[0.55rem] tracking-[0.4em]" style={{ color: "rgba(255,255,255,0.5)" }}>
+          HOVER — A PALETTE BREATHES
+        </span>
+      </div>
+    </Reveal>
+  );
+}
+
+/* v2 — Type Specimen Sheet.
+   Klim / Pangram-Pangram foundry-style specimen page. Type scale down the
+   left, ruled palette + mood index on the right. Ruler-precise, no card. */
+function BrandTypeSpecimen() {
+  return (
+    <Reveal delay={0.1}>
+      <div
+        className="mt-12 border border-[var(--stroke-card)] p-8 sm:p-12"
+        style={{ background: "linear-gradient(180deg, #08070a 0%, #050507 100%)" }}
+      >
+        {/* spec header */}
+        <div className="flex items-baseline justify-between border-b border-[var(--stroke-card)] pb-3">
+          <span className="meta text-faint text-[0.55rem] tracking-[0.4em]">TYPE · SPECIMEN</span>
+          <span className="meta text-faint text-[0.55rem] tracking-[0.4em]">
+            DISPLAY / TEXT / META
+          </span>
+          <span className="meta text-faint text-[0.55rem] tracking-[0.4em]">A4 · 1 / 1</span>
+        </div>
+
+        <div className="mt-10 grid gap-12 md:grid-cols-[1.6fr_1fr]">
+          {/* LEFT: type scale */}
+          <div className="space-y-7">
+            {/* size 96 */}
+            <div className="flex items-baseline gap-6 border-b border-[var(--stroke-card)] pb-5">
+              <span className="meta text-faint w-16 shrink-0 font-mono text-[0.6rem]">96 · DSP</span>
+              <p
+                className="display text-[clamp(3.5rem,8vw,6rem)] leading-none"
+                style={{ fontFamily: "var(--highlight-font, inherit)" }}
+              >
+                Ground <span className="accent-text italic">X</span>
+              </p>
+            </div>
+            {/* size 56 */}
+            <div className="flex items-baseline gap-6 border-b border-[var(--stroke-card)] pb-5">
+              <span className="meta text-faint w-16 shrink-0 font-mono text-[0.6rem]">56 · H1</span>
+              <p className="display text-[clamp(2rem,4.5vw,3.5rem)] leading-tight">
+                Underground. <em className="accent-text">Above standards.</em>
+              </p>
+            </div>
+            {/* size 32 */}
+            <div className="flex items-baseline gap-6 border-b border-[var(--stroke-card)] pb-5">
+              <span className="meta text-faint w-16 shrink-0 font-mono text-[0.6rem]">32 · H2</span>
+              <p className="text-[1.5rem] leading-snug text-ink">
+                A villa lives on top. A sanctuary lives beneath.
+              </p>
+            </div>
+            {/* size 16 */}
+            <div className="flex items-baseline gap-6 border-b border-[var(--stroke-card)] pb-5">
+              <span className="meta text-faint w-16 shrink-0 font-mono text-[0.6rem]">16 · BDY</span>
+              <p className="text-dim text-[1rem] leading-relaxed">
+                The brand carries a calm, twilight confidence. Cognac leather,
+                brushed gold, dark walnut. Never the word that begins with B.
+              </p>
+            </div>
+            {/* size 11 */}
+            <div className="flex items-baseline gap-6">
+              <span className="meta text-faint w-16 shrink-0 font-mono text-[0.6rem]">11 · META</span>
+              <p className="meta text-faint text-[0.7rem] tracking-[0.3em]">
+                DXB · UNDERGROUND SANCTUARIES · DISCREET · MODULAR · UNCOMPROMISING
+              </p>
+            </div>
+          </div>
+
+          {/* RIGHT: palette + mood */}
+          <div className="space-y-10">
+            <div>
+              <span className="meta text-faint text-[0.55rem] tracking-[0.4em]">PALETTE</span>
+              <div className="mt-4 space-y-2">
+                {BRAND_PALETTE.map((c, i) => (
+                  <div key={c} className="flex items-center gap-3 border-b border-[var(--stroke-card)] py-2">
+                    <div
+                      className="h-6 w-12 shrink-0 border border-[var(--stroke-card)]"
+                      style={{ background: c }}
+                    />
+                    <div className="flex-1">
+                      <div className="font-mono text-[0.7rem] text-ink">{c.toUpperCase()}</div>
+                      <div className="meta text-faint text-[0.55rem]">
+                        {["Onyx", "Walnut", "Cognac", "Brushed Gold", "Sunlit Sand"][i]}
+                      </div>
+                    </div>
                   </div>
                 ))}
               </div>
             </div>
-          </TiltCard>
-        </Reveal>
-      )}
-
-      {/* variant 1: centered logo focal */}
-      {v === 1 && (
-        <Reveal delay={0.1}>
-          <TiltCard className="mt-12 flex flex-col items-center p-10 text-center sm:p-16">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/assets/groundx-logo.png" alt="GROUND X" className="w-[300px] sm:w-[440px]" />
-            <p className="meta text-dim mt-4 text-[0.78rem]">Discreet. Modular. Uncompromising.</p>
-            <div className="mt-7 flex gap-3">
-              {BRAND_PALETTE.map((c) => (
-                <div
-                  key={c}
-                  className="h-10 w-10 rounded-full border border-[var(--stroke-card)]"
-                  style={{ background: c }}
-                  title={c}
-                />
-              ))}
-            </div>
-            <div className="mt-8 flex flex-wrap justify-center gap-2.5">
-              {BRAND_MOODS.map((m) => (
-                <span key={m} className="inner-card px-4 py-2 text-[0.82rem] text-dim">
-                  {m}
-                </span>
-              ))}
-            </div>
-          </TiltCard>
-        </Reveal>
-      )}
-
-      {/* variant 2: mockup showcase */}
-      {v === 2 && <MockupShowcase />}
-
-      {/* variant 3: split-screen — logo dominates left, mood-grid right */}
-      {v === 3 && (
-        <Reveal delay={0.1}>
-          <div className="mt-12 grid items-stretch gap-5 md:grid-cols-2">
-            <TiltCard className="flex flex-col justify-between overflow-hidden p-10">
-              <div
-                className="pointer-events-none absolute inset-0 -z-10"
-                style={{
-                  background:
-                    "radial-gradient(60% 70% at 50% 80%, rgba(232,181,99,0.18), transparent 60%)",
-                }}
-              />
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/assets/groundx-logo.png" alt="GROUND X" className="w-[260px] self-start sm:w-[340px]" />
-              <div className="mt-10">
-                <p className="display text-[1.4rem] leading-tight text-white">Underground. Above standards.</p>
-                <p className="meta text-faint mt-3 text-[0.6rem]">A villa lives on top. A sanctuary lives beneath.</p>
-                <div className="mt-6 flex gap-2.5">
-                  {BRAND_PALETTE.map((c) => (
-                    <div
-                      key={c}
-                      className="h-8 w-8 rounded-md border border-[var(--stroke-card)]"
-                      style={{ background: c }}
-                    />
-                  ))}
-                </div>
-              </div>
-            </TiltCard>
-            <div className="grid grid-cols-2 gap-3">
-              {BRAND_MOODS.map((m, i) => (
-                <TiltCard
-                  key={m}
-                  className="flex items-end p-5"
-                  style={{
-                    background: `linear-gradient(${135 + i * 12}deg, rgba(249,115,22,0.06), rgba(232,181,99,${0.03 + (i % 3) * 0.02}))`,
-                  }}
-                >
-                  <div>
-                    <span className="meta accent text-[0.55rem]">mood / {String(i + 1).padStart(2, "0")}</span>
-                    <p className="display mt-1 text-[1.05rem]">{m}</p>
-                  </div>
-                </TiltCard>
-              ))}
-            </div>
-          </div>
-        </Reveal>
-      )}
-
-      {/* variant 4: magazine cover — serif display headline, logo top-right, palette strip bottom */}
-      {v === 4 && (
-        <Reveal delay={0.1}>
-          <TiltCard className="mt-12 overflow-hidden">
-            <div
-              className="relative flex min-h-[520px] flex-col justify-between p-10 sm:p-16"
-              style={{
-                background:
-                  "radial-gradient(120% 80% at 20% 0%, rgba(232,181,99,0.16), transparent 50%), radial-gradient(120% 80% at 80% 100%, rgba(249,115,22,0.10), transparent 55%)",
-              }}
-            >
-              <div className="flex items-start justify-between">
-                <span className="meta text-faint text-[0.62rem]">ISSUE 01 · BRAND BOOK</span>
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src="/assets/groundx-logo.png" alt="GROUND X" className="w-[140px] sm:w-[180px] opacity-90" />
-              </div>
-              <h3
-                className="display max-w-3xl text-[2.6rem] leading-[1.02] sm:text-[4.2rem]"
-                style={{ fontFamily: "var(--highlight-font, inherit)" }}
-              >
-                A sanctuary you wouldn’t expect from a villa on the surface.
-              </h3>
-              <div className="flex items-end justify-between gap-6">
-                <p className="text-dim max-w-md text-[0.95rem] leading-relaxed">
-                  Lifestyle first. The mood is twilight, brushed gold and cognac leather. Never the
-                  word that begins with B.
-                </p>
-                <div className="flex gap-2.5">
-                  {BRAND_PALETTE.map((c) => (
-                    <div
-                      key={c}
-                      className="h-12 w-7 border border-[var(--stroke-card)]"
-                      style={{ background: c }}
-                    />
-                  ))}
-                </div>
-              </div>
-            </div>
-          </TiltCard>
-        </Reveal>
-      )}
-
-      {/* variant 5: swatch-bands — full-width palette stripes, logo floating in middle */}
-      {v === 5 && (
-        <Reveal delay={0.1}>
-          <div className="relative mt-12 overflow-hidden rounded-[var(--r-card)] border border-[var(--stroke-card)]">
-            <div className="flex h-[420px] w-full">
-              {BRAND_PALETTE.map((c, i) => (
-                <div
-                  key={c}
-                  className="group relative flex-1 transition-all duration-500 hover:flex-[2]"
-                  style={{ background: c }}
-                >
+            <div>
+              <span className="meta text-faint text-[0.55rem] tracking-[0.4em]">MOOD INDEX</span>
+              <div className="mt-4 flex flex-wrap gap-1.5">
+                {BRAND_MOODS.map((m, i) => (
                   <span
-                    className="meta absolute bottom-3 left-3 text-[0.55rem] opacity-0 transition-opacity group-hover:opacity-90"
-                    style={{ color: i < 2 ? "var(--ink-2)" : "rgba(0,0,0,0.65)" }}
+                    key={m}
+                    className="meta border border-[var(--stroke-card)] px-2.5 py-1 text-[0.6rem] tracking-[0.15em]"
                   >
-                    {c}
+                    <span className="accent">{String(i + 1).padStart(2, "0")}</span> · {m}
                   </span>
-                </div>
-              ))}
-            </div>
-            <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
-              <div className="card glow-border p-7 sm:p-9" style={{ background: "rgba(8,7,5,0.55)" }}>
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src="/assets/groundx-logo.png" alt="GROUND X" className="w-[240px] sm:w-[320px]" />
-                <p className="meta accent mt-3 text-center text-[0.6rem]">Discreet · Modular · Uncompromising</p>
+                ))}
               </div>
             </div>
-            <div className="flex flex-wrap justify-center gap-2.5 border-t border-[var(--stroke-card)] bg-[#050507] p-5">
-              {BRAND_MOODS.map((m) => (
-                <span key={m} className="inner-card px-3.5 py-1.5 text-[0.78rem] text-dim">
-                  {m}
-                </span>
-              ))}
-            </div>
           </div>
-        </Reveal>
-      )}
-    </section>
+        </div>
+      </div>
+    </Reveal>
   );
 }
 
