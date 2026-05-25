@@ -72,7 +72,7 @@ export const DEFAULT_CONFIG: OfferConfig = {
     accent: "#f97316",
     tagline: "Underground Sanctuaries",
     calendly: "https://calendly.com/zambodezigns/30min",
-    whatsapp: "491702234567",
+    whatsapp: "4915233729743",
     whatsappMessage: "Hi Samy, I just saw the deck.",
   },
   sections: [
