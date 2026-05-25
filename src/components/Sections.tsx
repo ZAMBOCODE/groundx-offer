@@ -1900,83 +1900,272 @@ function OfferTabs({ co }: { co: OfferShape }) {
 }
 
 /* variant 1: accordion — each tab as expandable group */
+/* variant 1: cinematic single-card (Samy 2026-05-25: "what this includes,
+   pricing as footnote"). One tab is "open" at a time; that tab fills the
+   whole card with all its items merged into one editorial list. Pricing
+   row sits at the bottom as a quiet footnote. Tab selector pinned top. */
 function OfferAccordion({ co }: { co: OfferShape }) {
-  const [openIdx, setOpenIdx] = useState(0);
+  const defaultIdx = Math.min(1, co.tabs.length - 1);
+  const [openIdx, setOpenIdx] = useState(defaultIdx);
+  const active = co.tabs[openIdx]!;
+  // Merge all the items across the active tab's cards (each card is one
+  // "phase" / "stage" inside the chosen mode of working).
+  const flatItems = active.cards.flatMap((c) =>
+    c.items.map((text) => ({ text, fromCard: c.name, price: c.price })),
+  );
+
   return (
-    <div className="mt-10 flex flex-col gap-3">
-      {co.tabs.map((t, i) => {
-        const open = openIdx === i;
-        return (
-          <Reveal key={t.label} delay={i * 0.06}>
-            <TiltCard className="overflow-hidden">
+    <Reveal>
+      <div className="mt-10">
+        {/* tab strip — minimalist underline switch */}
+        <div className="flex flex-wrap justify-center gap-6 border-b border-[var(--stroke-card)] pb-3">
+          {co.tabs.map((t, i) => {
+            const on = i === openIdx;
+            return (
               <button
-                onClick={() => setOpenIdx(open ? -1 : i)}
-                className="flex w-full items-center justify-between p-6 text-left"
+                key={t.label}
+                onClick={() => setOpenIdx(i)}
+                className="meta relative pb-2 text-[0.7rem] tracking-[0.3em] transition-colors"
+                style={{ color: on ? "var(--accent-bright)" : "var(--ink-3)" }}
               >
-                <div className="flex items-baseline gap-4">
-                  <span className="meta accent text-[0.6rem]">{String(i + 1).padStart(2, "0")}</span>
-                  <h3 className="display text-[1.3rem]">{t.label}</h3>
-                </div>
-                <span
-                  className="text-accent transition-transform"
-                  style={{ transform: open ? "rotate(45deg)" : "rotate(0deg)" }}
-                >
-                  +
-                </span>
+                {t.label.toUpperCase()}
+                {on && (
+                  <motion.span
+                    layoutId="offer-accordion-rail"
+                    className="absolute left-0 right-0 -bottom-[10px] h-px"
+                    style={{
+                      background: "linear-gradient(90deg, transparent, var(--accent), transparent)",
+                    }}
+                    transition={{ type: "spring", stiffness: 320, damping: 30 }}
+                  />
+                )}
               </button>
-              {open && (
-                <div className="border-t border-[var(--stroke-card)] p-6 pt-5">
-                  <p className="text-dim mb-5 text-[0.95rem]">{t.note}</p>
-                  <div className="grid gap-4 md:grid-cols-3">
-                    {t.cards.map((p) => (
-                      <div key={p.name} className="inner-card p-5">
-                        <span className="meta text-faint text-[0.6rem]">{p.tag}</span>
-                        <h4 className="display mt-2 text-[1.1rem]">{p.name}</h4>
-                        <div className="accent-text display mt-1 text-[1.3rem]">{p.price}</div>
-                        <ul className="mt-3 flex flex-col gap-1.5">
-                          {p.items.map((it) => (
-                            <li key={it} className="text-dim flex gap-2 text-[0.82rem]">
-                              <span className="accent">—</span>
-                              {it}
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    ))}
-                  </div>
+            );
+          })}
+        </div>
+
+        {/* the cinematic card */}
+        <AnimatePresence mode="wait" initial={false}>
+          <motion.div
+            key={active.label}
+            initial={{ opacity: 0, y: 16, filter: "blur(8px)" }}
+            animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+            exit={{ opacity: 0, y: -10, filter: "blur(8px)" }}
+            transition={{ duration: 0.45, ease: [0.2, 0.8, 0.2, 1] }}
+            className="mt-10"
+          >
+            <TiltCard className="relative overflow-hidden p-10 sm:p-14">
+              {/* big editorial line */}
+              <p className="meta accent text-[0.6rem] tracking-[0.35em]">— WHAT THIS INCLUDES</p>
+              <h3
+                className="display mt-4 text-[2rem] leading-tight sm:text-[2.8rem]"
+                style={{ fontFamily: "var(--display-font, inherit)" }}
+              >
+                {active.label}
+                <span className="text-dim block text-[1.1rem] font-normal sm:text-[1.4rem]">
+                  {active.note}
+                </span>
+              </h3>
+
+              {/* merged item list, split into 2 columns on wide screens */}
+              <ul className="mt-9 grid gap-x-10 gap-y-2 md:grid-cols-2">
+                {flatItems.map((it, i) => (
+                  <li key={`${it.text}-${i}`} className="text-dim flex items-baseline gap-3 text-[0.95rem]">
+                    <span className="accent shrink-0">—</span>
+                    <span>{it.text}</span>
+                  </li>
+                ))}
+              </ul>
+
+              {/* pricing footnote at the bottom */}
+              <div className="mt-12 flex flex-wrap items-baseline justify-between gap-4 border-t border-[var(--stroke-card)] pt-6">
+                <span className="meta text-faint text-[0.55rem] tracking-[0.35em]">
+                  PRICING
+                </span>
+                <div className="flex flex-wrap items-baseline gap-x-6 gap-y-1">
+                  {active.cards.map((c) => (
+                    <div key={c.name} className="flex items-baseline gap-2">
+                      <span className="meta text-faint text-[0.58rem] tracking-[0.25em]">
+                        {c.name.toUpperCase()}
+                      </span>
+                      <span className="accent-text display text-[1.1rem]">{c.price}</span>
+                    </div>
+                  ))}
                 </div>
-              )}
+              </div>
             </TiltCard>
-          </Reveal>
-        );
-      })}
-    </div>
+          </motion.div>
+        </AnimatePresence>
+      </div>
+    </Reveal>
   );
 }
 
-/* variant 2: side-by-side comparison columns (all tabs visible) */
+/* variant 2: feature-matrix comparison (Samy 2026-05-25: "real comparison
+   matrix with feature-grid + checkmarks").
+   Rows = capability categories. Columns = each offer tab. Cells = ✓ /
+   add-on price / dash. Footer row = starting price per tab. Tab columns
+   are sortable by clicking the header (puts the chosen one on the left
+   so the buyer can study it). Hover a row to highlight across the matrix. */
+const OFFER_COMPARE_MATRIX: Array<{
+  category: string;
+  detail: string;
+  cells: Record<string, string>; // tab.label → "✓" | "+€price" | "—"
+}> = [
+  {
+    category: "Brand system",
+    detail: "Guidelines, palette, type, tone",
+    cells: { Partnership: "✓", "One-time builds": "✓", "À la carte": "+€700" },
+  },
+  {
+    category: "Website / landing",
+    detail: "EN+DE, lead-capture, Vercel",
+    cells: { Partnership: "✓", "One-time builds": "€2–3K", "À la carte": "+€900" },
+  },
+  {
+    category: "Shopify rebuild",
+    detail: "Premium theme, product pages",
+    cells: { Partnership: "+€1.5K", "One-time builds": "€1.5–2.5K", "À la carte": "—" },
+  },
+  {
+    category: "AI renderings",
+    detail: "Photoreal, prompt-system locked",
+    cells: { Partnership: "10–15 / setup, 3–5 / mo", "One-time builds": "incl. landing", "À la carte": "from €120" },
+  },
+  {
+    category: "AI video / reels",
+    detail: "Cinematic walkthroughs, social",
+    cells: { Partnership: "4–6 / month", "One-time builds": "—", "À la carte": "from €250" },
+  },
+  {
+    category: "3D configurator",
+    detail: "R3F build-your-module",
+    cells: { Partnership: "+€2–4K", "One-time builds": "€2–4K", "À la carte": "—" },
+  },
+  {
+    category: "Social posts",
+    detail: "Content calendar + scheduling",
+    cells: { Partnership: "15–20 / month", "One-time builds": "—", "À la carte": "from €40" },
+  },
+  {
+    category: "Paid-ads management",
+    detail: "Campaigns, A/B, optimization",
+    cells: { Partnership: "✓", "One-time builds": "—", "À la carte": "from €350" },
+  },
+  {
+    category: "Analytics dashboard",
+    detail: "Custom view, privacy-first",
+    cells: { Partnership: "monthly report", "One-time builds": "+€1–2K", "À la carte": "from €1K" },
+  },
+  {
+    category: "Multilingual (DE/EN/AR)",
+    detail: "RTL-ready Arabic optional",
+    cells: { Partnership: "✓", "One-time builds": "+€500–1K", "À la carte": "+€500" },
+  },
+];
+
 function OfferCompare({ co }: { co: OfferShape }) {
+  const tabLabels = co.tabs.map((t) => t.label);
+  const [hoverRow, setHoverRow] = useState<number | null>(null);
   return (
-    <div className="mt-10 grid gap-5" style={{ gridTemplateColumns: `repeat(${co.tabs.length}, minmax(0, 1fr))` }}>
-      {co.tabs.map((t, i) => (
-        <Reveal key={t.label} delay={i * 0.05}>
-          <TiltCard className="flex h-full flex-col p-6">
-            <div className="meta accent text-[0.6rem]">{String(i + 1).padStart(2, "0")}</div>
-            <h3 className="display mt-2 text-[1.2rem]">{t.label}</h3>
-            <p className="text-dim mt-2 flex-1 text-[0.85rem]">{t.note}</p>
-            <div className="hairline my-4" />
-            <div className="flex flex-col gap-3">
-              {t.cards.map((p) => (
-                <div key={p.name} className="inner-card flex items-baseline justify-between px-3 py-2">
-                  <span className="text-[0.82rem] text-white">{p.name}</span>
-                  <span className="accent meta text-[0.7rem]">{p.price}</span>
-                </div>
+    <Reveal>
+      <div className="mt-10 overflow-x-auto">
+        <table className="w-full border-collapse text-left" style={{ fontSize: "0.88rem" }}>
+          <thead>
+            <tr>
+              <th
+                className="meta text-faint sticky left-0 top-0 z-10 p-3 text-[0.55rem] tracking-[0.3em]"
+                style={{ background: "rgba(8,7,5,0.96)" }}
+              >
+                CAPABILITY
+              </th>
+              {tabLabels.map((label, i) => (
+                <th
+                  key={label}
+                  className="meta border-b border-[var(--stroke-card)] p-3 text-center text-[0.6rem] tracking-[0.25em]"
+                  style={{
+                    background: "rgba(8,7,5,0.96)",
+                    color: i === 1 ? "var(--accent-bright)" : "var(--ink-2)",
+                  }}
+                >
+                  {label.toUpperCase()}
+                  {i === 1 && (
+                    <div className="meta accent mt-0.5 text-[0.5rem]">— recommended</div>
+                  )}
+                </th>
               ))}
-            </div>
-          </TiltCard>
-        </Reveal>
-      ))}
-    </div>
+            </tr>
+          </thead>
+          <tbody>
+            {OFFER_COMPARE_MATRIX.map((row, ri) => {
+              const isHover = hoverRow === ri;
+              return (
+                <tr
+                  key={row.category}
+                  onMouseEnter={() => setHoverRow(ri)}
+                  onMouseLeave={() => setHoverRow((h) => (h === ri ? null : h))}
+                  className="border-t border-[var(--stroke-card)] transition-colors"
+                  style={{
+                    background: isHover ? "rgba(249,115,22,0.04)" : "transparent",
+                  }}
+                >
+                  <td className="p-3.5">
+                    <div className="text-[0.9rem] text-white">{row.category}</div>
+                    <div className="meta text-faint mt-0.5 text-[0.6rem]">{row.detail}</div>
+                  </td>
+                  {tabLabels.map((label, ci) => {
+                    const cell = row.cells[label] ?? "—";
+                    const isCheck = cell === "✓";
+                    const isMissing = cell === "—";
+                    return (
+                      <td
+                        key={label}
+                        className="p-3 text-center"
+                        style={{
+                          color: isMissing
+                            ? "var(--ink-3)"
+                            : isCheck
+                              ? "var(--accent-bright)"
+                              : "var(--ink-2)",
+                          fontSize: isCheck ? "1.05rem" : "0.78rem",
+                          fontWeight: isCheck ? 700 : 500,
+                          opacity: isMissing ? 0.5 : 1,
+                          background: ci === 1 && !isMissing ? "rgba(249,115,22,0.04)" : undefined,
+                        }}
+                      >
+                        {cell}
+                      </td>
+                    );
+                  })}
+                </tr>
+              );
+            })}
+            {/* footer: starting price per tab */}
+            <tr className="border-t-2 border-[var(--stroke-card)]">
+              <td className="p-3.5">
+                <div className="meta text-faint text-[0.55rem] tracking-[0.3em]">FROM</div>
+              </td>
+              {co.tabs.map((t, ci) => {
+                const minPrice =
+                  t.cards.find((c) => c.price?.toLowerCase().includes("from"))?.price ??
+                  t.cards[0]?.price ?? "—";
+                return (
+                  <td
+                    key={t.label}
+                    className="p-3.5 text-center"
+                    style={{
+                      background: ci === 1 ? "rgba(249,115,22,0.06)" : undefined,
+                    }}
+                  >
+                    <div className="accent-text display text-[1.4rem]">{minPrice}</div>
+                  </td>
+                );
+              })}
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </Reveal>
   );
 }
 
