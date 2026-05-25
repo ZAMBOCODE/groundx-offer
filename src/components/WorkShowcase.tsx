@@ -5,6 +5,7 @@ import { motion, AnimatePresence, useScroll, useTransform, type MotionValue } fr
 import { Maximize2 } from "lucide-react";
 import { cases, type CaseStudy } from "@/lib/data";
 import { usePdfMode } from "@/lib/pdfMode";
+import { iconFor as brandIconFor } from "./BrandIcons";
 
 /* Samy 2026-05-25, Selected Work pick = v5 (this WorkShowcase).
    Changes from prior:
@@ -69,11 +70,18 @@ function ShowcaseRow({
         <p className="accent mt-3 text-[0.9rem] italic">{c.why}</p>
         {tags && (
           <div className="mt-5 flex flex-wrap gap-2">
-            {tags.map((t) => (
-              <span key={t} className="inner-card px-3 py-1.5 text-[0.78rem] text-dim">
-                {t}
-              </span>
-            ))}
+            {tags.map((t) => {
+              const Icon = brandIconFor(t);
+              return (
+                <span
+                  key={t}
+                  className="inner-card flex items-center gap-1.5 px-3 py-1.5 text-[0.78rem] text-dim"
+                >
+                  <Icon size={11} className="opacity-70" />
+                  {t}
+                </span>
+              );
+            })}
           </div>
         )}
         <p className="meta text-faint mt-5 text-[0.58rem]">{c.stack}</p>

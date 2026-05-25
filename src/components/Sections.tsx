@@ -19,6 +19,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { AnimatePresence } from "motion/react";
+import { iconFor as brandIconFor } from "./BrandIcons";
 
 /* ---------------------------------------------------- shared helpers */
 
@@ -688,7 +689,9 @@ function CapabilitiesStaticStack({
 }) {
   return (
     <div className="mt-10 flex flex-col gap-8">
-      {stack.map((card, i) => (
+      {stack.map((card, i) => {
+        const Icon = brandIconFor(`${card.title} ${card.proof}`);
+        return (
         <div key={card.title} className="card glow-border grid items-stretch overflow-hidden p-0 md:grid-cols-[1.05fr_1fr]">
           <div className="flex flex-col justify-between p-8 sm:p-10">
             <div className="flex items-center gap-3">
@@ -698,6 +701,7 @@ function CapabilitiesStaticStack({
               <span className="meta text-faint text-[0.55rem] tracking-[0.4em]">
                 / {String(stack.length).padStart(2, "0")}
               </span>
+              <Icon size={18} className="ml-auto opacity-70" />
             </div>
             <div className="mt-6">
               <h3 className="display text-[1.6rem] leading-tight sm:text-[2rem]">{card.title}</h3>
@@ -719,7 +723,8 @@ function CapabilitiesStaticStack({
             )}
           </div>
         </div>
-      ))}
+        );
+      })}
     </div>
   );
 }
@@ -825,6 +830,10 @@ function StickyStackCard({
             <span className="meta text-faint text-[0.55rem] tracking-[0.4em]">
               / {String(total).padStart(2, "0")}
             </span>
+            {(() => {
+              const Icon = brandIconFor(`${card.title} ${card.proof}`);
+              return <Icon size={20} className="ml-auto opacity-70" />;
+            })()}
           </div>
           <div className="mt-6">
             <h3 className="display text-[1.6rem] leading-tight sm:text-[2rem]">
