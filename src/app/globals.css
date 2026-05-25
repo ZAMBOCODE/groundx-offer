@@ -337,28 +337,48 @@ body {
 }
 
 /* ---------------------------------------- section rhythm
-   No outer max-width cap — the side-pad slider in DevPanel is the sole
-   horizontal control. Slider value = clear px from viewport edges.
-   Split into padding-block / padding-inline so a 0 inline value never
-   breaks the vertical 7rem (the old `padding: 7rem var(--side-pad)`
-   shorthand was discarded when --side-pad went negative). */
+   Samy 2026-05-25: every section ≥ 100vh so scroll-snap navigates one
+   section per snap. Sticky-scroll sections (StickyWork, IsometricScroll
+   Stack, etc.) set their OWN outer height beyond 100vh and the snap-point
+   stays at the section's top edge.
+   No outer max-width cap — the side-pad slider is the sole horizontal
+   control. padding-block/inline split so a 0 inline value never breaks
+   the vertical rhythm (old shorthand was discarded when --side-pad went
+   negative). */
 .section {
   margin: 0 auto;
-  padding-block: 7rem;
+  padding-block: 5rem;
   padding-inline: max(0px, var(--side-pad, 24px));
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+/* Sticky-scroll containers (height-driven children) opt out of the flex
+   centering — they manage their own vertical rhythm. The data-attribute
+   is added by such sections (StickyWork, IsometricScrollStack). */
+.section[data-scroll-driven="true"] {
+  display: block;
+  justify-content: unset;
+  min-height: unset;
 }
 @media (max-width: 640px) {
   .section {
-    padding-block: 4.5rem;
+    padding-block: 3.5rem;
+    min-height: auto;
   }
   .display {
     line-height: 1.08;
   }
 }
 
-/* dev-panel toggles: scroll-snap to section */
+/* dev-panel toggles: scroll-snap to section. Mandatory because every
+   section is now 100vh-baseline; proximity was too loose to navigate
+   cleanly. Sticky-scroll sections still scroll internally because the
+   snap-point sits at section's top edge (start), and snap-stop:normal
+   lets the browser pass through during fast scrolls. */
 html.snap {
-  scroll-snap-type: y proximity;
+  scroll-snap-type: y mandatory;
 }
 html.snap section,
 html.snap header {

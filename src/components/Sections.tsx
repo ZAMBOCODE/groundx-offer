@@ -874,8 +874,11 @@ export function BrandTeaser() {
   const { variants } = useDesign();
   const cb = useOffer().content.brand;
   const v = variants.brand;
+  // v5 (Isometric Scroll Stack) is sticky-scroll-driven and manages its
+  // own multi-100vh height — opt out of the section's flex-centering.
+  const scrollDriven = v === 5;
   return (
-    <section id="brand" className="section">
+    <section id="brand" className="section" data-scroll-driven={scrollDriven || undefined}>
       <SectionHead
         eyebrow={cb.eyebrow}
         title={
