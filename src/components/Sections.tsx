@@ -14,8 +14,10 @@ import { IsometricScrollStack } from "./IsometricScrollStack";
 import {
   PenLine, Film, Tag, Code2, Monitor, LayoutTemplate, Palette,
   Sparkles, Box, Video, Presentation, LayoutDashboard, MessageCircle, Workflow,
+  Image as ImageIcon, Repeat, ShoppingBag,
   type LucideIcon,
 } from "lucide-react";
+import { AnimatePresence } from "motion/react";
 
 /* ---------------------------------------------------- shared helpers */
 
@@ -1306,31 +1308,63 @@ function BrandTypeSpecimen() {
 
 type PriceCard = { tag: string; name: string; price: string; items: string[]; feature?: boolean };
 
+/* Shopify glyph — real brand mark since "ShoppingBag" loses recognition.
+   Single-path simplification (currentColor) so it picks up theme accent. */
+function ShopifyGlyph({ size = 18 }: { size?: number }) {
+  return (
+    <svg viewBox="0 0 109 124" width={size} height={size} fill="currentColor" aria-label="Shopify">
+      <path d="M74.7 14.8s-1.4.4-3.7 1.1c-.4-1.3-1-2.8-1.8-4.4-2.6-5-6.4-7.7-11-7.7-.3 0-.6 0-1 .1-.1-.2-.3-.3-.4-.5C54.8 1.2 52.2.1 49.1.2 43.1.4 37.2 4.7 32.4 12.4c-3.4 5.4-6 12.2-6.7 17.5-6.9 2.1-11.7 3.6-11.8 3.7-3.5 1.1-3.6 1.2-4 4.5C9.5 40.6.1 113.5.1 113.5l78.8 13.6 34.1-8.5S75.1 14.6 74.7 14.8zm-9.6 2.4l-5.9 1.8c0-.4 0-.8-.1-1.3 0-3.2-.5-5.7-1.2-7.7 3.1.5 5.1 4.1 7.2 7.2zm-9.7 3l-12.7 3.9c1.3-4.8 3.7-9.5 6.8-12.7 1.1-1.2 2.7-2.5 4.5-3.2 1.8 3.6 2.2 8.7 1.4 12zM48 4.2c1.5 0 2.7.3 3.8 1-1.7.9-3.4 2.2-5 4-4.1 4.4-7.2 11.2-8.5 17.8L28 30.4C30.5 18.6 40.3 4.5 48 4.2z"/>
+      <path d="M71 23.4S58.6 19.5 41.7 24.6c-.5.2-.4 1 0 1.7C45 30 51.2 38.3 49.7 38.3c-1.6 0-9.3-2.6-11-2.6-7.7 0-7.6 5-7.6 6.2 0 7.7 18.3 10.7 18.3 27.4 0 13.1-8.4 21.5-19.6 21.5-13.5 0-20.3-8.4-20.3-8.4l3.6-11.9s7 6 12.8 6c3.8 0 5.4-3 5.4-5.2 0-10.1-15-10.6-15-25.8 0-12.8 9.2-25.2 29.9-26.5 7.2-.5 11.1.9 11.1.9l-1.3 14.9s-7.7-2.4-11.4-2.1c-5.5.5-6.1 4-5.7 4.9.6 1.4 2.7 1.8 4.2 1.8 8.2 0 14.2-7 14.2-15.5C57.3 26.1 71 23.4 71 23.4z"/>
+    </svg>
+  );
+}
+
+type IconRenderer = (size: number) => React.ReactNode;
+/* Match tag → icon. Lucide for generic, real Shopify glyph for "Shop". */
+const TAG_ICON: Record<string, IconRenderer> = {
+  Web: (s) => <Monitor size={s} strokeWidth={1.8} />,
+  Shop: (s) => <ShopifyGlyph size={s} />,
+  "3D": (s) => <Box size={s} strokeWidth={1.8} />,
+  Setup: (s) => <Sparkles size={s} strokeWidth={1.8} />,
+  Monthly: (s) => <Repeat size={s} strokeWidth={1.8} />,
+  "Soft start": (s) => <Sparkles size={s} strokeWidth={1.8} />,
+  Visual: (s) => <ImageIcon size={s} strokeWidth={1.8} />,
+  "Web add-ons": (s) => <LayoutTemplate size={s} strokeWidth={1.8} />,
+  Ongoing: (s) => <MessageCircle size={s} strokeWidth={1.8} />,
+};
 
 function PriceGrid({ cards }: { cards: PriceCard[] }) {
   return (
     <div className="mt-8 grid gap-5 md:grid-cols-3">
-      {cards.map((p, i) => (
-        <Reveal key={p.name} delay={i * 0.07}>
-          <TiltCard
-            className={p.feature ? "accent-glow flex h-full flex-col p-7" : "flex h-full flex-col p-7"}
-            style={p.feature ? { borderColor: "var(--accent)", background: "rgba(249,115,22,0.06)" } : undefined}
-          >
-            <span className="meta text-faint text-[0.6rem]">{p.tag}</span>
-            <h3 className="display mt-2 text-[1.3rem]">{p.name}</h3>
-            <div className="accent-text display mt-2 text-[1.6rem]">{p.price}</div>
-            <div className="hairline my-5" />
-            <ul className="flex flex-1 flex-col gap-2.5">
-              {p.items.map((it) => (
-                <li key={it} className="text-dim flex gap-2 text-[0.9rem]">
-                  <span className="accent">—</span>
-                  {it}
-                </li>
-              ))}
-            </ul>
-          </TiltCard>
-        </Reveal>
-      ))}
+      {cards.map((p, i) => {
+        const icon = TAG_ICON[p.tag] ?? ((s: number) => <ShoppingBag size={s} strokeWidth={1.8} />);
+        return (
+          <Reveal key={p.name} delay={i * 0.07}>
+            <TiltCard className="flex h-full flex-col p-7">
+              <div className="flex items-center justify-between">
+                <span className="meta text-faint text-[0.6rem] tracking-[0.3em]">{p.tag}</span>
+                <span
+                  className="opacity-70 transition-opacity"
+                  style={{ color: "var(--accent-bright)" }}
+                >
+                  {icon(22)}
+                </span>
+              </div>
+              <h3 className="display mt-3 text-[1.3rem]">{p.name}</h3>
+              <div className="accent-text display mt-2 text-[1.6rem]">{p.price}</div>
+              <div className="hairline my-5" />
+              <ul className="flex flex-1 flex-col gap-2.5">
+                {p.items.map((it) => (
+                  <li key={it} className="text-dim flex gap-2 text-[0.9rem]">
+                    <span className="accent">—</span>
+                    {it}
+                  </li>
+                ))}
+              </ul>
+            </TiltCard>
+          </Reveal>
+        );
+      })}
     </div>
   );
 }
@@ -1371,31 +1405,85 @@ type OfferShape = {
   }[];
 };
 
-/* variant 0: tabs + 3-card grid (default) */
+/* variant 0: tabs + 3-card grid (default).
+   Samy 2026-05-25:
+   · Tabs centered as a group; Partnership (config index 1) sits visually
+     middle and is the default selection.
+   · Active-tab bubble uses motion's layoutId so it slides+morphs between
+     tabs with a springy width-stretch on click (Apple-style switcher).
+   · tab.note (Setup once / Standalone projects / Single deliverables)
+     moves UNDER the card grid, bigger, with AnimatePresence blur+fade
+     on tab change. */
 function OfferTabs({ co }: { co: OfferShape }) {
-  const [tab, setTab] = useState(0);
+  // Default to the middle tab (Partnership lives at index 1 in config).
+  const defaultIdx = Math.min(1, co.tabs.length - 1);
+  const [tab, setTab] = useState(defaultIdx);
   const active = co.tabs[tab]!;
   return (
     <>
       <Reveal>
-        <div className="mt-9 inline-flex flex-wrap gap-1.5 rounded-full p-1.5" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid var(--stroke-card)" }}>
-          {co.tabs.map((t, i) => (
-            <button
-              key={t.label}
-              onClick={() => setTab(i)}
-              className="rounded-full px-4 py-2 text-[0.82rem] font-medium transition"
-              style={{
-                color: i === tab ? "#1a0f04" : "var(--ink-2)",
-                background: i === tab ? "linear-gradient(180deg, var(--accent-bright), var(--accent))" : "transparent",
-              }}
-            >
-              {t.label}
-            </button>
-          ))}
+        <div className="mt-10 flex justify-center">
+          <div
+            className="relative inline-flex gap-1 rounded-full p-1.5"
+            style={{
+              background: "rgba(255,255,255,0.04)",
+              border: "1px solid var(--stroke-card)",
+            }}
+          >
+            {co.tabs.map((t, i) => {
+              const on = i === tab;
+              return (
+                <button
+                  key={t.label}
+                  onClick={() => setTab(i)}
+                  className="relative z-10 rounded-full px-5 py-2 text-[0.85rem] font-medium transition-colors"
+                  style={{ color: on ? "#1a0f04" : "var(--ink-2)" }}
+                  aria-pressed={on}
+                >
+                  {/* sliding bubble — sits behind only on the active tab */}
+                  {on && (
+                    <motion.span
+                      layoutId="offer-tab-bubble"
+                      className="absolute inset-0 -z-0 rounded-full"
+                      style={{
+                        background:
+                          "linear-gradient(180deg, var(--accent-bright), var(--accent))",
+                        boxShadow:
+                          "0 6px 18px rgba(249,115,22,0.30), inset 0 1px 0 rgba(255,255,255,0.22)",
+                      }}
+                      transition={{
+                        type: "spring",
+                        stiffness: 380,
+                        damping: 28,
+                        mass: 0.7,
+                      }}
+                    />
+                  )}
+                  <span className="relative z-10">{t.label}</span>
+                </button>
+              );
+            })}
+          </div>
         </div>
-        <p className="text-dim mt-4 text-[0.95rem]">{active.note}</p>
       </Reveal>
+
       <PriceGrid cards={active.cards} />
+
+      {/* tab note moved below the cards, larger + blur-faded on tab change */}
+      <div className="mt-8 flex min-h-[42px] items-start justify-center text-center">
+        <AnimatePresence mode="wait" initial={false}>
+          <motion.p
+            key={active.label}
+            initial={{ opacity: 0, y: 6, filter: "blur(6px)" }}
+            animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+            exit={{ opacity: 0, y: -4, filter: "blur(6px)" }}
+            transition={{ duration: 0.38, ease: [0.2, 0.8, 0.2, 1] }}
+            className="text-dim max-w-2xl text-[1.05rem] leading-relaxed"
+          >
+            {active.note}
+          </motion.p>
+        </AnimatePresence>
+      </div>
     </>
   );
 }

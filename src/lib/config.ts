@@ -133,22 +133,24 @@ export const DEFAULT_CONFIG: OfferConfig = {
       titleAccent: "work together.",
       sub: "For context: Dubai agencies charge $3,000–8,000/mo for this scope, and Ground X sells from $50,000 a module.",
       tabs: [
-        {
-          label: "Partnership",
-          note: "Setup once, then a system that runs every month.",
-          cards: [
-            { tag: "Phase 1 · one-time", name: "Setup & foundation", price: "from €3,500", items: ["Brand guidelines finalized", "10–15 photoreal AI renderings", "Landing page, deployed", "2–3 marketing videos", "Social template set", "Drive + content calendar"] },
-            { tag: "Phase 2 · monthly", name: "Ongoing partnership", price: "from €1,500 / mo", items: ["15–20 social posts", "4–6 AI videos", "3–5 new renderings", "Content calendar & scheduling", "Paid-ads management", "Monthly analytics & optimization"], feature: true },
-            { tag: "Soft start · optional", name: "Test month", price: "€1,500 flat", items: ["One month, full output", "No long commitment", "Rolls into the retainer", "De-risks the decision"] },
-          ],
-        },
+        // Samy 2026-05-25: order = [One-time builds, Partnership, À la carte]
+        // so Partnership sits in the middle as the default selection.
         {
           label: "One-time builds",
           note: "Standalone projects, paid once. No retainer required.",
           cards: [
             { tag: "Web", name: "Informative website", price: "€2,000–3,000", items: ["EN + DE, responsive", "Lead-capture / consultation", "Deployed on Vercel", "Privacy-first analytics"] },
-            { tag: "Shop", name: "Shopify rebuild", price: "€1,500–2,500", items: ["Premium theme", "Product pages per module", "AI renderings integrated", "Checkout optimization"], feature: true },
+            { tag: "Shop", name: "Shopify rebuild", price: "€1,500–2,500", items: ["Premium theme", "Product pages per module", "AI renderings integrated", "Checkout optimization"] },
             { tag: "3D", name: "Module configurator", price: "€2,000–4,000", items: ["Build-your-module in 3D", "Real GLB models", "Browser-based", "Three.js / R3F"] },
+          ],
+        },
+        {
+          label: "Partnership",
+          note: "Setup once, then a system that runs every month.",
+          cards: [
+            { tag: "Setup", name: "Setup & foundation", price: "from €3,500", items: ["Brand guidelines finalized", "10–15 photoreal AI renderings", "Landing page, deployed", "2–3 marketing videos", "Social template set", "Drive + content calendar"] },
+            { tag: "Monthly", name: "Ongoing partnership", price: "from €1,500 / mo", items: ["15–20 social posts", "4–6 AI videos", "3–5 new renderings", "Content calendar & scheduling", "Paid-ads management", "Monthly analytics & optimization"] },
+            { tag: "Soft start", name: "Test month", price: "€1,500 flat", items: ["One month, full output", "No long commitment", "Rolls into the retainer", "De-risks the decision"] },
           ],
         },
         {
