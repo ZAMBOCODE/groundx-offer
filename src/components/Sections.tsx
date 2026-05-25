@@ -966,9 +966,15 @@ export function Work() {
   // variant 4 was extracted into the WorkShowcase component (logo + facts +
   // staggered tilted shots). Samy 2026-05-24: "Var 5 war gut so, style und
   // anordnung perfekt" — kept as-is, rendered below in the regular flow.
+  // 2026-05-25: WorkShowcase now also contains a sticky-scroll WorkWheel
+  // for the remaining cases, so v4 needs scroll-driven opt-out.
 
   return (
-    <section id="work" className="section">
+    <section
+      id="work"
+      className="section"
+      data-scroll-driven={v === 4 || undefined}
+    >
       {head}
 
       {/* variant 0: 2-col image cards */}
