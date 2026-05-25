@@ -25,6 +25,7 @@ import {
 import "./globals.css";
 import { Atmosphere } from "@/components/Atmosphere";
 import { Header } from "@/components/Header";
+import { ScrollProgress } from "@/components/ScrollProgress";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -108,6 +109,7 @@ export default function RootLayout({
         <Atmosphere />
         <Header />
         {children}
+        <ScrollProgress />
       </body>
     </html>
   );
