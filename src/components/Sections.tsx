@@ -11,6 +11,11 @@ import { WorkShowcase } from "./WorkShowcase";
 import { MockupShowcase } from "./MockupShowcase";
 import { MagazineSpread } from "./MagazineSpread";
 import { IsometricScrollStack } from "./IsometricScrollStack";
+import {
+  PenLine, Film, Tag, Code2, Monitor, LayoutTemplate, Palette,
+  Sparkles, Box, Video, Presentation, LayoutDashboard, MessageCircle, Workflow,
+  type LucideIcon,
+} from "lucide-react";
 
 /* ---------------------------------------------------- shared helpers */
 
@@ -96,7 +101,66 @@ const ABOUT_SKILLS = [
 ];
 const ABOUT_BIO =
   "A freelancer from Stuttgart helping businesses grow with clean web design, optimized shops, and striking 3D and motion work. I build the whole system: brand, visuals, site, content and the automation behind it.";
-const ABOUT_PROOF = "50+ projects · 96% client satisfaction · 10+ years";
+const ABOUT_PROOF = "50+ projects · 8 disciplines in one head · 10+ years";
+
+/* Auto-scrolling services marquee for About v4. Pills with Lucide icons,
+   edge-faded to black left+right, hover lifts icon + accent color. */
+const ABOUT_SERVICES: { icon: LucideIcon; label: string }[] = [
+  { icon: PenLine, label: "Copywriting" },
+  { icon: Film, label: "Motion Graphics" },
+  { icon: Tag, label: "Product Pages" },
+  { icon: Code2, label: "Web Development" },
+  { icon: Monitor, label: "Web Design" },
+  { icon: LayoutTemplate, label: "Landing Pages" },
+  { icon: Palette, label: "Branding" },
+  { icon: Sparkles, label: "AI Renderings" },
+  { icon: Box, label: "3D Configurators" },
+  { icon: Video, label: "AI Video" },
+  { icon: Presentation, label: "Pitch Decks" },
+  { icon: LayoutDashboard, label: "Dashboards" },
+  { icon: MessageCircle, label: "Social Automation" },
+  { icon: Workflow, label: "Workflow Engineering" },
+];
+
+function ServicesMarquee() {
+  const track = [...ABOUT_SERVICES, ...ABOUT_SERVICES];
+  return (
+    <div
+      className="relative w-full overflow-hidden"
+      style={{
+        maskImage: "linear-gradient(90deg, transparent, black 8%, black 92%, transparent)",
+        WebkitMaskImage: "linear-gradient(90deg, transparent, black 8%, black 92%, transparent)",
+      }}
+    >
+      <motion.div
+        className="flex w-max gap-3 py-1"
+        animate={{ x: ["0%", "-50%"] }}
+        transition={{ duration: 42, ease: "linear", repeat: Infinity }}
+      >
+        {track.map(({ icon: Icon, label }, i) => (
+          <div
+            key={i}
+            className="group flex items-center gap-2.5 rounded-full border border-[var(--stroke-card)] px-5 py-3 backdrop-blur-sm transition-colors hover:border-[var(--accent)]"
+            style={{ background: "rgba(8,7,5,0.55)" }}
+          >
+            <Icon
+              size={16}
+              strokeWidth={2}
+              className="transition-transform duration-500 ease-out group-hover:scale-110 group-hover:rotate-[8deg]"
+              style={{ color: "var(--ink-2)" }}
+            />
+            <span
+              className="text-[0.85rem] transition-colors duration-300"
+              style={{ color: "var(--ink-2)" }}
+            >
+              {label}
+            </span>
+          </div>
+        ))}
+      </motion.div>
+    </div>
+  );
+}
 
 export function About() {
   const { variants } = useDesign();
@@ -187,33 +251,46 @@ export function About() {
         </Reveal>
       )}
 
-      {/* variant 4: split — photo card + big stat numbers */}
+      {/* variant 4: split — photo on transparent bg + stat numbers + auto-marquee.
+         Samy 2026-05-25: photo no card-bg (image-2 reference, fades into black),
+         "96% satisfaction" replaced with honest stat, services carousel below. */}
       {v === 4 && (
-        <div className="grid items-stretch gap-6 md:grid-cols-[0.8fr_1.2fr]">
-          <Reveal>
-            <SamyPhoto />
-          </Reveal>
-          <Reveal delay={0.1}>
-            <div className="flex h-full flex-col justify-between">
-              <h2 className="display text-[1.9rem] sm:text-[2.6rem]">
-                Samuel Heymig — <span className="accent-text">one person, full stack.</span>
-              </h2>
-              <p className="text-dim mt-5 text-[1rem] leading-relaxed">{ABOUT_BIO}</p>
-              <div className="mt-8 grid grid-cols-3 gap-3">
-                {[
-                  { n: "50+", l: "Projects" },
-                  { n: "96%", l: "Satisfaction" },
-                  { n: "10+", l: "Years" },
-                ].map((s) => (
-                  <TiltCard key={s.l} className="flex flex-col items-start p-5">
-                    <div className="display-light accent text-[2.2rem]">{s.n}</div>
-                    <div className="meta text-faint mt-1 text-[0.6rem]">{s.l}</div>
-                  </TiltCard>
-                ))}
+        <>
+          <div className="grid items-stretch gap-6 md:grid-cols-[0.85fr_1.15fr]">
+            <Reveal>
+              <SamyPhoto transparent />
+            </Reveal>
+            <Reveal delay={0.1}>
+              <div className="flex h-full flex-col justify-between">
+                <h2 className="display text-[1.9rem] sm:text-[2.6rem]">
+                  Samuel Heymig — <span className="accent-text">one person, full stack.</span>
+                </h2>
+                <p className="text-dim mt-5 text-[1rem] leading-relaxed">{ABOUT_BIO}</p>
+                <div className="mt-8 grid grid-cols-3 gap-3">
+                  {[
+                    { n: "50+", l: "Projects shipped" },
+                    { n: "8", l: "Disciplines in one head" },
+                    { n: "10+", l: "Years building" },
+                  ].map((s) => (
+                    <TiltCard key={s.l} className="flex flex-col items-start p-5">
+                      <div className="display-light accent text-[2.2rem]">{s.n}</div>
+                      <div className="meta text-faint mt-1 text-[0.58rem]">{s.l}</div>
+                    </TiltCard>
+                  ))}
+                </div>
               </div>
+            </Reveal>
+          </div>
+
+          <Reveal delay={0.2}>
+            <div className="mt-12">
+              <p className="meta text-faint mb-3 text-[0.55rem] tracking-[0.4em]">
+                — WHAT I SHIP
+              </p>
+              <ServicesMarquee />
             </div>
           </Reveal>
-        </div>
+        </>
       )}
 
       {/* variant 5: minimal — just name + bio, no photo */}
@@ -233,7 +310,30 @@ export function About() {
   );
 }
 
-function SamyPhoto() {
+function SamyPhoto({ transparent = false }: { transparent?: boolean } = {}) {
+  if (transparent) {
+    // No card chrome, no gradient bg — photo sits directly on the section's
+    // black background with a soft radial edge-fade so the silhouette blends.
+    return (
+      <div
+        className="relative mx-auto w-full max-w-[420px]"
+        style={{ aspectRatio: "4 / 5" }}
+      >
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src="/assets/samy.png"
+          alt="Samuel Heymig"
+          className="absolute inset-0 h-full w-full object-cover object-top"
+          style={{
+            maskImage:
+              "radial-gradient(ellipse 75% 80% at 55% 45%, black 55%, transparent 95%)",
+            WebkitMaskImage:
+              "radial-gradient(ellipse 75% 80% at 55% 45%, black 55%, transparent 95%)",
+          }}
+        />
+      </div>
+    );
+  }
   return (
     <div
       className="card glow-border mx-auto w-full max-w-[320px] overflow-hidden"
