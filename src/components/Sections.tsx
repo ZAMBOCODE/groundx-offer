@@ -1117,16 +1117,20 @@ export function BrandTeaser() {
   const { variants } = useDesign();
   const cb = useOffer().content.brand;
   const v = variants.brand;
-  // v5 (Isometric Scroll Stack) is sticky-scroll-driven and manages its
-  // own multi-100vh height — opt out of the section's flex-centering.
-  const scrollDriven = v === 5;
+  // v1 (Cinematic Palette Wall) is now a sticky scroll-through that
+  // transitions Palette → Mockup → Isometric; v5 (Isometric standalone)
+  // is also scroll-driven. Both opt out of section flex-centering.
+  const scrollDriven = v === 1 || v === 5;
+  // Replace "Ground X" in the title with the GroundX wordmark image so
+  // the section heading carries the actual client logo (Samy 2026-05-25).
+  const titleWithLogo = renderTitleWithGroundXLogo(cb.title);
   return (
     <section id="brand" className="section" data-scroll-driven={scrollDriven || undefined}>
       <SectionHead
         eyebrow={cb.eyebrow}
         title={
           <>
-            {cb.title} <span className="accent-text">{cb.titleAccent}</span>
+            {titleWithLogo} <span className="accent-text">{cb.titleAccent}</span>
           </>
         }
         sub={cb.sub}
@@ -1140,8 +1144,10 @@ export function BrandTeaser() {
       {/* v0: Editorial Codex — broadsheet / type-foundry brandbook */}
       {v === 0 && <BrandEditorialCodex />}
 
-      {/* v1: Cinematic Palette Wall — full-bleed color slabs, mood drift */}
-      {v === 1 && <BrandPaletteWall />}
+      {/* v1: SCROLL-THROUGH — sticky 300vh that crossfades the Palette
+         Wall → MockupShowcase → Isometric stacked final. Samy's pick
+         for Brand Direction 2026-05-25. */}
+      {v === 1 && <BrandScrollThrough />}
 
       {/* v2: Type Specimen Sheet — Klim-style foundry spec page */}
       {v === 2 && <BrandTypeSpecimen />}
@@ -1416,6 +1422,207 @@ function BrandTypeSpecimen() {
         </div>
       </div>
     </Reveal>
+  );
+}
+
+/* Inline GroundX wordmark inside a string: anywhere "Ground X" or
+   "GroundX" appears, swap it for the actual logo image. Samy 2026-05-25:
+   "wenn vorhanden, das Logo auch kommen" in brand-section headlines. */
+function renderTitleWithGroundXLogo(title: string): React.ReactNode {
+  // Match either "GroundX" or "Ground X" (case-insensitive)
+  const parts = title.split(/(GroundX|Ground X)/gi);
+  return parts.map((part, i) => {
+    if (/^(GroundX|Ground X)$/i.test(part)) {
+      return (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          key={i}
+          src="/assets/groundx-logo.png"
+          alt="Ground X"
+          className="inline-block h-[0.9em] w-auto align-baseline"
+          style={{ verticalAlign: "-0.05em", marginInline: "0.18em" }}
+        />
+      );
+    }
+    return part;
+  });
+}
+
+/* Brand v1 (Samy's pick) — sticky 300vh scroll-through that crossfades
+   the three brand explorations in sequence:
+     phase 1 (0.00 – 0.36) — Cinematic Palette Wall
+     phase 2 (0.30 – 0.70) — Real Safari + iPhone mockups (cleanup card)
+     phase 3 (0.64 – 1.00) — Final stacked 3D isometric mockups (no
+                              merge — three cards rest in offset layered
+                              positions per Samy's "alle drei in 3D-mäßig
+                              gelayert sichtbar" note)
+   Each phase fades in then out around its window via opacity tracks. */
+function BrandScrollThrough() {
+  const outer = useRef<HTMLDivElement>(null);
+  const { scrollYProgress } = useScroll({
+    target: outer,
+    offset: ["start start", "end end"],
+  });
+
+  // phase windows (start, fadeIn, fadeOut, end) within [0, 1]
+  const p1 = useTransform(scrollYProgress, [0, 0.08, 0.30, 0.40], [1, 1, 1, 0]);
+  const p2 = useTransform(scrollYProgress, [0.30, 0.40, 0.60, 0.70], [0, 1, 1, 0]);
+  const p3 = useTransform(scrollYProgress, [0.60, 0.70, 0.95, 1], [0, 1, 1, 1]);
+
+  // subtle parallax per phase
+  const p1Y = useTransform(scrollYProgress, [0, 0.40], [0, -60]);
+  const p2Y = useTransform(scrollYProgress, [0.30, 0.70], [40, -40]);
+  const p3Y = useTransform(scrollYProgress, [0.60, 1], [40, 0]);
+
+  return (
+    <div ref={outer} className="relative mt-10" style={{ height: "300vh" }}>
+      <div className="sticky top-0 flex h-screen items-center overflow-hidden">
+        <div className="relative w-full">
+          {/* Phase 1 — Palette Wall */}
+          <motion.div
+            className="absolute inset-0 flex items-center"
+            style={{ opacity: p1, y: p1Y }}
+          >
+            <div className="w-full">
+              <BrandPaletteWall />
+            </div>
+          </motion.div>
+
+          {/* Phase 2 — Real Safari + iPhone mockups */}
+          <motion.div
+            className="absolute inset-0 flex items-center"
+            style={{ opacity: p2, y: p2Y }}
+          >
+            <div className="w-full px-4">
+              <MockupShowcase showBusinessCard={false} />
+            </div>
+          </motion.div>
+
+          {/* Phase 3 — Final stacked 3D mockups, three cards offset+layered */}
+          <motion.div
+            className="absolute inset-0 flex items-center"
+            style={{ opacity: p3, y: p3Y }}
+          >
+            <div className="w-full">
+              <BrandFinalStack />
+            </div>
+          </motion.div>
+        </div>
+
+        {/* tiny progress dots so Samy knows what stage he's on */}
+        <ScrollThroughDots progress={scrollYProgress} />
+      </div>
+    </div>
+  );
+}
+
+function ScrollThroughDots({
+  progress,
+}: {
+  progress: import("motion/react").MotionValue<number>;
+}) {
+  const labels = ["Palette", "Mockups", "3D Stack"];
+  return (
+    <div
+      data-pdf-hide
+      className="meta absolute bottom-6 left-1/2 z-30 flex -translate-x-1/2 items-center gap-3 text-[0.55rem] tracking-[0.35em]"
+      style={{ color: "var(--ink-3)" }}
+    >
+      {labels.map((l, i) => (
+        <ScrollThroughDot key={l} label={l} index={i} total={labels.length} progress={progress} />
+      ))}
+    </div>
+  );
+}
+
+function ScrollThroughDot({
+  label,
+  index,
+  total,
+  progress,
+}: {
+  label: string;
+  index: number;
+  total: number;
+  progress: import("motion/react").MotionValue<number>;
+}) {
+  const start = index / total;
+  const peak = (index + 0.5) / total;
+  const end = (index + 1) / total;
+  const opacity = useTransform(progress, [start, peak, end], [0.35, 1, 0.35]);
+  return (
+    <motion.div className="flex items-center gap-1.5" style={{ opacity }}>
+      <span className="h-1.5 w-1.5 rounded-full" style={{ background: "var(--accent)" }} />
+      <span>{label.toUpperCase()}</span>
+    </motion.div>
+  );
+}
+
+/* Three Safari mockups in their final isometric resting positions —
+   layered with depth + offset so all three are simultaneously visible
+   in a 3D stack. No internal scroll: this is the resolved state. */
+function BrandFinalStack() {
+  const slides = [
+    { img: "/assets/gx-web-1.png", label: "Website", note: "groundx.ae" },
+    { img: "/assets/gx-web-2.png", label: "Configurator", note: "groundx.ae/configure" },
+    { img: "/assets/gx-web-3.png", label: "Owner Dashboard", note: "app.groundx.ae" },
+  ];
+  return (
+    <div
+      className="relative mx-auto h-[460px] w-full max-w-[920px]"
+      style={{ perspective: "1800px" }}
+    >
+      {slides.map((s, i) => {
+        // each card offset down-right with a small Z-step, slight rotation
+        const restingTransform = `translateX(${i * 36}px) translateY(${i * 22}px) rotateY(${(slides.length - 1 - i) * -8}deg) rotateZ(${(slides.length - 1 - i) * 0.6}deg) translateZ(${(slides.length - 1 - i) * -60}px)`;
+        return (
+          <div
+            key={s.img}
+            className="absolute left-1/2 top-1/2 w-[68%] max-w-[700px] -translate-x-1/2 -translate-y-1/2"
+            style={{
+              transform: `translate(-50%, -50%) ${restingTransform}`,
+              zIndex: 10 + i,
+              transformStyle: "preserve-3d",
+            }}
+          >
+            <div
+              className="relative overflow-hidden rounded-[12px] border border-[var(--stroke-card)] bg-black"
+              style={{
+                boxShadow:
+                  "0 40px 90px rgba(0,0,0,0.6), 0 0 0 1px rgba(232,181,99,0.05)",
+              }}
+            >
+              <div className="flex items-center gap-2 border-b border-[var(--stroke-card)] bg-[#0a0907] px-3 py-2">
+                <span className="flex gap-1.5">
+                  <span className="h-2.5 w-2.5 rounded-full" style={{ background: "#ff5f57" }} />
+                  <span className="h-2.5 w-2.5 rounded-full" style={{ background: "#febc2e" }} />
+                  <span className="h-2.5 w-2.5 rounded-full" style={{ background: "#28c840" }} />
+                </span>
+                <span
+                  className="meta ml-2 text-[0.55rem]"
+                  style={{
+                    color: "var(--ink-3)",
+                    fontFamily: "var(--font-mono)",
+                  }}
+                >
+                  {s.note}
+                </span>
+                <span
+                  className="meta ml-auto text-[0.55rem] tracking-[0.3em]"
+                  style={{ color: "var(--gx-gold-hi)" }}
+                >
+                  {String(i + 1).padStart(2, "0")} · {s.label.toUpperCase()}
+                </span>
+              </div>
+              <div className="aspect-[16/9.5] w-full overflow-hidden">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={s.img} alt={s.label} className="h-full w-full object-cover object-top" />
+              </div>
+            </div>
+          </div>
+        );
+      })}
+    </div>
   );
 }
 
