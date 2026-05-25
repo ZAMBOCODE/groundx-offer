@@ -7,7 +7,9 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "pdf": "node scripts/export-pdf.mjs"
+    "pdf": "node scripts/export-pdf.mjs",
+    "caps-check": "node scripts/caps-check.mjs",
+    "caps-fix": "node scripts/caps-check.mjs --fix"
   },
   "dependencies": {
     "clsx": "^2.1.1",
