@@ -341,9 +341,41 @@ export function DevPanel() {
               zIndex: 50,
             }}
           >
-            <div>
-              <p className="eyebrow">Design Panel</p>
-              <p className="meta text-faint mt-1 text-[0.58rem]">Taste D zum Ein-/Ausblenden</p>
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <p className="eyebrow">Design Panel</p>
+                <p className="meta text-faint mt-1 text-[0.58rem]">Taste D zum Ein-/Ausblenden</p>
+              </div>
+              <div className="flex flex-col items-end gap-1.5">
+                <span
+                  className="meta flex items-center gap-1.5 text-[0.55rem] tracking-[0.25em]"
+                  style={{ color: "var(--accent-bright)" }}
+                  title="All changes save automatically to this browser. Use Export below to back up or share."
+                >
+                  <span
+                    className="h-1.5 w-1.5 rounded-full"
+                    style={{ background: "var(--accent)", boxShadow: "0 0 6px var(--accent)" }}
+                  />
+                  AUTO-SAVED
+                </span>
+                <PresetIO settings={s} customFonts={customFonts} onImport={(snap) => {
+                  if (snap.settings) {
+                    setS(snap.settings);
+                    apply(snap.settings);
+                    try { localStorage.setItem(KEY, JSON.stringify(snap.settings)); } catch {}
+                  }
+                  if (Array.isArray(snap.customFonts)) {
+                    snap.customFonts.forEach((f: CustomFont) => ensureGoogleFontLoaded(f.name));
+                    setCustomFonts(snap.customFonts);
+                    saveCustomFonts(snap.customFonts);
+                  }
+                  if (snap.variants) {
+                    for (const [k, v] of Object.entries(snap.variants)) {
+                      if (typeof v === "number") setVariant(k as SectionKey, v);
+                    }
+                  }
+                }} />
+              </div>
             </div>
 
             <div className="hairline" />
@@ -739,5 +771,89 @@ function Toggle({
         />
       </span>
     </button>
+  );
+}
+
+/* Compact Export / Import controls in the DevPanel header.
+   Export builds a single JSON snapshot of {settings, customFonts, variants}
+   and triggers a browser download — Samy can keep per-client presets next
+   to the offer-config file, share them, and re-load them on any machine.
+   Import reads a previously-exported JSON and rehydrates state. */
+function PresetIO({
+  settings,
+  customFonts,
+  onImport,
+}: {
+  settings: Settings;
+  customFonts: CustomFont[];
+  onImport: (snap: {
+    settings?: Settings;
+    customFonts?: CustomFont[];
+    variants?: Partial<Record<SectionKey, number>>;
+  }) => void;
+}) {
+  const exportSnapshot = useCallback(() => {
+    let variants: Partial<Record<SectionKey, number>> = {};
+    try {
+      const raw = localStorage.getItem("groundx.variants");
+      if (raw) variants = JSON.parse(raw);
+    } catch {}
+    const snap = {
+      meta: { exportedAt: new Date().toISOString(), app: "groundx-offer", schema: 1 },
+      settings,
+      customFonts,
+      variants,
+    };
+    const blob = new Blob([JSON.stringify(snap, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    const stamp = new Date().toISOString().slice(0, 10);
+    a.href = url;
+    a.download = `groundx-preset-${stamp}.json`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  }, [settings, customFonts]);
+
+  const importSnapshot = useCallback(() => {
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = "application/json,.json";
+    input.onchange = async () => {
+      const file = input.files?.[0];
+      if (!file) return;
+      try {
+        const text = await file.text();
+        const snap = JSON.parse(text);
+        onImport({
+          settings: snap.settings,
+          customFonts: snap.customFonts,
+          variants: snap.variants,
+        });
+      } catch (e) {
+        alert("Invalid preset file: " + (e instanceof Error ? e.message : String(e)));
+      }
+    };
+    input.click();
+  }, [onImport]);
+
+  return (
+    <div className="flex gap-1">
+      <button
+        onClick={exportSnapshot}
+        className="meta text-faint rounded-[var(--r-mini)] border border-[var(--stroke-card)] px-1.5 py-0.5 text-[0.55rem] tracking-[0.2em] hover:border-[var(--accent)] hover:text-[var(--accent-bright)]"
+        title="Download current settings as JSON"
+      >
+        ↓ EXPORT
+      </button>
+      <button
+        onClick={importSnapshot}
+        className="meta text-faint rounded-[var(--r-mini)] border border-[var(--stroke-card)] px-1.5 py-0.5 text-[0.55rem] tracking-[0.2em] hover:border-[var(--accent)] hover:text-[var(--accent-bright)]"
+        title="Load settings from a previously exported JSON"
+      >
+        ↑ IMPORT
+      </button>
+    </div>
   );
 }
