@@ -11,6 +11,7 @@ import { WorkShowcase } from "./WorkShowcase";
 import { MockupShowcase } from "./MockupShowcase";
 import { MagazineSpread } from "./MagazineSpread";
 import { IsometricScrollStack } from "./IsometricScrollStack";
+import { usePdfMode } from "@/lib/pdfMode";
 import {
   PenLine, Film, Tag, Code2, Monitor, LayoutTemplate, Palette,
   Sparkles, Box, Video, Presentation, LayoutDashboard, MessageCircle, Workflow,
@@ -673,6 +674,61 @@ function CapabilitiesStickyStack({
   // Stack only the first four — the design only resolves up to 04. The
   // remaining four capabilities show in other variants / inline copy.
   const stack = items.slice(0, 4);
+  const pdf = usePdfMode();
+  if (pdf) return <CapabilitiesStaticStack stack={stack} />;
+  return <CapabilitiesStickyStackDynamic stack={stack} />;
+}
+
+/* Static fallback for PDF — all 4 cards rendered vertically with the
+   same per-card layout (image right, copy left) but no sticky scroll. */
+function CapabilitiesStaticStack({
+  stack,
+}: {
+  stack: Array<{ title: string; blurb: string; proof: string }>;
+}) {
+  return (
+    <div className="mt-10 flex flex-col gap-8">
+      {stack.map((card, i) => (
+        <div key={card.title} className="card glow-border grid items-stretch overflow-hidden p-0 md:grid-cols-[1.05fr_1fr]">
+          <div className="flex flex-col justify-between p-8 sm:p-10">
+            <div className="flex items-center gap-3">
+              <span className="display-light accent text-[1.4rem]" style={{ letterSpacing: "-0.02em" }}>
+                {String(i + 1).padStart(2, "0")}
+              </span>
+              <span className="meta text-faint text-[0.55rem] tracking-[0.4em]">
+                / {String(stack.length).padStart(2, "0")}
+              </span>
+            </div>
+            <div className="mt-6">
+              <h3 className="display text-[1.6rem] leading-tight sm:text-[2rem]">{card.title}</h3>
+              <p className="text-dim mt-4 max-w-md text-[1rem] leading-relaxed">{card.blurb}</p>
+            </div>
+            <div className="inner-card mt-6 inline-block self-start px-3.5 py-2.5">
+              <span className="meta text-faint text-[0.55rem] tracking-[0.3em]">PROOF</span>
+              <p className="accent mt-1 text-[0.85rem]">{card.proof}</p>
+            </div>
+          </div>
+          <div className="relative min-h-[240px] overflow-hidden bg-black">
+            {CAPABILITY_IMAGE[card.title] && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={CAPABILITY_IMAGE[card.title]}
+                alt={card.title}
+                className="absolute inset-0 h-full w-full object-cover object-center"
+              />
+            )}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function CapabilitiesStickyStackDynamic({
+  stack,
+}: {
+  stack: Array<{ title: string; blurb: string; proof: string }>;
+}) {
   const outer = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({
     target: outer,
@@ -1464,6 +1520,24 @@ function renderTitleWithGroundXLogo(title: string): React.ReactNode {
                               gelayert sichtbar" note)
    Each phase fades in then out around its window via opacity tracks. */
 function BrandScrollThrough() {
+  const pdf = usePdfMode();
+  if (pdf) return <BrandScrollThroughStatic />;
+  return <BrandScrollThroughDynamic />;
+}
+
+/* PDF fallback: render all three phases vertically with spacing instead
+   of crossfading them in a sticky 300vh container. */
+function BrandScrollThroughStatic() {
+  return (
+    <div className="mt-10 flex flex-col gap-16">
+      <BrandPaletteWall />
+      <MockupShowcase showBusinessCard={false} />
+      <BrandFinalStack />
+    </div>
+  );
+}
+
+function BrandScrollThroughDynamic() {
   const outer = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({
     target: outer,

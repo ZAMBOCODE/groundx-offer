@@ -20,7 +20,16 @@ import { join } from "node:path";
 
 const URL = process.argv[2] || "http://localhost:3939";
 const OFFER = process.argv[4] || "";
-const TARGET = OFFER ? `${URL}${URL.includes("?") ? "&" : "?"}offer=${encodeURIComponent(OFFER)}` : URL;
+// Append ?pdf=1 so usePdfMode() picks it up — sticky-scroll sections
+// (Capabilities sticky-stack, BrandScrollThrough, …) swap to a vertical
+// static fallback that renders correctly without scroll-driven motion.
+function withFlags(u) {
+  const sep = u.includes("?") ? "&" : "?";
+  let next = `${u}${sep}pdf=1`;
+  if (OFFER) next += `&offer=${encodeURIComponent(OFFER)}`;
+  return next;
+}
+const TARGET = withFlags(URL);
 const OUT = process.argv[3] || (OFFER ? `offer-${OFFER}.pdf` : "groundx-offer.pdf");
 
 // resolve playwright locally, else from the global npm root
@@ -50,6 +59,11 @@ await page.evaluate(() => {
   localStorage.removeItem("groundx.devpanel");
 });
 await page.reload({ waitUntil: "networkidle" });
+// give usePdfMode()'s useEffect time to flip dynamic→static fallbacks
+// (BrandScrollThrough, CapabilitiesStickyStack, …). The swap renders
+// after first paint; without this wait the screenshot can land on the
+// dynamic layout still showing only phase 1.
+await page.waitForTimeout(900);
 await page.addStyleTag({
   // hide the dev-panel FAB + everything explicitly marked as interactive-only
   // (Calendly pill, WhatsApp float, …). Samy 2026-05-24: "pdf-version braucht
