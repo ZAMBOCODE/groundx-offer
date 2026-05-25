@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { motion, useInView, animate } from "motion/react";
+import { motion, useInView, animate, useScroll, useTransform } from "motion/react";
 import { TiltCard } from "./TiltCard";
 import { cases, type CaseStudy } from "@/lib/data";
 import { useDesign } from "./design-context";
@@ -568,8 +568,14 @@ export function Capabilities() {
   const { variants } = useDesign();
   const v = variants.capabilities;
   const c = useOffer().content.capabilities;
+  // v3 (sticky-stack) is scroll-driven, opt out of flex centering
+  const scrollDriven = v === 3;
   return (
-    <section id="capabilities" className="section">
+    <section
+      id="capabilities"
+      className="section"
+      data-scroll-driven={scrollDriven || undefined}
+    >
       <SectionHead
         eyebrow={c.eyebrow}
         title={
@@ -636,68 +642,177 @@ export function Capabilities() {
       )}
 
       {/* variant 3-5 use helper sub-components for state/hooks */}
-      {v === 3 && <CapabilitiesStackDeck items={c.items} />}
+      {v === 3 && <CapabilitiesStickyStack items={c.items} />}
       {v === 4 && <CapabilitiesSplitPane items={c.items} />}
       {v === 5 && <CapabilitiesScrollSnap items={c.items} />}
     </section>
   );
 }
 
-/* variant 3 — stack-deck: top card prominent, others fanned behind with z-depth.
-   Hover on a peek triggers it to swap to the front (Apple-style press-stack). */
-function CapabilitiesStackDeck({ items }: { items: Array<{ title: string; blurb: string; proof: string }> }) {
-  const [active, setActive] = useState(0);
-  const visible = 4; // how many we fan
+/* variant 3 — sticky scroll-stack (Samy 2026-05-25):
+   "Karten 01 bis 04 legen sich übereinander, leichter Offset, leichter
+   Tilt, untere Karte fadet von unten linear in den Background, sodass
+   man ahnt dass die nächste Karte kommt." Each card has its title +
+   blurb + proof on the left and a project image on the right that
+   fades to white on its left edge so it bleeds into the card.
+
+   Images come from Drive Techne/My Services/ once Samy drops them in;
+   meanwhile we map title → best existing /public/assets/ shot. */
+const CAPABILITY_IMAGE: Record<string, string> = {
+  "AI renderings & visual systems": "/assets/gx-lifestyle.png",
+  "3D configurators": "/assets/gx-web-2.png",
+  "Premium websites": "/assets/gx-web-1.png",
+  "AI video production": "/assets/gulfrescue-vehicle.png",
+};
+
+function CapabilitiesStickyStack({
+  items,
+}: {
+  items: Array<{ title: string; blurb: string; proof: string }>;
+}) {
+  // Stack only the first four — the design only resolves up to 04. The
+  // remaining four capabilities show in other variants / inline copy.
+  const stack = items.slice(0, 4);
+  const outer = useRef<HTMLDivElement>(null);
+  const { scrollYProgress } = useScroll({
+    target: outer,
+    offset: ["start start", "end end"],
+  });
+
   return (
-    <Reveal>
-      <div className="relative mx-auto mt-16 grid max-w-3xl place-items-center" style={{ perspective: 1400 }}>
-        {items.slice(0, visible).map((it, i) => {
-          const offset = (i - active + visible) % visible;
-          const isFront = offset === 0;
-          return (
-            <div
+    <div
+      ref={outer}
+      className="relative mt-10"
+      style={{ height: `${stack.length * 100 + 20}vh` }}
+    >
+      <div className="sticky top-0 flex h-screen items-center justify-center overflow-hidden">
+        <div
+          className="relative mx-auto w-full max-w-5xl"
+          style={{ perspective: "1800px" }}
+        >
+          {stack.map((it, i) => (
+            <StickyStackCard
               key={it.title}
-              onMouseEnter={() => setActive(i)}
-              onFocus={() => setActive(i)}
-              tabIndex={0}
-              className="card glow-border absolute top-0 w-full max-w-xl p-8 transition-all duration-500"
-              style={{
-                transform: `translateY(${offset * 18}px) translateZ(${-offset * 40}px) rotateX(${offset * -3}deg) scale(${1 - offset * 0.04})`,
-                opacity: 1 - offset * 0.15,
-                zIndex: visible - offset,
-                cursor: isFront ? "default" : "pointer",
-                pointerEvents: offset > 2 ? "none" : "auto",
-              }}
+              card={it}
+              index={i}
+              total={stack.length}
+              progress={scrollYProgress}
+              imageSrc={CAPABILITY_IMAGE[it.title]}
+            />
+          ))}
+        </div>
+
+        <span className="meta accent absolute bottom-6 left-1/2 -translate-x-1/2 text-[0.55rem] tracking-[0.4em]">
+          SCROLL — STACK FILLS 01 → 04
+        </span>
+      </div>
+    </div>
+  );
+}
+
+function StickyStackCard({
+  card,
+  index,
+  total,
+  progress,
+  imageSrc,
+}: {
+  card: { title: string; blurb: string; proof: string };
+  index: number;
+  total: number;
+  progress: import("motion/react").MotionValue<number>;
+  imageSrc?: string;
+}) {
+  // Each card owns 1/total of the scroll. Inside its window it slides
+  // from below (with tilt + scale) into its resting stacked position.
+  // After its window it stays put, offset down + slightly tilted so the
+  // next card lands on top of it with a tiny visible peek.
+  const start = index / total;
+  const end = (index + 1) / total;
+
+  const restingY = index * 14; // stacked offset
+  const restingTilt = index * 0.7; // slight rotation accent
+  const enterY = useTransform(progress, [start, end], [120, restingY]);
+  const tiltZ = useTransform(progress, [start, end], [restingTilt + 1.6, restingTilt]);
+  const enterScale = useTransform(progress, [start, end], [0.96, 1]);
+  // Below the threshold the card is offstage — fully hidden.
+  const opacity = useTransform(progress, [Math.max(0, start - 0.05), start], [0, 1]);
+
+  return (
+    <motion.div
+      className="absolute left-0 right-0 top-1/2 mx-auto -translate-y-1/2"
+      style={{
+        y: enterY,
+        rotateZ: tiltZ,
+        scale: enterScale,
+        opacity,
+        zIndex: 10 + index,
+        transformStyle: "preserve-3d",
+      }}
+    >
+      <div
+        className="card glow-border relative grid items-stretch overflow-hidden p-0 md:grid-cols-[1.05fr_1fr]"
+        style={{
+          boxShadow:
+            "0 30px 80px rgba(0,0,0,0.55), 0 6px 20px rgba(0,0,0,0.45)",
+        }}
+      >
+        {/* LEFT: text */}
+        <div className="flex flex-col justify-between p-8 sm:p-10">
+          <div className="flex items-center gap-3">
+            <span
+              className="display-light accent text-[1.4rem]"
+              style={{ letterSpacing: "-0.02em" }}
             >
-              <div className="meta accent text-[0.62rem]">
-                {String(i + 1).padStart(2, "0")} · {visible}
-              </div>
-              <h3 className="display mt-3 text-[1.5rem]">{it.title}</h3>
-              <p className="text-dim mt-3 text-[1rem] leading-relaxed">{it.blurb}</p>
-              <div className="inner-card mt-5 inline-block px-3 py-2">
-                <p className="accent text-[0.82rem]">{it.proof}</p>
-              </div>
-            </div>
-          );
-        })}
-        {/* spacer so the absolute stack reserves vertical room */}
-        <div className="h-[380px]" />
-      </div>
-      <div className="mt-6 flex justify-center gap-2">
-        {items.slice(0, visible).map((_, i) => (
-          <button
-            key={i}
-            onClick={() => setActive(i)}
-            className="h-1.5 rounded-full transition-all"
+              {String(index + 1).padStart(2, "0")}
+            </span>
+            <span className="meta text-faint text-[0.55rem] tracking-[0.4em]">
+              / {String(total).padStart(2, "0")}
+            </span>
+          </div>
+          <div className="mt-6">
+            <h3 className="display text-[1.6rem] leading-tight sm:text-[2rem]">
+              {card.title}
+            </h3>
+            <p className="text-dim mt-4 max-w-md text-[1rem] leading-relaxed">
+              {card.blurb}
+            </p>
+          </div>
+          <div className="inner-card mt-6 inline-block self-start px-3.5 py-2.5">
+            <span className="meta text-faint text-[0.55rem] tracking-[0.3em]">PROOF</span>
+            <p className="accent mt-1 text-[0.85rem]">{card.proof}</p>
+          </div>
+        </div>
+
+        {/* RIGHT: image with left-edge fade to background so it bleeds in */}
+        <div className="relative min-h-[260px] overflow-hidden bg-black">
+          {imageSrc ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={imageSrc}
+              alt={card.title}
+              className="absolute inset-0 h-full w-full object-cover object-center"
+            />
+          ) : (
+            <div
+              className="absolute inset-0"
+              style={{
+                background:
+                  "radial-gradient(60% 60% at 60% 40%, rgba(249,115,22,0.16), rgba(5,5,7,0.85))",
+              }}
+            />
+          )}
+          {/* left-edge fade to card background (cleanly bleeds into copy area) */}
+          <div
+            className="pointer-events-none absolute inset-y-0 left-0 w-1/3"
             style={{
-              width: active === i ? 28 : 10,
-              background: active === i ? "var(--accent)" : "var(--stroke-strong)",
+              background:
+                "linear-gradient(90deg, var(--bg-card, #0c0b09) 0%, rgba(12,11,9,0.55) 55%, transparent 100%)",
             }}
-            aria-label={`Card ${i + 1}`}
           />
-        ))}
+        </div>
       </div>
-    </Reveal>
+    </motion.div>
   );
 }
 
