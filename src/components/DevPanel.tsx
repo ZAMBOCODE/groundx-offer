@@ -47,13 +47,13 @@ type Settings = {
 
 const DEFAULTS: Settings = {
   accent: "#f97316",
-  radius: 28,
+  radius: 14,
   highlightFont: "inherit",
   displayFont: "inherit",
   bodyFont: "inherit",
   sidePad: 24,
   smoothScroll: true,
-  snap: false,
+  snap: true,
   cursorFx: "off",
   bubbles: false,
   bgMark: false,

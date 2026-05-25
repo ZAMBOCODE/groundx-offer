@@ -21,28 +21,24 @@ export function Hero() {
 
 type HeroContent = { eyebrow: string; headline: string; headlineAccent: string; sub: string };
 
-/* variant 0 — centered (default, original) */
+/* variant 0 — centered (default, original).
+   Samy 2026-05-25: strip the eyebrow + business card. Big centered
+   ZamboDezigns wordmark where the card lived. Headline + sub + CTA stay. */
 function HeroCentered({ h }: { h: HeroContent }) {
   return (
     <header id="hero" className="relative flex min-h-screen flex-col items-center justify-center px-6 text-center">
       <motion.div
-        initial={{ opacity: 0, y: 12 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8 }}
-        className="mb-6 flex flex-col items-center gap-4"
-      >
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/assets/zambo-logo.png" alt="ZamboDezigns" className="h-12 w-12 opacity-90" />
-        <p className="eyebrow">ZamboDezigns &nbsp;·&nbsp; {h.eyebrow}</p>
-      </motion.div>
-
-      <motion.div
         initial={{ opacity: 0, y: 30, scale: 0.96 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
         transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
-        className="mb-12"
+        className="mb-14"
       >
-        <GxBusinessCard />
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src="/assets/zambo-logo.png"
+          alt="ZamboDezigns"
+          className="h-32 w-32 opacity-95 sm:h-44 sm:w-44"
+        />
       </motion.div>
 
       <motion.h1

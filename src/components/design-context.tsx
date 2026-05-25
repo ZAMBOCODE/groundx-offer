@@ -21,7 +21,7 @@ export type SectionKey = "hero" | "about" | "angle" | "capabilities" | "work" | 
 export type Variants = Record<SectionKey, number>;
 
 const DEFAULTS: Variants = {
-  hero: 0, about: 0, angle: 0, capabilities: 0, work: 4, brand: 3, offer: 0, contact: 0,
+  hero: 0, about: 4, angle: 4, capabilities: 3, work: 4, brand: 1, offer: 0, contact: 4,
 };
 
 /** how many variants each section offers (for the dev-panel selector) */

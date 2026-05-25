@@ -77,13 +77,13 @@ export const DEFAULT_CONFIG: OfferConfig = {
   },
   sections: [
     { key: "hero", enabled: true, variant: 0 },
-    { key: "about", enabled: true, variant: 0 },
-    { key: "angle", enabled: true, variant: 0 },
-    { key: "capabilities", enabled: true, variant: 0 },
+    { key: "about", enabled: true, variant: 4 },
+    { key: "angle", enabled: true, variant: 4 },
+    { key: "capabilities", enabled: true, variant: 3 },
     { key: "work", enabled: true, variant: 4 },
-    { key: "brand", enabled: true, variant: 2 },
+    { key: "brand", enabled: true, variant: 1 },
     { key: "offer", enabled: true, variant: 0 },
-    { key: "contact", enabled: true, variant: 0 },
+    { key: "contact", enabled: true, variant: 4 },
   ],
   content: {
     hero: {
