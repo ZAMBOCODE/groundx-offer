@@ -1,7 +1,13 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { DEFAULT_CONFIG, mergeConfig, type OfferConfig } from "@/lib/config";
+import {
+  VARIANTS_CHANGE_EVENT,
+  applyCopyVariants,
+  loadCopyVariantSelections,
+  type CopyVariantSelections,
+} from "@/lib/copyVariants";
 
 const API =
   process.env.NEXT_PUBLIC_AETHER_API || "https://178.104.134.120.sslip.io/api";
@@ -37,6 +43,7 @@ function applyAccent(hex: string) {
 
 export function OfferProvider({ children }: { children: React.ReactNode }) {
   const [cfg, setCfg] = useState<OfferConfig>(DEFAULT_CONFIG);
+  const [copyVariants, setCopyVariants] = useState<CopyVariantSelections>({});
 
   useEffect(() => {
     applyAccent(DEFAULT_CONFIG.brand.accent);
@@ -44,18 +51,36 @@ export function OfferProvider({ children }: { children: React.ReactNode }) {
     try {
       id = new URLSearchParams(window.location.search).get("offer");
     } catch {}
-    if (!id) return;
-    fetch(`${API}/offers/${encodeURIComponent(id)}`)
-      .then((r) => (r.ok ? r.json() : null))
-      .then((row: { config?: Partial<OfferConfig> } | null) => {
-        if (row?.config) {
-          const merged = mergeConfig(row.config);
-          setCfg(merged);
-          applyAccent(merged.brand.accent);
-        }
-      })
-      .catch(() => {});
+    if (id) {
+      fetch(`${API}/offers/${encodeURIComponent(id)}`)
+        .then((r) => (r.ok ? r.json() : null))
+        .then((row: { config?: Partial<OfferConfig> } | null) => {
+          if (row?.config) {
+            const merged = mergeConfig(row.config);
+            setCfg(merged);
+            applyAccent(merged.brand.accent);
+          }
+        })
+        .catch(() => {});
+    }
+
+    // load + subscribe to copy-variant selection changes
+    setCopyVariants(loadCopyVariantSelections());
+    const onChange = () => setCopyVariants(loadCopyVariantSelections());
+    window.addEventListener(VARIANTS_CHANGE_EVENT, onChange);
+    window.addEventListener("storage", onChange); // cross-tab updates too
+    return () => {
+      window.removeEventListener(VARIANTS_CHANGE_EVENT, onChange);
+      window.removeEventListener("storage", onChange);
+    };
   }, []);
 
-  return <Ctx.Provider value={cfg}>{children}</Ctx.Provider>;
+  // Merge active copy-variant patches over the section content. Memoized
+  // so identity stays stable across re-renders that don't change inputs.
+  const merged = useMemo<OfferConfig>(() => {
+    if (Object.keys(copyVariants).length === 0) return cfg;
+    return { ...cfg, content: applyCopyVariants(cfg.content, copyVariants) };
+  }, [cfg, copyVariants]);
+
+  return <Ctx.Provider value={merged}>{children}</Ctx.Provider>;
 }

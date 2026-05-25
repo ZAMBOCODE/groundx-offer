@@ -13,6 +13,14 @@ import { useOffer } from "./OfferProvider";
 import { Presets } from "./Presets";
 import { cases as ALL_CASES } from "@/lib/data";
 import type { SectionKey as ConfigSectionKey } from "@/lib/config";
+import {
+  COPY_VARIANTS,
+  loadCopyVariantSelections,
+  saveCopyVariantSelections,
+  VARIANTS_CHANGE_EVENT,
+  type CopyVariantSelections,
+  type SectionCopyKey,
+} from "@/lib/copyVariants";
 
 const ALL_SECTIONS: { key: ConfigSectionKey; label: string }[] = [
   { key: "hero", label: "Hero" },
@@ -217,6 +225,8 @@ export function DevPanel() {
   const [s, setS] = useState<Settings>(DEFAULTS);
   const [customFonts, setCustomFonts] = useState<CustomFont[]>([]);
   const [fontInput, setFontInput] = useState("");
+  const [copySel, setCopySel] = useState<CopyVariantSelections>({});
+  const [openCopyKey, setOpenCopyKey] = useState<SectionCopyKey | null>(null);
   const { variants, setVariant, enabledOverride, toggleSection, workProjects, setWorkProjects } = useDesign();
   const offer = useOffer();
 
@@ -233,6 +243,24 @@ export function DevPanel() {
     const cf = loadCustomFonts();
     cf.forEach((f) => ensureGoogleFontLoaded(f.name));
     setCustomFonts(cf);
+    setCopySel(loadCopyVariantSelections());
+    const onCopyChange = () => setCopySel(loadCopyVariantSelections());
+    window.addEventListener(VARIANTS_CHANGE_EVENT, onCopyChange);
+    window.addEventListener("storage", onCopyChange);
+    return () => {
+      window.removeEventListener(VARIANTS_CHANGE_EVENT, onCopyChange);
+      window.removeEventListener("storage", onCopyChange);
+    };
+  }, []);
+
+  const applyCopyVariant = useCallback((section: SectionCopyKey, id: string | null) => {
+    setCopySel((prev) => {
+      const next = { ...prev };
+      if (id === null) delete next[section];
+      else next[section] = id;
+      saveCopyVariantSelections(next);
+      return next;
+    });
   }, []);
 
   const addCustomFont = useCallback((rawName: string) => {
@@ -636,6 +664,18 @@ export function DevPanel() {
                     );
                   })}
                 </div>
+                {/* per-section copy picker (skip About — no content slot in OfferContent) */}
+                {key !== "about" && (
+                  <CopyVariantPicker
+                    section={key as SectionCopyKey}
+                    selectedId={copySel[key as SectionCopyKey]}
+                    open={openCopyKey === key}
+                    onToggle={() =>
+                      setOpenCopyKey((prev) => (prev === key ? null : (key as SectionCopyKey)))
+                    }
+                    onPick={(id) => applyCopyVariant(key as SectionCopyKey, id)}
+                  />
+                )}
                 {/* Project-filter only for Work — Samy 2026-05-24: "ich will auswählen welche Projekte gezeigt werden" */}
                 {key === "work" && (
                   <div className="mt-1.5 flex flex-col gap-1">
@@ -855,5 +895,120 @@ function PresetIO({
         ↑ IMPORT
       </button>
     </div>
+  );
+}
+
+/* Per-section copy-variant picker.
+   Trigger row: "✨ Copy: [active vibe]" — disclosure-style, click to expand.
+   Expanded panel: Default + 3 alt variants (Direct / Editorial / Punchy).
+   Each option shows its vibe label + a one-line preview pulled from the
+   patch's headline/title field. Click an option → save selection +
+   scroll the section into view. Seed for the AETHER copy-variants agent. */
+function CopyVariantPicker({
+  section,
+  selectedId,
+  open,
+  onToggle,
+  onPick,
+}: {
+  section: SectionCopyKey;
+  selectedId: string | undefined;
+  open: boolean;
+  onToggle: () => void;
+  onPick: (id: string | null) => void;
+}) {
+  const variants = COPY_VARIANTS[section] ?? [];
+  if (variants.length === 0) return null;
+  const active = variants.find((v) => v.id === selectedId);
+  const label = selectedId ? active?.label ?? selectedId : "Default";
+
+  return (
+    <div className="mt-1.5 flex flex-col gap-1">
+      <button
+        type="button"
+        onClick={onToggle}
+        className="meta text-faint flex items-center justify-between gap-2 rounded-[var(--r-mini)] border border-[var(--stroke-card)] px-2.5 py-1.5 text-[0.58rem] tracking-[0.2em] hover:border-[var(--accent)] hover:text-[var(--accent-bright)]"
+        aria-expanded={open}
+      >
+        <span>
+          <span style={{ color: "var(--accent-bright)" }}>✦</span> COPY · {label.toUpperCase()}
+        </span>
+        <span style={{ transform: open ? "rotate(90deg)" : "rotate(0deg)", transition: "transform 200ms" }}>›</span>
+      </button>
+      {open && (
+        <div className="flex flex-col gap-1">
+          <CopyOption
+            isActive={!selectedId}
+            label="Default"
+            vibe="Config copy as written"
+            preview={null}
+            onPick={() => onPick(null)}
+          />
+          {variants.map((v) => {
+            const previewSource =
+              ("headline" in v.patch && v.patch.headline) ||
+              ("title" in v.patch && v.patch.title) ||
+              ("eyebrow" in v.patch && v.patch.eyebrow) ||
+              null;
+            return (
+              <CopyOption
+                key={v.id}
+                isActive={selectedId === v.id}
+                label={v.label}
+                vibe={v.vibe}
+                preview={previewSource}
+                onPick={() => {
+                  onPick(v.id);
+                  document
+                    .getElementById(section)
+                    ?.scrollIntoView({ behavior: "smooth", block: "start" });
+                }}
+              />
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function CopyOption({
+  isActive,
+  label,
+  vibe,
+  preview,
+  onPick,
+}: {
+  isActive: boolean;
+  label: string;
+  vibe: string;
+  preview: string | null;
+  onPick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onPick}
+      className="group flex flex-col items-start gap-0.5 rounded-[var(--r-mini)] border px-2.5 py-1.5 text-left transition-colors"
+      style={{
+        borderColor: isActive ? "var(--accent)" : "var(--stroke-card)",
+        background: isActive ? "rgba(249,115,22,0.06)" : "transparent",
+      }}
+    >
+      <div className="flex w-full items-baseline justify-between gap-2">
+        <span
+          className="text-[0.78rem] font-semibold"
+          style={{ color: isActive ? "var(--accent-bright)" : "var(--ink)" }}
+        >
+          {label}
+        </span>
+        <span className="meta text-faint text-[0.55rem]">{vibe}</span>
+      </div>
+      {preview && (
+        <span className="text-faint truncate text-[0.7rem]" style={{ maxWidth: "100%" }}>
+          “{preview}”
+        </span>
+      )}
+    </button>
   );
 }
