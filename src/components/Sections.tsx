@@ -1579,11 +1579,20 @@ function OfferMinimalList({ co }: { co: OfferShape }) {
 
 /* =================================================== CONTACT (6 variants) */
 
-const CONTACT_CHANNELS = [
-  { label: "Mail", value: "matteo.abele@gmx.de", href: "mailto:matteo.abele@gmx.de" },
-  { label: "Web", value: "zambodezigns.com", href: "https://zambodezigns.com" },
-  { label: "Calendly", value: "private consultation · 30 min", href: "#" },
-];
+const SAMY_EMAIL = "sheymig98@gmail.com";
+
+function useContactChannels() {
+  const { brand } = useOffer();
+  return [
+    { label: "Mail", value: SAMY_EMAIL, href: `mailto:${SAMY_EMAIL}` },
+    { label: "Web", value: "zambodezigns.com", href: "https://zambodezigns.com" },
+    {
+      label: "Calendly",
+      value: "private consultation · 30 min",
+      href: brand.calendly ?? `mailto:${SAMY_EMAIL}`,
+    },
+  ];
+}
 
 export function Contact() {
   const cx = useOffer().content.contact;
@@ -1598,6 +1607,26 @@ export function Contact() {
       {v === 4 && <ContactCardRow cx={cx} />}
       {v === 5 && <ContactMinimalFooter cx={cx} />}
     </section>
+  );
+}
+
+/* Shared CTA: prefers Calendly, falls back to mailto. External target so
+   Calendly opens in a new tab. Keeps every Contact variant in sync. */
+function ConsultationButton({
+  label = "Book a private consultation",
+  className = "btn btn-primary",
+}: { label?: string; className?: string }) {
+  const { brand } = useOffer();
+  const href = brand.calendly ?? `mailto:${SAMY_EMAIL}`;
+  return (
+    <a
+      href={href}
+      target={brand.calendly ? "_blank" : undefined}
+      rel="noreferrer noopener"
+      className={className}
+    >
+      {label}
+    </a>
   );
 }
 
@@ -1629,7 +1658,7 @@ function ContactCentered({ cx }: { cx: CxContent }) {
         </div>
       </div>
       <div className="mt-9 flex flex-wrap justify-center gap-3">
-        <a href="#" className="btn btn-primary">Book a private consultation</a>
+        <ConsultationButton />
       </div>
       <p className="meta text-faint mt-16 text-[0.62rem]">
         ZamboDezigns · Samuel Heymig · Stuttgart, Germany
@@ -1648,7 +1677,7 @@ function ContactQuote({ cx }: { cx: CxContent }) {
           {cx.headline} <span className="accent-text">{cx.headlineAccent}</span>
         </h2>
         <p className="text-dim max-w-xl text-[1rem] leading-relaxed">{cx.sub}</p>
-        <a href="#" className="btn btn-primary mt-4">Book a private consultation</a>
+        <ConsultationButton className="btn btn-primary mt-4" />
         <p className="meta text-faint text-[0.6rem]">ZamboDezigns · Samuel Heymig · Stuttgart</p>
       </div>
     </Reveal>
@@ -1657,6 +1686,8 @@ function ContactQuote({ cx }: { cx: CxContent }) {
 
 /* variant 2: split — CTA left, channels right */
 function ContactSplit({ cx }: { cx: CxContent }) {
+  const { brand } = useOffer();
+  const channels = useContactChannels();
   return (
     <div className="grid items-stretch gap-6 text-left md:grid-cols-2">
       <Reveal>
@@ -1668,12 +1699,19 @@ function ContactSplit({ cx }: { cx: CxContent }) {
             </h2>
             <p className="text-dim mt-5 text-[1rem] leading-relaxed">{cx.sub}</p>
           </div>
-          <a href="#" className="btn btn-primary mt-8 self-start">Book a private consultation</a>
+          <a
+            href={brand.calendly ?? `mailto:${SAMY_EMAIL}`}
+            target={brand.calendly ? "_blank" : undefined}
+            rel="noreferrer noopener"
+            className="btn btn-primary mt-8 self-start"
+          >
+            Book a private consultation
+          </a>
         </TiltCard>
       </Reveal>
       <Reveal delay={0.1}>
         <div className="flex h-full flex-col gap-3">
-          {CONTACT_CHANNELS.map((c) => (
+          {channels.map((c) => (
             <a key={c.label} href={c.href} className="inner-card flex flex-1 items-center justify-between px-6 py-5">
               <span className="meta accent text-[0.6rem]">{c.label}</span>
               <span className="text-[0.95rem] text-white">{c.value}</span>
@@ -1702,39 +1740,98 @@ function ContactCinematic({ cx }: { cx: CxContent }) {
           {cx.headline} <span className="accent-text">{cx.headlineAccent}</span>
         </h2>
         <p className="text-dim mt-6 max-w-xl text-[1.05rem] leading-relaxed">{cx.sub}</p>
-        <a href="#" className="btn btn-primary mt-10">Book a private consultation</a>
+        <ConsultationButton className="btn btn-primary mt-10" />
       </div>
     </Reveal>
   );
 }
 
-/* variant 4: card row — three contact rails */
+/* variant 4: v4+v5 hybrid — editorial sign-off typography (v5) on top, big
+   prominent Mail + Calendly cards below (v4 card-row feel scaled up).
+   Samy 2026-05-25: "Mix aus 5 und 4 … wie es angezeigt werden soll und
+   wie die Schriftart ausgewählt ist, finde ich besser bei 'Let's build
+   the first renderings'." Mail is the headline channel, Calendly opens
+   brand.calendly. */
 function ContactCardRow({ cx }: { cx: CxContent }) {
+  const { brand } = useOffer();
+  const cal = brand.calendly ?? `mailto:${SAMY_EMAIL}`;
   return (
-    <Reveal>
-      <div className="text-center">
-        <p className="eyebrow mb-3">{cx.eyebrow}</p>
-        <h2 className="display mx-auto max-w-2xl text-[2rem] sm:text-[2.6rem]">
-          {cx.headline} <span className="accent-text">{cx.headlineAccent}</span>
-        </h2>
-      </div>
-      <div className="mt-10 grid gap-4 md:grid-cols-3">
-        {CONTACT_CHANNELS.map((c, i) => (
-          <Reveal key={c.label} delay={i * 0.07}>
-            <a href={c.href} className="block h-full">
-              <TiltCard className="flex h-full flex-col items-center p-7 text-center">
-                <span className="meta accent text-[0.6rem]">{c.label.toUpperCase()}</span>
-                <p className="display mt-3 text-[1.1rem]">{c.value}</p>
-                <span className="meta text-faint mt-4 text-[0.58rem]">→ open</span>
-              </TiltCard>
+    <>
+      {/* editorial sign-off top — borrowed from v5's typography rhythm */}
+      <Reveal>
+        <div className="mx-auto flex max-w-5xl flex-col items-start gap-6 border-t border-[var(--stroke-card)] pt-12 text-left md:flex-row md:items-end md:justify-between">
+          <div>
+            <p className="eyebrow mb-3">{cx.eyebrow}</p>
+            <h2 className="display text-[2.4rem] leading-[1.05] sm:text-[3.4rem]">
+              {cx.headline} <span className="accent-text">{cx.headlineAccent}</span>
+            </h2>
+            <p className="text-dim mt-4 max-w-md text-[0.95rem] leading-relaxed">{cx.sub}</p>
+          </div>
+          <div className="flex flex-col items-start gap-2 md:items-end">
+            <a
+              href={cal}
+              target={brand.calendly ? "_blank" : undefined}
+              rel="noreferrer noopener"
+              className="btn btn-primary"
+            >
+              Book a private consultation
             </a>
-          </Reveal>
-        ))}
+            <p className="meta text-faint text-[0.6rem]">
+              ZamboDezigns · Samuel Heymig · Stuttgart
+            </p>
+          </div>
+        </div>
+      </Reveal>
+
+      {/* two oversized rails: Mail (left, primary) + Calendly (right) */}
+      <div className="mx-auto mt-12 grid w-full max-w-5xl gap-4 text-left md:grid-cols-2">
+        <Reveal>
+          <a
+            href={`mailto:${SAMY_EMAIL}`}
+            className="block h-full"
+            aria-label="Email Samy"
+          >
+            <TiltCard
+              className="accent-glow flex h-full flex-col justify-between p-8 sm:p-10"
+              style={{
+                borderColor: "var(--accent)",
+                background: "rgba(249,115,22,0.06)",
+              }}
+            >
+              <div>
+                <span className="meta accent text-[0.6rem] tracking-[0.35em]">— MAIL</span>
+                <p className="display mt-3 break-all text-[1.5rem] sm:text-[1.8rem]">
+                  {SAMY_EMAIL}
+                </p>
+              </div>
+              <span className="meta text-faint mt-6 text-[0.6rem]">
+                → fastest reply, usually under a day
+              </span>
+            </TiltCard>
+          </a>
+        </Reveal>
+        <Reveal delay={0.07}>
+          <a
+            href={cal}
+            target={brand.calendly ? "_blank" : undefined}
+            rel="noreferrer noopener"
+            className="block h-full"
+            aria-label="Book on Calendly"
+          >
+            <TiltCard className="flex h-full flex-col justify-between p-8 sm:p-10">
+              <div>
+                <span className="meta accent text-[0.6rem] tracking-[0.35em]">— CALENDLY</span>
+                <p className="display mt-3 text-[1.5rem] sm:text-[1.8rem]">
+                  Private consultation
+                </p>
+                <p className="text-dim mt-2 text-[0.9rem]">30 minutes, any time that fits.</p>
+              </div>
+              <span className="meta text-faint mt-6 text-[0.6rem]">→ pick a slot</span>
+            </TiltCard>
+          </a>
+        </Reveal>
       </div>
-      <p className="meta text-faint mt-12 text-center text-[0.62rem]">
-        ZamboDezigns · Samuel Heymig · Stuttgart, Germany
-      </p>
-    </Reveal>
+    </>
   );
 }
 
@@ -1751,7 +1848,7 @@ function ContactMinimalFooter({ cx }: { cx: CxContent }) {
           <p className="text-dim mt-3 max-w-md text-[0.92rem] leading-relaxed">{cx.sub}</p>
         </div>
         <div className="flex flex-col items-start gap-2 md:items-end">
-          <a href="#" className="btn btn-primary">Book a consultation</a>
+          <ConsultationButton label="Book a consultation" />
           <p className="meta text-faint text-[0.6rem]">
             ZamboDezigns · Stuttgart, Germany
           </p>
