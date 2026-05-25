@@ -23,6 +23,7 @@ export type CopyPatch =
   | Partial<OfferContent["work"]>
   | Partial<OfferContent["brand"]>
   | Partial<Omit<OfferContent["offer"], "tabs">>
+  | Partial<Omit<OfferContent["process"], "milestones">>
   | Partial<OfferContent["contact"]>;
 
 export type CopyVariant = {
@@ -231,6 +232,42 @@ export const COPY_VARIANTS: Record<SectionCopyKey, CopyVariant[]> = {
         title: "From €120 a render",
         titleAccent: "to €1,500/mo all-in.",
         sub: "Compare: Dubai agencies €3–8K/mo for the same scope. Ground X modules sell from €50K.",
+      },
+    },
+  ],
+
+  process: [
+    {
+      id: "direct",
+      label: "Direct",
+      vibe: "Timeline + deliverables, plain",
+      patch: {
+        eyebrow: "How this rolls out",
+        title: "From handshake to first",
+        titleAccent: "renderings in 14 days.",
+        sub: "A short timeline so Ground X knows exactly what lands, when, and what's expected from you. Each milestone has a hard deliverable, not a status update.",
+      },
+    },
+    {
+      id: "editorial",
+      label: "Editorial",
+      vibe: "Calm cadence, ritual feel",
+      patch: {
+        eyebrow: "The rhythm",
+        title: "Five small rituals.",
+        titleAccent: "One launched brand.",
+        sub: "Kickoff, samples, approval, launch, ongoing. Each milestone is a calendar date with a deliverable attached, not a meeting with a slide.",
+      },
+    },
+    {
+      id: "punchy",
+      label: "Punchy",
+      vibe: "Day-zero confidence",
+      patch: {
+        eyebrow: "Timeline",
+        title: "Sign Monday.",
+        titleAccent: "First renderings by Friday week 2.",
+        sub: "No discovery month. No 'we'll get back to you'. Five named milestones, each with a hard deliverable.",
       },
     },
   ],

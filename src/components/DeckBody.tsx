@@ -2,7 +2,7 @@
 
 import type { ComponentType } from "react";
 import { Hero } from "./Hero";
-import { About, Angle, Capabilities, Work, BrandTeaser, Offer, Contact } from "./Sections";
+import { About, Angle, Capabilities, Work, BrandTeaser, Offer, Process, Contact } from "./Sections";
 import { DevPanel } from "./DevPanel";
 import { useOffer } from "./OfferProvider";
 import { useDesign } from "./design-context";
@@ -16,6 +16,7 @@ const REGISTRY: Record<SectionKey, ComponentType> = {
   work: Work,
   brand: BrandTeaser,
   offer: Offer,
+  process: Process,
   contact: Contact,
 };
 

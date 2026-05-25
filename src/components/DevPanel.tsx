@@ -31,6 +31,7 @@ const ALL_SECTIONS: { key: ConfigSectionKey; label: string }[] = [
   { key: "work", label: "Work" },
   { key: "brand", label: "Brand" },
   { key: "offer", label: "Offer" },
+  { key: "process", label: "Process" },
   { key: "contact", label: "Contact" },
 ];
 

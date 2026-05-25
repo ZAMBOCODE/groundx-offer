@@ -16,17 +16,17 @@ import type { SectionKey as ConfigSectionKey } from "@/lib/config";
    nicht generisch, sondern award-winning"). Per-section enabled-override
    ergänzt für DevPanel-Toggling ohne Config-Edit. */
 
-export type SectionKey = "hero" | "about" | "angle" | "capabilities" | "work" | "brand" | "offer" | "contact";
+export type SectionKey = "hero" | "about" | "angle" | "capabilities" | "work" | "brand" | "offer" | "process" | "contact";
 
 export type Variants = Record<SectionKey, number>;
 
 const DEFAULTS: Variants = {
-  hero: 0, about: 4, angle: 4, capabilities: 3, work: 4, brand: 1, offer: 0, contact: 4,
+  hero: 0, about: 4, angle: 4, capabilities: 3, work: 4, brand: 1, offer: 0, process: 0, contact: 4,
 };
 
 /** how many variants each section offers (for the dev-panel selector) */
 export const VARIANT_COUNT: Record<SectionKey, number> = {
-  hero: 6, about: 6, angle: 6, capabilities: 6, work: 6, brand: 6, offer: 6, contact: 6,
+  hero: 6, about: 6, angle: 6, capabilities: 6, work: 6, brand: 6, offer: 6, process: 3, contact: 6,
 };
 
 export const SECTION_LABEL: Record<SectionKey, string> = {
@@ -37,6 +37,7 @@ export const SECTION_LABEL: Record<SectionKey, string> = {
   work: "Selected work",
   brand: "Brand direction",
   offer: "Offer",
+  process: "Process",
   contact: "Contact",
 };
 
@@ -98,6 +99,11 @@ export const VARIANT_NOTES: Record<SectionKey, string[]> = {
     "Phases · timeline",
     "Scroll · pricing strip",
     "Minimal · list",
+  ],
+  process: [
+    "Milestones · vertical timeline",
+    "Sticky · scroll-reveal",
+    "Phases · horizontal stations",
   ],
   contact: [
     "Centered · CTA + card",

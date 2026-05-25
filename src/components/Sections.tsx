@@ -2312,6 +2312,135 @@ function useContactChannels() {
   ];
 }
 
+/* ==================================================== PROCESS (3 variants) */
+
+export function Process() {
+  const { variants } = useDesign();
+  const v = variants.process ?? 0;
+  const p = useOffer().content.process;
+  if (!p) return null;
+  return (
+    <section id="process" className="section">
+      <SectionHead
+        eyebrow={p.eyebrow}
+        title={
+          <>
+            {p.title} <span className="accent-text">{p.titleAccent}</span>
+          </>
+        }
+        sub={p.sub}
+      />
+      {v === 0 && <ProcessTimeline milestones={p.milestones} />}
+      {v === 1 && <ProcessStickyReveal milestones={p.milestones} />}
+      {v === 2 && <ProcessStations milestones={p.milestones} />}
+    </section>
+  );
+}
+
+type Milestone = { when: string; title: string; deliverables: string[] };
+
+/* variant 0 — vertical timeline with gradient stem (default).
+   Each milestone: WHEN pill on the left, title + deliverables on the right.
+   Accent-orange dot sits on the stem at each step. */
+function ProcessTimeline({ milestones }: { milestones: Milestone[] }) {
+  return (
+    <div className="relative mt-14 pl-10 md:pl-16">
+      <div
+        className="absolute left-3 top-0 bottom-0 w-px md:left-6"
+        style={{
+          background:
+            "linear-gradient(180deg, transparent, var(--accent) 6%, var(--accent) 94%, transparent)",
+        }}
+      />
+      {milestones.map((m, i) => (
+        <Reveal key={m.when + m.title} delay={i * 0.07}>
+          <div className="relative pb-12 last:pb-0">
+            <span
+              className="absolute -left-[31px] top-1.5 h-3.5 w-3.5 rounded-full md:-left-[55px]"
+              style={{
+                background: "var(--accent)",
+                boxShadow:
+                  "0 0 0 6px rgba(249,115,22,0.18), 0 0 22px rgba(249,115,22,0.45)",
+              }}
+            />
+            <div className="flex flex-col gap-1 md:flex-row md:items-baseline md:gap-8">
+              <div className="md:w-32 md:shrink-0">
+                <span
+                  className="inner-card meta inline-block px-3 py-1 text-[0.6rem] tracking-[0.3em]"
+                  style={{ color: "var(--accent-bright)" }}
+                >
+                  {m.when.toUpperCase()}
+                </span>
+              </div>
+              <div className="flex-1">
+                <h3 className="display text-[1.4rem]">{m.title}</h3>
+                <ul className="text-dim mt-3 flex flex-col gap-1.5 text-[0.95rem]">
+                  {m.deliverables.map((d) => (
+                    <li key={d} className="flex gap-2 leading-relaxed">
+                      <span className="accent shrink-0">—</span>
+                      <span>{d}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          </div>
+        </Reveal>
+      ))}
+    </div>
+  );
+}
+
+/* variant 1 — sticky scroll-reveal cards (placeholder, reuses timeline). */
+function ProcessStickyReveal({ milestones }: { milestones: Milestone[] }) {
+  // TODO(2026-05-25): proper sticky scroll-driven reveal per milestone.
+  return <ProcessTimeline milestones={milestones} />;
+}
+
+/* variant 2 — horizontal stations (cards in a row, one per milestone). */
+function ProcessStations({ milestones }: { milestones: Milestone[] }) {
+  return (
+    <div className="relative mt-14">
+      <div
+        className="absolute left-0 right-0 top-[14px] h-px"
+        style={{
+          background: "linear-gradient(90deg, transparent, var(--accent), transparent)",
+        }}
+      />
+      <div
+        className="grid gap-6"
+        style={{ gridTemplateColumns: `repeat(${milestones.length}, minmax(0, 1fr))` }}
+      >
+        {milestones.map((m, i) => (
+          <Reveal key={m.when + m.title} delay={i * 0.06}>
+            <div className="flex flex-col items-start">
+              <span
+                className="relative -ml-1 h-7 w-7 rounded-full border-2"
+                style={{
+                  background: "var(--accent)",
+                  borderColor: "#050507",
+                  boxShadow: "0 0 0 4px rgba(249,115,22,0.18)",
+                }}
+              />
+              <div className="meta accent mt-4 text-[0.6rem] tracking-[0.3em]">
+                {m.when.toUpperCase()}
+              </div>
+              <h3 className="display mt-1 text-[1.15rem]">{m.title}</h3>
+              <ul className="text-dim mt-3 flex flex-col gap-1.5 text-[0.82rem]">
+                {m.deliverables.map((d) => (
+                  <li key={d}>
+                    <span className="accent">—</span> {d}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </Reveal>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export function Contact() {
   const cx = useOffer().content.contact;
   const { variants } = useDesign();

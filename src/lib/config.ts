@@ -14,6 +14,7 @@ export type SectionKey =
   | "work"
   | "brand"
   | "offer"
+  | "process"
   | "contact";
 
 export type SectionSpec = { key: SectionKey; enabled: boolean; variant: number };
@@ -36,6 +37,13 @@ export type OfferContent = {
   };
   work: { eyebrow: string; title: string; titleAccent: string };
   brand: { eyebrow: string; title: string; titleAccent: string; sub: string };
+  process: {
+    eyebrow: string;
+    title: string;
+    titleAccent: string;
+    sub: string;
+    milestones: { when: string; title: string; deliverables: string[] }[];
+  };
   offer: {
     eyebrow: string;
     title: string;
@@ -83,6 +91,7 @@ export const DEFAULT_CONFIG: OfferConfig = {
     { key: "work", enabled: true, variant: 4 },
     { key: "brand", enabled: true, variant: 1 },
     { key: "offer", enabled: true, variant: 0 },
+    { key: "process", enabled: true, variant: 0 },
     { key: "contact", enabled: true, variant: 4 },
   ],
   content: {
@@ -165,6 +174,59 @@ export const DEFAULT_CONFIG: OfferConfig = {
         },
       ],
     },
+    process: {
+      eyebrow: "How this rolls out",
+      title: "From handshake to first",
+      titleAccent: "renderings in 14 days.",
+      sub: "A short timeline so Ground X knows exactly what lands, when, and what's expected from you. Each milestone has a hard deliverable, not a status update.",
+      milestones: [
+        {
+          when: "Day 0",
+          title: "Kickoff call",
+          deliverables: [
+            "30-min Calendly slot, no homework needed",
+            "I share my checklist of what I need from you (assets, references, logins)",
+            "Drive folder created, you get edit access",
+          ],
+        },
+        {
+          when: "Week 1",
+          title: "First samples",
+          deliverables: [
+            "3 photoreal AI renderings (your preferred angle)",
+            "First brand-direction frame (palette + type)",
+            "Site wireframe in Figma if part of the scope",
+          ],
+        },
+        {
+          when: "Week 2",
+          title: "Approval round",
+          deliverables: [
+            "Locked brand direction (palette, type, tone)",
+            "5-7 final renderings, ready for use",
+            "Site mockup at high fidelity",
+          ],
+        },
+        {
+          when: "Week 4",
+          title: "Launch",
+          deliverables: [
+            "Site deployed on Vercel, EN+DE",
+            "First 2 marketing videos delivered",
+            "Social calendar staged for month 2",
+          ],
+        },
+        {
+          when: "Month 2+",
+          title: "System running",
+          deliverables: [
+            "Monthly cadence locked: posts, reels, renderings, ads",
+            "Monthly report with what landed + what moved",
+            "Quarterly review to recalibrate direction",
+          ],
+        },
+      ],
+    },
     contact: {
       eyebrow: "Next step",
       headline: "Let's build the first",
@@ -187,6 +249,7 @@ export function mergeConfig(partial: Partial<OfferConfig> | null | undefined): O
       work: { ...DEFAULT_CONFIG.content.work, ...(partial.content?.work ?? {}) },
       brand: { ...DEFAULT_CONFIG.content.brand, ...(partial.content?.brand ?? {}) },
       offer: { ...DEFAULT_CONFIG.content.offer, ...(partial.content?.offer ?? {}) },
+      process: { ...DEFAULT_CONFIG.content.process, ...(partial.content?.process ?? {}) },
       contact: { ...DEFAULT_CONFIG.content.contact, ...(partial.content?.contact ?? {}) },
     },
   };
