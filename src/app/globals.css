@@ -56,6 +56,10 @@
 }
 html {
   scroll-behavior: smooth;
+  /* Global text-scale knob (DevPanel "Text size"). Scales every rem-based
+     size together — viewport units (vh/vw) stay untouched, so sections
+     and layouts keep their geometry while typography grows or shrinks. */
+  font-size: calc(16px * var(--ui-scale, 1));
 }
 body {
   margin: 0;

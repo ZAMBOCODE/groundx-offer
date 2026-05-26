@@ -49,8 +49,10 @@ type Settings = {
   displayFont: string; // .display / .display-light (headlines)
   bodyFont: string; // body paragraphs
   sidePad: number; // section horizontal padding in px (clamped >=0)
+  uiScale: number; // global text-scale: 1 = default, scales html font-size
   smoothScroll: boolean;
   snap: boolean;
+  devHud: boolean; // dev-mode section name HUD top-left
   cursorFx: string;
   bubbles: boolean;
   bgMark: boolean;
@@ -65,8 +67,10 @@ const DEFAULTS: Settings = {
   displayFont: "inherit",
   bodyFont: "inherit",
   sidePad: 24,
+  uiScale: 1,
   smoothScroll: true,
   snap: true,
+  devHud: false,
   cursorFx: "off",
   bubbles: false,
   bgMark: false,
@@ -216,8 +220,13 @@ function apply(s: Settings) {
   );
   // clamp >=0 so stale negatives in localStorage don't break layout
   root.style.setProperty("--side-pad", `${Math.max(0, s.sidePad)}px`);
+  // global text-scale: drives html { font-size } via --ui-scale so every
+  // rem-based size scales together. Clamped to a sane range.
+  const scale = Math.min(1.6, Math.max(0.8, s.uiScale ?? 1));
+  root.style.setProperty("--ui-scale", String(scale));
   root.style.scrollBehavior = s.smoothScroll ? "smooth" : "auto";
   root.classList.toggle("snap", s.snap);
+  root.classList.toggle("dev-hud", s.devHud);
   root.classList.toggle("fx-bubbles", s.bubbles);
   root.classList.toggle("fx-mark", s.bgMark);
   root.dataset.cursor = s.cursorFx;
@@ -606,6 +615,31 @@ export function DevPanel() {
               />
             </Field>
 
+            {/* global text scale — scales html font-size so every rem unit
+                scales together (typography only, viewport units untouched) */}
+            <Field label={`Text size — ${Math.round((s.uiScale ?? 1) * 100)}%`}>
+              <input
+                type="range"
+                min={0.8}
+                max={1.6}
+                step={0.05}
+                value={s.uiScale ?? 1}
+                onChange={(e) => update({ uiScale: Number(e.target.value) })}
+                className="w-full accent-[var(--accent)]"
+              />
+              <div className="meta text-faint mt-1 flex justify-between text-[0.55rem]">
+                <span>80%</span>
+                <button
+                  onClick={() => update({ uiScale: 1 })}
+                  className="hover:text-[var(--accent-bright)]"
+                  title="Reset to 100%"
+                >
+                  reset
+                </button>
+                <span>160%</span>
+              </div>
+            </Field>
+
             {/* toggles */}
             <Toggle
               label="Smooth scroll"
@@ -616,6 +650,11 @@ export function DevPanel() {
               label="Snap to section"
               on={s.snap}
               onChange={(v) => update({ snap: v })}
+            />
+            <Toggle
+              label="Dev: section name (top-left)"
+              on={s.devHud}
+              onChange={(v) => update({ devHud: v })}
             />
 
             <div className="hairline" />

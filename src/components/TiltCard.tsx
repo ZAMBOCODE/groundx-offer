@@ -20,6 +20,10 @@ export function TiltCard({ children, className, style }: Props) {
   function onMove(e: React.MouseEvent<HTMLDivElement>) {
     const el = ref.current;
     if (!el) return;
+    // Pause tilt while the user is actively dragging / selecting text.
+    // Otherwise the constant transform makes the text under the cursor
+    // jitter and selection never settles — common complaint on About.
+    if (e.buttons > 0) return;
     const r = el.getBoundingClientRect();
     const maxDim = Math.max(r.width, r.height);
     const tilt = Math.max(2.5, Math.min(9, 9 * (280 / maxDim)));

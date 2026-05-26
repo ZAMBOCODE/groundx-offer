@@ -11,12 +11,60 @@ export function Hero() {
   const { variants } = useDesign();
   const v = variants.hero;
 
-  if (v === 1) return <HeroSplit h={h} />;
-  if (v === 2) return <HeroMinimal h={h} />;
-  if (v === 3) return <HeroMarquee h={h} />;
-  if (v === 4) return <HeroCinematic h={h} />;
-  if (v === 5) return <HeroStackedFrame h={h} />;
-  return <HeroCentered h={h} />;
+  let inner: React.ReactNode;
+  if (v === 1) inner = <HeroSplit h={h} />;
+  else if (v === 2) inner = <HeroMinimal h={h} />;
+  else if (v === 3) inner = <HeroMarquee h={h} />;
+  else if (v === 4) inner = <HeroCinematic h={h} />;
+  else if (v === 5) inner = <HeroStackedFrame h={h} />;
+  else inner = <HeroCentered h={h} />;
+
+  return (
+    <>
+      {inner}
+      <HeroTrustedStrip />
+    </>
+  );
+}
+
+/* Trusted-By strip rendered at the bottom of the hero section. Was its own
+   section before; Samy 2026-05-26: "Trusted Buy muss keine eigene Sektion
+   sein, das kann mit in die Hero." */
+function HeroTrustedStrip() {
+  const { content } = useOffer();
+  const t = content.trustedBy;
+  if (!t || !t.logos || t.logos.length === 0) return null;
+  const track = [...t.logos, ...t.logos, ...t.logos];
+  return (
+    <div className="-mt-10 pb-12 sm:-mt-14 sm:pb-16">
+      <p className="meta accent mb-5 text-center text-[0.58rem] tracking-[0.4em]">
+        — {t.eyebrow.toUpperCase()} —
+      </p>
+      <div
+        className="relative w-full overflow-hidden"
+        style={{
+          maskImage: "linear-gradient(90deg, transparent, black 10%, black 90%, transparent)",
+          WebkitMaskImage: "linear-gradient(90deg, transparent, black 10%, black 90%, transparent)",
+        }}
+      >
+        <motion.div
+          className="flex w-max items-center gap-14"
+          animate={{ x: ["0%", "-33.333%"] }}
+          transition={{ duration: 40, ease: "linear", repeat: Infinity }}
+        >
+          {track.map((l, i) => (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              key={i}
+              src={l.src}
+              alt={l.name}
+              className="h-7 w-auto opacity-50 grayscale transition-all duration-300 hover:opacity-90 hover:grayscale-0 sm:h-9"
+            />
+          ))}
+        </motion.div>
+      </div>
+    </div>
+  );
 }
 
 type HeroContent = { eyebrow: string; headline: string; headlineAccent: string; sub: string };

@@ -1,8 +1,8 @@
 "use client";
 
-import { useRef, useState, type CSSProperties } from "react";
+import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { motion, AnimatePresence, useScroll, useTransform, type MotionValue } from "motion/react";
-import { Maximize2 } from "lucide-react";
+import { Maximize2, ChevronLeft, ChevronRight } from "lucide-react";
 import { cases, type CaseStudy } from "@/lib/data";
 import { usePdfMode } from "@/lib/pdfMode";
 import { iconFor as brandIconFor } from "./BrandIcons";
@@ -389,6 +389,244 @@ function WheelCard({
         </AnimatePresence>
       </div>
     </div>
+  );
+}
+
+/* ----------------------------------------------- Big Wheel (variant 6)
+
+   Samy 2026-05-25: full-viewport rotating wheel. Cards arranged on a
+   horizontal arc, the center one is large with a big image; sides fade
+   and tilt away. Auto-rotates slowly. Click prev/next, drag, or click a
+   side card to advance. Fits in one 100vh frame — no scroll hijacking. */
+
+export function WorkBigWheel({ list }: { list: CaseStudy[] }) {
+  const [active, setActive] = useState(0);
+  const [lightbox, setLightbox] = useState<string | null>(null);
+  const [paused, setPaused] = useState(false);
+  const n = list.length;
+
+  // auto-rotate every 5s when not paused / not lightboxed
+  useEffect(() => {
+    if (paused || lightbox || n < 2) return;
+    const t = setInterval(() => setActive((a) => (a + 1) % n), 5000);
+    return () => clearInterval(t);
+  }, [paused, lightbox, n]);
+
+  // keyboard arrows
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (lightbox) return;
+      const tag = (e.target as HTMLElement)?.tagName;
+      if (tag === "INPUT" || tag === "TEXTAREA") return;
+      if (e.key === "ArrowRight") setActive((a) => (a + 1) % n);
+      if (e.key === "ArrowLeft") setActive((a) => (a - 1 + n) % n);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [n, lightbox]);
+
+  const go = (delta: number) => setActive((a) => (a + delta + n) % n);
+
+  if (n === 0) return null;
+  const current = list[active];
+  const heroShot = current.shots?.[0] ?? current.image ?? null;
+
+  return (
+    <div
+      className="relative mt-6 flex flex-col items-center"
+      onMouseEnter={() => setPaused(true)}
+      onMouseLeave={() => setPaused(false)}
+    >
+      {/* the wheel itself */}
+      <div
+        className="relative w-full"
+        style={{
+          height: "min(62vh, 620px)",
+          perspective: "2200px",
+        }}
+      >
+        {list.map((c, i) => {
+          // signed shortest distance on a ring [-n/2, n/2]
+          let d = i - active;
+          if (d > n / 2) d -= n;
+          if (d < -n / 2) d += n;
+          return (
+            <WheelArcCard
+              key={c.name}
+              c={c}
+              distance={d}
+              isActive={i === active}
+              onActivate={() => setActive(i)}
+              onOpen={(src) => setLightbox(src)}
+            />
+          );
+        })}
+
+        {/* side fades */}
+        <div
+          className="pointer-events-none absolute inset-y-0 left-0 z-30 w-[14vw]"
+          style={{ background: "linear-gradient(90deg, #050507 0%, transparent 100%)" }}
+        />
+        <div
+          className="pointer-events-none absolute inset-y-0 right-0 z-30 w-[14vw]"
+          style={{ background: "linear-gradient(270deg, #050507 0%, transparent 100%)" }}
+        />
+      </div>
+
+      {/* prev / dots / next + active project name */}
+      <div className="mt-7 flex w-full max-w-4xl items-center justify-between gap-6 px-6">
+        <button
+          onClick={() => go(-1)}
+          aria-label="Previous project"
+          className="inner-card flex h-12 w-12 items-center justify-center rounded-full text-dim hover:text-[var(--accent-bright)]"
+        >
+          <ChevronLeft size={20} />
+        </button>
+
+        <div className="flex flex-col items-center text-center">
+          <div className="display text-[1.6rem] sm:text-[2rem]">{current.name}</div>
+          <div className="meta accent mt-1.5 text-[0.62rem]">{current.tag}</div>
+          <p className="text-dim mt-3 max-w-xl text-[0.95rem] leading-relaxed">{current.what}</p>
+          {heroShot && (
+            <button
+              onClick={() => setLightbox(heroShot)}
+              className="meta mt-3 text-[0.6rem] uppercase tracking-[0.3em] hover:text-[var(--accent-bright)]"
+              style={{ color: "var(--ink-3)" }}
+            >
+              click image for fullscreen
+            </button>
+          )}
+        </div>
+
+        <button
+          onClick={() => go(1)}
+          aria-label="Next project"
+          className="inner-card flex h-12 w-12 items-center justify-center rounded-full text-dim hover:text-[var(--accent-bright)]"
+        >
+          <ChevronRight size={20} />
+        </button>
+      </div>
+
+      {/* dots */}
+      <div className="mt-4 flex gap-2">
+        {list.map((c, i) => (
+          <button
+            key={c.name}
+            onClick={() => setActive(i)}
+            aria-label={`Go to ${c.name}`}
+            className="h-1.5 rounded-full transition-all"
+            style={{
+              width: i === active ? 28 : 10,
+              background: i === active ? "var(--accent)" : "rgba(255,255,255,0.18)",
+            }}
+          />
+        ))}
+      </div>
+
+      <AnimatePresence>
+        {lightbox && <Lightbox src={lightbox} onClose={() => setLightbox(null)} />}
+      </AnimatePresence>
+    </div>
+  );
+}
+
+function WheelArcCard({
+  c,
+  distance,
+  isActive,
+  onActivate,
+  onOpen,
+}: {
+  c: CaseStudy;
+  distance: number;
+  isActive: boolean;
+  onActivate: () => void;
+  onOpen: (src: string) => void;
+}) {
+  // arc geometry — clamp to keep far-away cards hidden
+  const absD = Math.abs(distance);
+  const visible = absD <= 3;
+  if (!visible) return null;
+
+  const SPREAD = 320; // horizontal px between neighbours
+  const x = distance * SPREAD;
+  const rotateY = distance * -28; // tilt away from camera
+  const scale = isActive ? 1 : Math.max(0.62, 1 - absD * 0.16);
+  const z = isActive ? 30 : 80 + distance * 4; // active in front
+  const opacity = isActive ? 1 : Math.max(0.15, 1 - absD * 0.35);
+  const blur = isActive ? 0 : absD * 1.6;
+
+  const src = c.shots?.[0] ?? c.image ?? null;
+
+  return (
+    <motion.button
+      onClick={isActive ? () => src && onOpen(src) : onActivate}
+      aria-label={isActive ? `${c.name} fullscreen` : `Show ${c.name}`}
+      className="absolute left-1/2 top-1/2 block"
+      initial={false}
+      animate={{ x, rotateY, scale, opacity }}
+      transition={{ duration: 0.7, ease: [0.2, 0.8, 0.2, 1] }}
+      style={{
+        translateX: "-50%",
+        translateY: "-50%",
+        width: "min(640px, 70vw)",
+        zIndex: z,
+        transformStyle: "preserve-3d",
+        transformOrigin: "center",
+        filter: blur ? `blur(${blur}px)` : undefined,
+        cursor: isActive && src ? "zoom-in" : "pointer",
+      }}
+    >
+      <div
+        className="card glow-border relative overflow-hidden"
+        style={{
+          aspectRatio: "16 / 10",
+          padding: 0,
+          boxShadow: isActive
+            ? "0 50px 120px rgba(0,0,0,0.7), 0 12px 30px rgba(0,0,0,0.5)"
+            : "0 30px 60px rgba(0,0,0,0.5)",
+          borderColor: isActive ? "var(--accent-dim)" : undefined,
+        }}
+      >
+        {src ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={src}
+            alt={c.name}
+            className="h-full w-full object-cover object-top"
+            style={{ objectFit: c.fit === "contain" ? "contain" : "cover" }}
+          />
+        ) : (
+          <div className="flex h-full w-full items-center justify-center">
+            <div className="display text-center text-[2rem] text-dim">{c.name}</div>
+          </div>
+        )}
+
+        {/* logo + name strip on active card */}
+        {isActive && (
+          <div
+            className="pointer-events-none absolute inset-x-0 bottom-0 flex items-end justify-between p-5"
+            style={{
+              background:
+                "linear-gradient(180deg, transparent 0%, rgba(5,5,7,0.85) 100%)",
+            }}
+          >
+            <div className="flex items-center gap-3">
+              {c.logo ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={c.logo} alt={c.name} className="h-7 w-auto opacity-95" />
+              ) : (
+                <span className="display text-[1.15rem]">{c.name}</span>
+              )}
+            </div>
+            <span className="meta accent text-[0.55rem] tracking-[0.3em]">
+              <Maximize2 size={11} className="mr-1.5 inline" />
+              FULLSCREEN
+            </span>
+          </div>
+        )}
+      </div>
+    </motion.button>
   );
 }
 

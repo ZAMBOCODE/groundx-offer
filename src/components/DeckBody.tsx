@@ -7,6 +7,7 @@ import {
   TrustedBy, Testimonials, FAQ,
 } from "./Sections";
 import { DevPanel } from "./DevPanel";
+import { SectionHud } from "./SectionHud";
 import { useOffer } from "./OfferProvider";
 import { useDesign } from "./design-context";
 import type { SectionKey } from "@/lib/config";
@@ -49,6 +50,7 @@ export function DeckBody() {
           );
         })}
       <DevPanel />
+      <SectionHud />
     </main>
   );
 }

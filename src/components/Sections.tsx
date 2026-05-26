@@ -7,7 +7,7 @@ import { cases, type CaseStudy } from "@/lib/data";
 import { useDesign } from "./design-context";
 import { useOffer } from "./OfferProvider";
 import { StickyWork } from "./StickyWork";
-import { WorkShowcase } from "./WorkShowcase";
+import { WorkShowcase, WorkBigWheel } from "./WorkShowcase";
 import { MockupShowcase } from "./MockupShowcase";
 import { MagazineSpread } from "./MagazineSpread";
 import { IsometricScrollStack } from "./IsometricScrollStack";
@@ -588,55 +588,68 @@ export function Capabilities() {
         sub={c.sub}
       />
 
-      {/* variant 0: even 3-col cards */}
+      {/* variant 0: 3-col cards — Samy 2026-05-26: kein Tilt, kein Proof,
+         Bilder-Slot (wird durch CAPABILITY_IMAGE map befüllt sobald Samy
+         eigene Bilder ablegt). */}
       {v === 0 && (
         <div className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {c.items.map((c, i) => (
-            <Reveal key={c.title} delay={(i % 3) * 0.07}>
-              <TiltCard className="flex h-full flex-col p-6">
-                <h3 className="display text-[1.15rem]">{c.title}</h3>
-                <p className="text-dim mt-3 flex-1 text-[0.92rem] leading-relaxed">{c.blurb}</p>
-                <div className="inner-card mt-5 px-3 py-2">
-                  <span className="meta text-faint text-[0.6rem]">Proof</span>
-                  <p className="accent mt-0.5 text-[0.82rem]">{c.proof}</p>
-                </div>
-              </TiltCard>
-            </Reveal>
-          ))}
-        </div>
-      )}
-
-      {/* variant 1: bento — first card featured */}
-      {v === 1 && (
-        <div className="mt-12 grid auto-rows-[minmax(150px,auto)] gap-5 sm:grid-cols-2 lg:grid-cols-4">
           {c.items.map((c, i) => {
-            const big = i === 0;
+            const img = CAPABILITY_IMAGE[c.title];
             return (
-              <Reveal key={c.title} delay={(i % 4) * 0.06}>
-                <TiltCard
-                  className={`flex h-full flex-col p-6 ${big ? "lg:col-span-2 lg:row-span-2" : ""}`}
-                >
-                  <h3 className={`display ${big ? "text-[1.5rem]" : "text-[1.1rem]"}`}>{c.title}</h3>
-                  <p className="text-dim mt-3 flex-1 text-[0.9rem] leading-relaxed">{c.blurb}</p>
-                  <div className="inner-card mt-4 px-3 py-2">
-                    <p className="accent text-[0.8rem]">{c.proof}</p>
+              <Reveal key={c.title} delay={(i % 3) * 0.07}>
+                <div className="card glow-border flex h-full flex-col overflow-hidden p-0">
+                  {img && (
+                    <div className="relative h-40 w-full overflow-hidden">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={img}
+                        alt={c.title}
+                        className="absolute inset-0 h-full w-full object-cover object-center"
+                      />
+                      <div
+                        className="pointer-events-none absolute inset-x-0 bottom-0 h-1/2"
+                        style={{ background: "linear-gradient(180deg, transparent, rgba(5,5,7,0.85))" }}
+                      />
+                    </div>
+                  )}
+                  <div className="flex flex-1 flex-col p-6">
+                    <h3 className="display text-[1.15rem]">{c.title}</h3>
+                    <p className="text-dim mt-3 flex-1 text-[0.92rem] leading-relaxed">{c.blurb}</p>
                   </div>
-                </TiltCard>
+                </div>
               </Reveal>
             );
           })}
         </div>
       )}
 
-      {/* variant 2: compact rows */}
+      {/* variant 1: bento — Samy 2026-05-26: kein Tilt, kein Proof */}
+      {v === 1 && (
+        <div className="mt-12 grid auto-rows-[minmax(150px,auto)] gap-5 sm:grid-cols-2 lg:grid-cols-4">
+          {c.items.map((c, i) => {
+            const big = i === 0;
+            return (
+              <Reveal key={c.title} delay={(i % 4) * 0.06}>
+                <div
+                  className={`card glow-border flex h-full flex-col p-6 ${big ? "lg:col-span-2 lg:row-span-2" : ""}`}
+                >
+                  <h3 className={`display ${big ? "text-[1.5rem]" : "text-[1.1rem]"}`}>{c.title}</h3>
+                  <p className="text-dim mt-3 flex-1 text-[0.9rem] leading-relaxed">{c.blurb}</p>
+                </div>
+              </Reveal>
+            );
+          })}
+        </div>
+      )}
+
+      {/* variant 2: compact rows — proof entfernt */}
       {v === 2 && (
         <div className="mt-12 flex flex-col">
           {c.items.map((c, i) => (
             <Reveal key={c.title} delay={(i % 6) * 0.04}>
-              <div className="grid grid-cols-1 items-center gap-2 border-t border-[var(--stroke-card)] py-5 md:grid-cols-[220px_1fr_auto] md:gap-8">
+              <div className="grid grid-cols-1 items-center gap-2 border-t border-[var(--stroke-card)] py-5 md:grid-cols-[260px_1fr] md:gap-10">
                 <h3 className="display text-[1.1rem]">{c.title}</h3>
                 <p className="text-dim text-[0.9rem] leading-relaxed">{c.blurb}</p>
-                <span className="accent meta text-[0.6rem] md:text-right">{c.proof}</span>
               </div>
             </Reveal>
           ))}
@@ -661,10 +674,11 @@ export function Capabilities() {
    Images come from Drive Techne/My Services/ once Samy drops them in;
    meanwhile we map title → best existing /public/assets/ shot. */
 const CAPABILITY_IMAGE: Record<string, string> = {
-  "AI renderings & visual systems": "/assets/gx-lifestyle.png",
-  "3D configurators": "/assets/gx-web-2.png",
-  "Premium websites": "/assets/gx-web-1.png",
-  "AI video production": "/assets/gulfrescue-vehicle.png",
+  "Websites — Design & Development": "/assets/gx-web-1.png",
+  "Software Development": "/assets/gx-web-2.png",
+  "3D & Configurators": "/assets/gx-web-2.png",
+  "AI Renderings & Visual Systems": "/assets/gx-lifestyle.png",
+  "AI Video Production": "/assets/gulfrescue-vehicle.png",
 };
 
 function CapabilitiesStickyStack({
@@ -707,10 +721,7 @@ function CapabilitiesStaticStack({
               <h3 className="display text-[1.6rem] leading-tight sm:text-[2rem]">{card.title}</h3>
               <p className="text-dim mt-4 max-w-md text-[1rem] leading-relaxed">{card.blurb}</p>
             </div>
-            <div className="inner-card mt-6 inline-block self-start px-3.5 py-2.5">
-              <span className="meta text-faint text-[0.55rem] tracking-[0.3em]">PROOF</span>
-              <p className="accent mt-1 text-[0.85rem]">{card.proof}</p>
-            </div>
+            <div aria-hidden />
           </div>
           <div className="relative min-h-[240px] overflow-hidden bg-black">
             {CAPABILITY_IMAGE[card.title] && (
@@ -862,10 +873,7 @@ function StickyStackCard({
               {card.blurb}
             </p>
           </div>
-          <div className="inner-card mt-6 inline-block self-start px-3.5 py-2.5">
-            <span className="meta text-faint text-[0.55rem] tracking-[0.3em]">PROOF</span>
-            <p className="accent mt-1 text-[0.85rem]">{card.proof}</p>
-          </div>
+          <div aria-hidden />
         </div>
 
         {/* RIGHT: image with left-edge fade to background so it bleeds in */}
@@ -935,17 +943,13 @@ function CapabilitiesSplitPane({ items }: { items: Array<{ title: string; blurb:
             );
           })}
         </ul>
-        <TiltCard className="flex min-h-[300px] flex-col p-8">
+        <div className="card glow-border flex min-h-[300px] flex-col p-8">
           <div className="meta accent text-[0.62rem]">
             {String(hover + 1).padStart(2, "0")} / {String(items.length).padStart(2, "0")}
           </div>
           <h3 className="display mt-3 text-[1.8rem]">{active.title}</h3>
           <p className="text-dim mt-4 max-w-xl flex-1 text-[1.02rem] leading-relaxed">{active.blurb}</p>
-          <div className="inner-card mt-5 inline-block self-start px-4 py-2.5">
-            <span className="meta text-faint text-[0.6rem]">Proof</span>
-            <p className="accent mt-0.5 text-[0.88rem]">{active.proof}</p>
-          </div>
-        </TiltCard>
+        </div>
       </div>
     </Reveal>
   );
@@ -970,7 +974,7 @@ function CapabilitiesScrollSnap({ items }: { items: Array<{ title: string; blurb
       >
         {items.map((it, i) => (
           <div key={it.title} className="w-full shrink-0 snap-start pr-5 last:pr-0">
-            <TiltCard className="flex h-[360px] flex-col justify-end overflow-hidden p-10">
+            <div className="card glow-border relative flex h-[360px] flex-col justify-end overflow-hidden p-10">
               <div
                 className="pointer-events-none absolute inset-0 -z-10"
                 style={{
@@ -982,10 +986,7 @@ function CapabilitiesScrollSnap({ items }: { items: Array<{ title: string; blurb
               </div>
               <h3 className="display mt-4 text-[2.2rem] leading-[1.05]">{it.title}</h3>
               <p className="text-dim mt-4 max-w-2xl text-[1.05rem] leading-relaxed">{it.blurb}</p>
-              <div className="inner-card mt-6 inline-block self-start px-4 py-2.5">
-                <p className="accent text-[0.84rem]">{it.proof}</p>
-              </div>
-            </TiltCard>
+            </div>
           </div>
         ))}
       </div>
@@ -1134,6 +1135,9 @@ export function Work() {
 
       {/* variant 5: polaroid stack — overlapping tilted cards spread on hover */}
       {v === 5 && <WorkPolaroidStack cases={visible} />}
+
+      {/* variant 6: big rotating wheel — 100vh, large images, auto-rotate */}
+      {v === 6 && <WorkBigWheel list={visible} />}
     </section>
   );
 }
@@ -2405,31 +2409,46 @@ export function Testimonials() {
 type Testimonial = { quote: string; author: string; role: string; logo?: string };
 
 function TestimonialCards({ items }: { items: Testimonial[] }) {
+  // Samy 2026-05-26: V1-Look behalten (Quote + Autor unten), aber kleiner
+  // und automatisch scrollen.
+  const track = [...items, ...items];
   return (
-    <div className="mt-12 grid gap-5 md:grid-cols-3">
-      {items.map((t, i) => (
-        <Reveal key={t.author + i} delay={i * 0.07}>
-          <TiltCard className="flex h-full flex-col p-7">
-            <span
-              className="display-light accent select-none text-[3rem] leading-none"
-              aria-hidden
-            >
-              “
-            </span>
-            <p className="text-dim mt-2 flex-1 text-[0.98rem] leading-relaxed">{t.quote}</p>
-            <div className="mt-6 flex items-center gap-3">
-              {t.logo && (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={t.logo} alt="" className="h-6 w-auto opacity-80" />
-              )}
-              <div>
-                <div className="text-[0.88rem] text-white">{t.author}</div>
-                <div className="meta text-faint text-[0.58rem]">{t.role}</div>
+    <div
+      className="mt-10 w-full overflow-hidden"
+      style={{
+        maskImage: "linear-gradient(90deg, transparent, black 8%, black 92%, transparent)",
+        WebkitMaskImage: "linear-gradient(90deg, transparent, black 8%, black 92%, transparent)",
+      }}
+    >
+      <motion.div
+        className="flex w-max gap-4"
+        animate={{ x: ["0%", "-50%"] }}
+        transition={{ duration: 55, ease: "linear", repeat: Infinity }}
+      >
+        {track.map((t, i) => (
+          <div key={i} className="w-[320px] shrink-0 sm:w-[340px]">
+            <div className="card glow-border flex h-full flex-col p-5">
+              <span
+                className="display-light accent select-none text-[2.2rem] leading-none"
+                aria-hidden
+              >
+                “
+              </span>
+              <p className="text-dim mt-2 flex-1 text-[0.88rem] leading-relaxed">{t.quote}</p>
+              <div className="mt-5 flex items-center gap-3">
+                {t.logo && (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={t.logo} alt="" className="h-5 w-auto opacity-80" />
+                )}
+                <div>
+                  <div className="text-[0.82rem] text-white">{t.author}</div>
+                  <div className="meta text-faint text-[0.55rem]">{t.role}</div>
+                </div>
               </div>
             </div>
-          </TiltCard>
-        </Reveal>
-      ))}
+          </div>
+        ))}
+      </motion.div>
     </div>
   );
 }
@@ -2535,8 +2554,10 @@ type FAQItem = { q: string; a: string };
 
 function FAQAccordion({ items }: { items: FAQItem[] }) {
   const [openIdx, setOpenIdx] = useState<number | null>(0);
+  // Samy 2026-05-26: kleiner + linksbündig (wo alles andere anfängt) — also
+  // kein mx-auto, geringere max-width, kleinere q/a-Schrift.
   return (
-    <div className="mx-auto mt-12 flex w-full max-w-3xl flex-col">
+    <div className="mt-10 flex w-full max-w-2xl flex-col">
       {items.map((it, i) => {
         const open = openIdx === i;
         return (
@@ -2544,12 +2565,12 @@ function FAQAccordion({ items }: { items: FAQItem[] }) {
             <button
               type="button"
               onClick={() => setOpenIdx(open ? null : i)}
-              className="flex w-full items-center justify-between gap-6 py-5 text-left"
+              className="flex w-full items-center justify-between gap-6 py-4 text-left"
               aria-expanded={open}
             >
-              <span className="display text-[1.1rem] sm:text-[1.25rem]">{it.q}</span>
+              <span className="display text-[0.95rem] sm:text-[1.05rem]">{it.q}</span>
               <span
-                className="text-accent shrink-0 text-[1.3rem] transition-transform"
+                className="text-accent shrink-0 text-[1.15rem] transition-transform"
                 style={{
                   transform: open ? "rotate(45deg)" : "rotate(0deg)",
                   color: "var(--accent-bright)",
@@ -2567,7 +2588,7 @@ function FAQAccordion({ items }: { items: FAQItem[] }) {
                   transition={{ duration: 0.3, ease: [0.2, 0.8, 0.2, 1] }}
                   style={{ overflow: "hidden" }}
                 >
-                  <p className="text-dim pb-6 text-[1rem] leading-relaxed">{it.a}</p>
+                  <p className="text-dim pb-5 text-[0.9rem] leading-relaxed">{it.a}</p>
                 </motion.div>
               )}
             </AnimatePresence>
