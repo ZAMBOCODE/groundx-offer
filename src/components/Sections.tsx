@@ -415,8 +415,13 @@ export function Angle() {
   const c = useOffer().content.angle;
   const points = c.points;
   const v = variants.angle;
+  const scrollDriven = v === 4;
   return (
-    <section id="angle" className="section">
+    <section
+      id="angle"
+      className="section"
+      data-scroll-driven={scrollDriven || undefined}
+    >
       <SectionHead
         eyebrow={c.eyebrow}
         title={
@@ -512,28 +517,11 @@ export function Angle() {
         </div>
       )}
 
-      {/* variant 4: big-numeral split — alternating, huge stencil number that
-         counts up from 0 to target as it scrolls into view. PDF capture sees
-         the final value (animation triggers on mount in print mode). */}
-      {v === 4 && (
-        <div className="mt-14 flex flex-col gap-10">
-          {points.map((p, i) => (
-            <Reveal key={p.k} delay={i * 0.06}>
-              <div
-                className={`flex flex-col items-start gap-6 md:items-center md:gap-12 ${
-                  i % 2 ? "md:flex-row-reverse" : "md:flex-row"
-                }`}
-              >
-                <div className="flex-1 md:max-w-md">
-                  <h3 className="display text-[1.5rem]">{p.k}</h3>
-                  <p className="text-dim mt-3 text-[1rem] leading-relaxed">{p.v}</p>
-                </div>
-                <CountUpNumeral target={i + 1} />
-              </div>
-            </Reveal>
-          ))}
-        </div>
-      )}
+      {/* variant 4: sticky-counter — Samy 2026-05-26: "ein Counter null eins,
+         dann scrollt man weiter nach unten, aber es scrollt bloß der Counter
+         nach oben". Counter sticks in viewport while page scrolls; content
+         (erstens, zweitens, drittens, viertens) swaps synchron. */}
+      {v === 4 && <AngleStickyCounter points={points} />}
 
       {/* variant 5: manifesto — first point as huge display, rest as chips */}
       {v === 5 && (
@@ -561,6 +549,170 @@ export function Angle() {
         </div>
       )}
     </section>
+  );
+}
+
+/* variant 4 helper — sticky scroll counter (Samy 2026-05-26).
+ * As the section scrolls past, the counter on the left stays pinned and
+ * cycles 01 → 02 → 03 → 04 by translating its number-track upward. The
+ * right side shows the K + V of the active point, with a smooth fade.
+ * Bigger numbers stay readable; the counter is the focal anchor.
+ */
+function AngleStickyCounter({
+  points,
+}: {
+  points: { k: string; v: string }[];
+}) {
+  const outer = useRef<HTMLDivElement>(null);
+  const { scrollYProgress } = useScroll({
+    target: outer,
+    offset: ["start start", "end end"],
+  });
+  const total = Math.max(points.length, 1);
+  const pdf = usePdfMode();
+
+  // outer height = one viewport intro + (total-1) viewports of scroll.
+  // gives Samy enough scroll room per point to feel the counter tick.
+  const outerVh = pdf ? total * 100 : Math.max(total, 2) * 95;
+
+  if (pdf) {
+    // Static PDF fallback: just lay out the 4 rows.
+    return (
+      <div className="mt-12 flex flex-col gap-8">
+        {points.map((p, i) => (
+          <div
+            key={p.k}
+            className="grid grid-cols-[auto_1fr] items-baseline gap-8"
+          >
+            <span className="display-light accent text-[6rem] leading-none">
+              {String(i + 1).padStart(2, "0")}
+            </span>
+            <div>
+              <h3 className="display text-[1.6rem]">{p.k}</h3>
+              <p className="text-dim mt-3 text-[1rem] leading-relaxed">{p.v}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  }
+
+  // sliding counter track. CHAR_H is the height each digit occupies; the
+  // whole track translateY by -active * CHAR_H so the active digit sits
+  // centered in the visible window.
+  const CHAR_H = 160; // px
+  const trackY = useTransform(scrollYProgress, (p) => {
+    const active = p * (total - 1);
+    return -active * CHAR_H;
+  });
+
+  return (
+    <div
+      ref={outer}
+      className="relative mt-10"
+      style={{ height: `${outerVh}vh` }}
+    >
+      <div className="sticky top-0 flex h-screen items-center">
+        <div className="grid w-full grid-cols-[auto_1fr] items-center gap-10 sm:gap-20">
+          {/* COUNTER pillar */}
+          <div
+            className="relative overflow-hidden"
+            style={{ height: `${CHAR_H}px`, width: "9rem" }}
+          >
+            {/* top + bottom fade so digits leaving / entering soften */}
+            <div
+              className="pointer-events-none absolute inset-x-0 top-0 z-10 h-16"
+              style={{
+                background:
+                  "linear-gradient(180deg, #050507 0%, transparent 100%)",
+              }}
+            />
+            <div
+              className="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-16"
+              style={{
+                background:
+                  "linear-gradient(0deg, #050507 0%, transparent 100%)",
+              }}
+            />
+            <motion.div
+              className="flex flex-col items-start"
+              style={{ y: trackY, willChange: "transform" }}
+            >
+              {points.map((p, i) => (
+                <div
+                  key={p.k}
+                  className="display-light accent flex w-full items-center"
+                  style={{
+                    height: `${CHAR_H}px`,
+                    fontSize: "clamp(6rem, 12vw, 11rem)",
+                    lineHeight: 1,
+                    letterSpacing: "-0.04em",
+                  }}
+                >
+                  {String(i + 1).padStart(2, "0")}
+                </div>
+              ))}
+            </motion.div>
+          </div>
+
+          {/* CONTENT — each point absolute-positioned, fades + slides
+             based on distance from current scroll-driven active index */}
+          <div className="relative h-[280px] sm:h-[320px]">
+            {points.map((p, i) => (
+              <AnglePointSlide
+                key={p.k}
+                p={p}
+                index={i}
+                total={total}
+                progress={scrollYProgress}
+              />
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function AnglePointSlide({
+  p,
+  index,
+  total,
+  progress,
+}: {
+  p: { k: string; v: string };
+  index: number;
+  total: number;
+  progress: import("motion/react").MotionValue<number>;
+}) {
+  const denom = Math.max(1, total - 1);
+  const opacity = useTransform(progress, (val) => {
+    const active = val * denom;
+    const dist = Math.abs(index - active);
+    if (dist > 1) return 0;
+    return 1 - dist;
+  });
+  const y = useTransform(progress, (val) => {
+    const active = val * denom;
+    return (index - active) * 70;
+  });
+
+  return (
+    <motion.div
+      className="absolute inset-0 flex flex-col justify-center"
+      style={{
+        opacity,
+        y,
+        willChange: "opacity, transform",
+      }}
+    >
+      <h3 className="display text-[1.7rem] leading-tight sm:text-[2.2rem]">
+        {p.k}
+      </h3>
+      <p className="text-dim mt-4 max-w-xl text-[1.02rem] leading-relaxed sm:text-[1.1rem]">
+        {p.v}
+      </p>
+    </motion.div>
   );
 }
 
@@ -2698,47 +2850,103 @@ function ProcessStickyReveal({ milestones }: { milestones: Milestone[] }) {
   return <ProcessTimeline milestones={milestones} />;
 }
 
-/* variant 2 — horizontal stations (cards in a row, one per milestone). */
+/* variant 2 — horizontal stations with scroll-driven progress line
+ * (Samy 2026-05-26): "von day one to week eins der Strich, dann weiter
+ * scrollen → week 2, weiter scrollen → week 4". The horizontal line
+ * grows from 0% to 100% as the section enters and passes through the
+ * viewport; the rest of the section is static. */
 function ProcessStations({ milestones }: { milestones: Milestone[] }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const { scrollYProgress } = useScroll({
+    target: ref,
+    offset: ["start 80%", "end 40%"],
+  });
+  const lineScaleX = useTransform(scrollYProgress, [0, 1], [0, 1]);
   return (
-    <div className="relative mt-14">
+    <div ref={ref} className="relative mt-14">
+      {/* base track */}
       <div
         className="absolute left-0 right-0 top-[14px] h-px"
+        style={{ background: "rgba(255,255,255,0.08)" }}
+      />
+      {/* growing accent line */}
+      <motion.div
+        className="absolute left-0 top-[14px] h-px origin-left"
         style={{
-          background: "linear-gradient(90deg, transparent, var(--accent), transparent)",
+          background:
+            "linear-gradient(90deg, var(--accent), var(--accent-bright))",
+          scaleX: lineScaleX,
+          width: "100%",
+          boxShadow: "0 0 14px rgba(249,115,22,0.5)",
         }}
       />
       <div
         className="grid gap-6"
-        style={{ gridTemplateColumns: `repeat(${milestones.length}, minmax(0, 1fr))` }}
+        style={{
+          gridTemplateColumns: `repeat(${milestones.length}, minmax(0, 1fr))`,
+        }}
       >
         {milestones.map((m, i) => (
-          <Reveal key={m.when + m.title} delay={i * 0.06}>
-            <div className="flex flex-col items-start">
-              <span
-                className="relative -ml-1 h-7 w-7 rounded-full border-2"
-                style={{
-                  background: "var(--accent)",
-                  borderColor: "#050507",
-                  boxShadow: "0 0 0 4px rgba(249,115,22,0.18)",
-                }}
-              />
-              <div className="meta accent mt-4 text-[0.6rem] tracking-[0.3em]">
-                {m.when.toUpperCase()}
-              </div>
-              <h3 className="display mt-1 text-[1.15rem]">{m.title}</h3>
-              <ul className="text-dim mt-3 flex flex-col gap-1.5 text-[0.82rem]">
-                {m.deliverables.map((d) => (
-                  <li key={d}>
-                    <span className="accent">—</span> {d}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </Reveal>
+          <ProcessStation
+            key={m.when + m.title}
+            m={m}
+            index={i}
+            total={milestones.length}
+            progress={scrollYProgress}
+          />
         ))}
       </div>
     </div>
+  );
+}
+
+function ProcessStation({
+  m,
+  index,
+  total,
+  progress,
+}: {
+  m: Milestone;
+  index: number;
+  total: number;
+  progress: import("motion/react").MotionValue<number>;
+}) {
+  // dot lights up once the growing line has reached its column
+  const denom = Math.max(1, total - 1);
+  const threshold = index / denom;
+  const dotOpacity = useTransform(progress, (p) =>
+    p >= threshold ? 1 : 0.18,
+  );
+  const dotGlow = useTransform(progress, (p) =>
+    p >= threshold
+      ? "0 0 0 4px rgba(249,115,22,0.18), 0 0 22px rgba(249,115,22,0.45)"
+      : "none",
+  );
+  return (
+    <Reveal delay={index * 0.06}>
+      <div className="flex flex-col items-start">
+        <motion.span
+          className="relative -ml-1 h-7 w-7 rounded-full border-2"
+          style={{
+            background: "var(--accent)",
+            borderColor: "#050507",
+            opacity: dotOpacity,
+            boxShadow: dotGlow,
+          }}
+        />
+        <div className="meta accent mt-4 text-[0.6rem] tracking-[0.3em]">
+          {m.when.toUpperCase()}
+        </div>
+        <h3 className="display mt-1 text-[1.15rem]">{m.title}</h3>
+        <ul className="text-dim mt-3 flex flex-col gap-1.5 text-[0.82rem]">
+          {m.deliverables.map((d) => (
+            <li key={d}>
+              <span className="accent">—</span> {d}
+            </li>
+          ))}
+        </ul>
+      </div>
+    </Reveal>
   );
 }
 
