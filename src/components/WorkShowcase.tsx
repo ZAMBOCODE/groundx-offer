@@ -5,6 +5,7 @@ import { motion, AnimatePresence, useScroll, useTransform, type MotionValue } fr
 import { Maximize2 } from "lucide-react";
 import { cases, type CaseStudy } from "@/lib/data";
 import { useOffer } from "./OfferProvider";
+import { useLang } from "./language-context";
 import { usePdfMode } from "@/lib/pdfMode";
 import { iconFor as brandIconFor } from "./BrandIcons";
 
@@ -232,13 +233,7 @@ function ProjectCard({
                 alt={`${c.name} ${i + 1}`}
                 className="h-full w-full object-cover object-top transition-transform duration-500 group-hover:scale-[1.03]"
               />
-              <span
-                className="meta pointer-events-none absolute right-2 top-2 flex items-center gap-1 rounded-md border border-[var(--stroke-card)] bg-[rgba(8,7,5,0.7)] px-2 py-1 text-[0.55rem] tracking-[0.3em] opacity-0 backdrop-blur transition-opacity duration-300 group-hover:opacity-100"
-                style={{ color: "var(--accent-bright)" }}
-              >
-                <Maximize2 size={9} strokeWidth={2.2} />
-                FULLSCREEN
-              </span>
+              <FullscreenBadge />
             </button>
           );
         })}
@@ -304,6 +299,7 @@ function WorkShowcaseStatic({
 /* ----------------------------------------------- Lightbox (shared) */
 
 function Lightbox({ src, onClose }: { src: string; onClose: () => void }) {
+  const { lang } = useLang();
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -325,8 +321,21 @@ function Lightbox({ src, onClose }: { src: string; onClose: () => void }) {
         onClick={(e) => e.stopPropagation()}
       />
       <span className="meta text-faint absolute bottom-6 left-1/2 -translate-x-1/2 text-[0.6rem]">
-        CLICK ANYWHERE TO CLOSE
+        {lang === "de" ? "ÜBERALL KLICKEN ZUM SCHLIESSEN" : "CLICK ANYWHERE TO CLOSE"}
       </span>
     </motion.div>
+  );
+}
+
+function FullscreenBadge() {
+  const { lang } = useLang();
+  return (
+    <span
+      className="meta pointer-events-none absolute right-2 top-2 flex items-center gap-1 rounded-md border border-[var(--stroke-card)] bg-[rgba(8,7,5,0.7)] px-2 py-1 text-[0.55rem] tracking-[0.3em] opacity-0 backdrop-blur transition-opacity duration-300 group-hover:opacity-100"
+      style={{ color: "var(--accent-bright)" }}
+    >
+      <Maximize2 size={9} strokeWidth={2.2} />
+      {lang === "de" ? "VOLLBILD" : "FULLSCREEN"}
+    </span>
   );
 }

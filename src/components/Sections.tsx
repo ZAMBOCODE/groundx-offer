@@ -6,6 +6,7 @@ import { TiltCard } from "./TiltCard";
 import { cases, type CaseStudy } from "@/lib/data";
 import { useDesign } from "./design-context";
 import { useOffer } from "./OfferProvider";
+import { useLang } from "./language-context";
 import { StickyWork } from "./StickyWork";
 import { WorkShowcase } from "./WorkShowcase";
 import { MockupShowcase } from "./MockupShowcase";
@@ -91,43 +92,107 @@ function CaseImage({ c, className }: { c: CaseStudy; className?: string }) {
 
 /* ==================================================== ABOUT (6 variants) */
 
-const ABOUT_SKILLS = [
-  "Web design & development",
-  "E-commerce & checkout",
-  "3D modeling & rendering",
-  "Motion design & animation",
-  "AI video generation",
-  "AI image / renderings",
-  "Branding & identity",
-  "Landing pages & copywriting",
-  "Dashboards & internal tools",
-  "Automation & AI agents",
-];
-const ABOUT_BIO =
-  "A freelancer from Stuttgart helping businesses grow with clean web design, optimized shops, and striking 3D and motion work. I build the whole system: brand, visuals, site, content and the automation behind it.";
-const ABOUT_PROOF = "50+ projects · 8 disciplines in one head · 10+ years";
+type AboutStrings = {
+  eyebrow: string;
+  name: string;
+  tagline: string;
+  bio: string;
+  proof: string;
+  skills: readonly string[];
+  statProjects: string;
+  statDisciplines: string;
+  statYears: string;
+  whatIShip: string;
+};
+
+const ABOUT_STRINGS: { en: AboutStrings; de: AboutStrings } = {
+  en: {
+    eyebrow: "Who you're working with",
+    name: "Samuel Heymig",
+    tagline: "one person, full stack.",
+    bio: "A freelancer from Stuttgart helping businesses grow with clean web design, optimized shops, and striking 3D and motion work. I build the whole system: brand, visuals, site, content and the automation behind it.",
+    proof: "50+ projects · 8 disciplines in one head · 10+ years",
+    skills: [
+      "Web design & development",
+      "E-commerce & checkout",
+      "3D modeling & rendering",
+      "Motion design & animation",
+      "AI video generation",
+      "AI image / renderings",
+      "Branding & identity",
+      "Landing pages & copywriting",
+      "Dashboards & internal tools",
+      "Automation & AI agents",
+    ],
+    statProjects: "Projects shipped",
+    statDisciplines: "Disciplines in one head",
+    statYears: "Years building",
+    whatIShip: "— WHAT I SHIP",
+  },
+  de: {
+    eyebrow: "Mit wem ihr arbeitet",
+    name: "Samuel Heymig",
+    tagline: "eine Person, voller Stack.",
+    bio: "Freelancer aus Stuttgart, der Unternehmen mit klarem Webdesign, optimierten Shops und prägnanter 3D- und Motion-Arbeit wachsen lässt. Ich baue das ganze System: Marke, Visuals, Site, Content und die Automatisierung dahinter.",
+    proof: "50+ Projekte · 8 Disziplinen in einem Kopf · 10+ Jahre",
+    skills: [
+      "Webdesign & Entwicklung",
+      "E-Commerce & Checkout",
+      "3D-Modeling & Rendering",
+      "Motion Design & Animation",
+      "KI-Video-Generierung",
+      "KI-Bilder / Renderings",
+      "Branding & Identity",
+      "Landingpages & Copywriting",
+      "Dashboards & interne Tools",
+      "Automatisierung & KI-Agents",
+    ],
+    statProjects: "Ausgelieferte Projekte",
+    statDisciplines: "Disziplinen in einem Kopf",
+    statYears: "Jahre am Bauen",
+    whatIShip: "— WAS ICH AUSLIEFERE",
+  },
+} as const;
+
+function useAboutStrings(): AboutStrings {
+  const { lang } = useLang();
+  return ABOUT_STRINGS[lang === "de" ? "de" : "en"];
+}
+
+/** Tiny lang-aware string picker used by inline labels across sections.
+ *  Usage: const t = useT(); t("EN text", "DE-Text"). */
+function useT(): (en: string, de: string) => string {
+  const { lang } = useLang();
+  return (en, de) => (lang === "de" ? de : en);
+}
 
 /* Auto-scrolling services marquee for About v4. Pills with Lucide icons,
-   edge-faded to black left+right, hover lifts icon + accent color. */
-const ABOUT_SERVICES: { icon: LucideIcon; label: string }[] = [
-  { icon: PenLine, label: "Copywriting" },
-  { icon: Film, label: "Motion Graphics" },
-  { icon: Tag, label: "Product Pages" },
-  { icon: Code2, label: "Web Development" },
-  { icon: Monitor, label: "Web Design" },
-  { icon: LayoutTemplate, label: "Landing Pages" },
-  { icon: Palette, label: "Branding" },
-  { icon: Sparkles, label: "AI Renderings" },
-  { icon: Box, label: "3D Configurators" },
-  { icon: Video, label: "AI Video" },
-  { icon: Presentation, label: "Pitch Decks" },
-  { icon: LayoutDashboard, label: "Dashboards" },
-  { icon: MessageCircle, label: "Social Automation" },
-  { icon: Workflow, label: "Workflow Engineering" },
+   edge-faded to black left+right, hover lifts icon + accent color.
+   Labels are lang-aware via useServiceLabels. */
+const ABOUT_SERVICE_ITEMS: { icon: LucideIcon; en: string; de: string }[] = [
+  { icon: PenLine, en: "Copywriting", de: "Copywriting" },
+  { icon: Film, en: "Motion Graphics", de: "Motion Graphics" },
+  { icon: Tag, en: "Product Pages", de: "Produkt-Seiten" },
+  { icon: Code2, en: "Web Development", de: "Web-Entwicklung" },
+  { icon: Monitor, en: "Web Design", de: "Webdesign" },
+  { icon: LayoutTemplate, en: "Landing Pages", de: "Landingpages" },
+  { icon: Palette, en: "Branding", de: "Branding" },
+  { icon: Sparkles, en: "AI Renderings", de: "KI-Renderings" },
+  { icon: Box, en: "3D Configurators", de: "3D-Konfiguratoren" },
+  { icon: Video, en: "AI Video", de: "KI-Video" },
+  { icon: Presentation, en: "Pitch Decks", de: "Pitch-Decks" },
+  { icon: LayoutDashboard, en: "Dashboards", de: "Dashboards" },
+  { icon: MessageCircle, en: "Social Automation", de: "Social-Automatisierung" },
+  { icon: Workflow, en: "Workflow Engineering", de: "Workflow-Engineering" },
 ];
 
 function ServicesMarquee() {
-  const track = [...ABOUT_SERVICES, ...ABOUT_SERVICES];
+  const { lang } = useLang();
+  const items = ABOUT_SERVICE_ITEMS.map(({ icon, en, de }) => ({
+    icon,
+    label: lang === "de" ? de : en,
+  }));
+  const track = [...items, ...items];
   return (
     <div
       className="relative w-full overflow-hidden"
@@ -169,10 +234,11 @@ function ServicesMarquee() {
 export function About() {
   const { variants } = useDesign();
   const v = variants.about;
+  const a = useAboutStrings();
   return (
     <section id="about" className="section">
       <Reveal>
-        <p className="eyebrow mb-4">Who you&apos;re working with</p>
+        <p className="eyebrow mb-4">{a.eyebrow}</p>
       </Reveal>
 
       {/* variant 0: image-left, skills right (default) */}
@@ -218,10 +284,10 @@ export function About() {
             />
             <div className="absolute inset-0 flex flex-col justify-end p-8 sm:p-12">
               <h2 className="display text-[1.8rem] sm:text-[2.6rem]">
-                Samuel Heymig — <span className="accent-text">one person, full stack.</span>
+                {a.name} — <span className="accent-text">{a.tagline}</span>
               </h2>
-              <p className="text-dim mt-3 max-w-2xl text-[0.95rem] leading-relaxed">{ABOUT_BIO}</p>
-              <p className="meta text-faint mt-4 text-[0.6rem]">{ABOUT_PROOF}</p>
+              <p className="text-dim mt-3 max-w-2xl text-[0.95rem] leading-relaxed">{a.bio}</p>
+              <p className="meta text-faint mt-4 text-[0.6rem]">{a.proof}</p>
             </div>
           </div>
         </Reveal>
@@ -239,18 +305,18 @@ export function About() {
               <img src="/assets/samy.png" alt="Samuel Heymig" className="h-full w-full object-cover object-top" />
             </div>
             <h2 className="display mt-6 text-[1.8rem] sm:text-[2.4rem]">
-              Samuel Heymig — <span className="accent-text">one person, full stack.</span>
+              {a.name} — <span className="accent-text">{a.tagline}</span>
             </h2>
-            <p className="text-dim mt-4 max-w-xl text-[1rem] leading-relaxed">{ABOUT_BIO}</p>
+            <p className="text-dim mt-4 max-w-xl text-[1rem] leading-relaxed">{a.bio}</p>
             <p className="text-dim mt-6 max-w-2xl text-[0.85rem] leading-relaxed">
-              {ABOUT_SKILLS.map((s, i) => (
+              {a.skills.map((s, i) => (
                 <span key={s}>
                   <span className="text-white">{s}</span>
-                  {i < ABOUT_SKILLS.length - 1 && <span className="accent">  ·  </span>}
+                  {i < a.skills.length - 1 && <span className="accent">  ·  </span>}
                 </span>
               ))}
             </p>
-            <p className="meta text-faint mt-6 text-[0.6rem]">{ABOUT_PROOF}</p>
+            <p className="meta text-faint mt-6 text-[0.6rem]">{a.proof}</p>
           </div>
         </Reveal>
       )}
@@ -267,14 +333,14 @@ export function About() {
             <Reveal delay={0.1}>
               <div className="flex h-full flex-col justify-between">
                 <h2 className="display text-[1.9rem] sm:text-[2.6rem]">
-                  Samuel Heymig — <span className="accent-text">one person, full stack.</span>
+                  {a.name} — <span className="accent-text">{a.tagline}</span>
                 </h2>
-                <p className="text-dim mt-5 text-[1rem] leading-relaxed">{ABOUT_BIO}</p>
+                <p className="text-dim mt-5 text-[1rem] leading-relaxed">{a.bio}</p>
                 <div className="mt-8 grid grid-cols-3 gap-3">
                   {[
-                    { n: "50+", l: "Projects shipped" },
-                    { n: "8", l: "Disciplines in one head" },
-                    { n: "10+", l: "Years building" },
+                    { n: "50+", l: a.statProjects },
+                    { n: "8", l: a.statDisciplines },
+                    { n: "10+", l: a.statYears },
                   ].map((s) => (
                     <TiltCard key={s.l} className="flex flex-col items-start p-5">
                       <div className="display-light accent text-[2.2rem]">{s.n}</div>
@@ -289,7 +355,7 @@ export function About() {
           <Reveal delay={0.2}>
             <div className="mt-12">
               <p className="meta text-faint mb-3 text-[0.55rem] tracking-[0.4em]">
-                — WHAT I SHIP
+                {a.whatIShip}
               </p>
               <ServicesMarquee />
             </div>
@@ -302,11 +368,10 @@ export function About() {
         <Reveal>
           <div className="mx-auto mt-6 max-w-3xl">
             <h2 className="display text-[2.4rem] leading-[1.05] sm:text-[3.6rem]">
-              Samuel Heymig.{" "}
-              <span className="accent-text">One person, full stack.</span>
+              {a.name}. <span className="accent-text">{a.tagline}</span>
             </h2>
-            <p className="text-dim mt-6 text-[1.1rem] leading-relaxed">{ABOUT_BIO}</p>
-            <p className="meta text-faint mt-6 text-[0.6rem]">{ABOUT_PROOF}</p>
+            <p className="text-dim mt-6 text-[1.1rem] leading-relaxed">{a.bio}</p>
+            <p className="meta text-faint mt-6 text-[0.6rem]">{a.proof}</p>
           </div>
         </Reveal>
       )}
@@ -390,20 +455,21 @@ function CountUpNumeral({ target }: { target: number }) {
 }
 
 function AboutCopy() {
+  const a = useAboutStrings();
   return (
     <>
       <h2 className="display text-[2rem] sm:text-[2.8rem]">
-        Samuel Heymig — <span className="accent-text">one person, full stack.</span>
+        {a.name} — <span className="accent-text">{a.tagline}</span>
       </h2>
-      <p className="text-dim mt-5 max-w-xl text-[1.05rem] leading-relaxed">{ABOUT_BIO}</p>
+      <p className="text-dim mt-5 max-w-xl text-[1.05rem] leading-relaxed">{a.bio}</p>
       <div className="mt-7 flex flex-wrap gap-2">
-        {ABOUT_SKILLS.map((s) => (
+        {a.skills.map((s) => (
           <span key={s} className="inner-card px-3 py-1.5 text-[0.82rem] text-dim">
             {s}
           </span>
         ))}
       </div>
-      <p className="meta text-faint mt-6 text-[0.6rem]">{ABOUT_PROOF}</p>
+      <p className="meta text-faint mt-6 text-[0.6rem]">{a.proof}</p>
     </>
   );
 }
@@ -1179,6 +1245,7 @@ export function Work() {
   const v = variants.work;
   const c = useOffer().content.work;
   const visible = useVisibleCases();
+  const t = useT();
   const head = (
     <SectionHead
       eyebrow={c.eyebrow}
@@ -1280,7 +1347,7 @@ export function Work() {
               </div>
             ))}
           </div>
-          <p className="meta text-faint mt-2 text-[0.58rem]">← scroll →</p>
+          <p className="meta text-faint mt-2 text-[0.58rem]">{t("← scroll →", "← scrollen →")}</p>
         </Reveal>
       )}
 
@@ -1293,6 +1360,7 @@ export function Work() {
 /* variant 5 helper — polaroid stack. Cards overlap tilted, hover spreads them. */
 function WorkPolaroidStack({ cases }: { cases: CaseStudy[] }) {
   const [hover, setHover] = useState<number | null>(null);
+  const t = useT();
   return (
     <Reveal>
       <div
@@ -1338,14 +1406,14 @@ function WorkPolaroidStack({ cases }: { cases: CaseStudy[] }) {
           })}
         </div>
       </div>
-      <p className="meta text-faint mt-4 text-center text-[0.6rem]">hover · spread</p>
+      <p className="meta text-faint mt-4 text-center text-[0.6rem]">{t("hover · spread", "hover · aufgefächert")}</p>
     </Reveal>
   );
 }
 
 /* =========================================== BRAND TEASER (6 variants) */
 
-const BRAND_MOODS = [
+const BRAND_MOODS_EN = [
   "Cognac leather",
   "Dark walnut",
   "Twilight & warm light",
@@ -1353,6 +1421,18 @@ const BRAND_MOODS = [
   "Villa, never isolated",
   "Discreet, never loud",
 ];
+const BRAND_MOODS_DE = [
+  "Cognac-Leder",
+  "Dunkler Walnuss",
+  "Twilight & warmes Licht",
+  "Brushed Gold",
+  "Villa, nie isoliert",
+  "Diskret, nie laut",
+];
+function useBrandMoods(): string[] {
+  const { lang } = useLang();
+  return lang === "de" ? BRAND_MOODS_DE : BRAND_MOODS_EN;
+}
 const BRAND_PALETTE = ["#0a0907", "#1a1714", "#8a5a1c", "#c8862e", "#e8b563"];
 
 export function BrandTeaser() {
@@ -1412,12 +1492,14 @@ export function BrandTeaser() {
    Broadsheet brandbook. Big wordmark headline, three editorial columns,
    palette as a printer's CMYK-style bar, no logo focal, no card chrome. */
 function BrandEditorialCodex() {
+  const t = useT();
+  const moods = useBrandMoods();
   return (
     <Reveal delay={0.1}>
       <div className="mt-12 border-y border-[var(--stroke-card)] py-14">
         <div className="flex items-baseline justify-between border-b border-[var(--stroke-card)] pb-3">
-          <span className="meta text-faint text-[0.6rem] tracking-[0.4em]">VOL. 01</span>
-          <span className="meta text-faint text-[0.6rem] tracking-[0.4em]">THE GROUND X CODEX</span>
+          <span className="meta text-faint text-[0.6rem] tracking-[0.4em]">{t("VOL. 01", "BD. 01")}</span>
+          <span className="meta text-faint text-[0.6rem] tracking-[0.4em]">{t("THE GROUND X CODEX", "DER GROUND-X-CODEX")}</span>
           <span className="meta text-faint text-[0.6rem] tracking-[0.4em]">DXB · 2025</span>
         </div>
 
@@ -1428,22 +1510,23 @@ function BrandEditorialCodex() {
           GROUND <span className="accent-text italic">X</span>
         </h3>
         <p className="meta text-dim mt-3 text-[0.78rem] tracking-[0.32em]">
-          A BRANDBOOK FOR UNDERGROUND SANCTUARIES
+          {t("A BRANDBOOK FOR UNDERGROUND SANCTUARIES", "EIN MARKEN-CODEX FÜR UNTERIRDISCHE REFUGEN")}
         </p>
 
         <div className="mt-12 grid gap-10 md:grid-cols-3">
           <div>
-            <span className="meta accent text-[0.55rem] tracking-[0.35em]">§01 — VOICE</span>
+            <span className="meta accent text-[0.55rem] tracking-[0.35em]">{t("§01 — VOICE", "§01 — STIMME")}</span>
             <p className="text-dim mt-4 text-[0.92rem] leading-relaxed">
-              Discreet. Confident. Never loud. The brand speaks the way the
-              spaces feel: low light, slow tempo, certain of itself. Lifestyle
-              first, engineering implied.
+              {t(
+                "Discreet. Confident. Never loud. The brand speaks the way the spaces feel: low light, slow tempo, certain of itself. Lifestyle first, engineering implied.",
+                "Diskret. Souverän. Nie laut. Die Marke spricht, wie sich die Räume anfühlen: gedämpftes Licht, langsamer Takt, ihrer selbst sicher. Lifestyle zuerst, Engineering implizit.",
+              )}
             </p>
           </div>
           <div>
-            <span className="meta accent text-[0.55rem] tracking-[0.35em]">§02 — MOOD</span>
+            <span className="meta accent text-[0.55rem] tracking-[0.35em]">{t("§02 — MOOD", "§02 — STIMMUNG")}</span>
             <ul className="mt-4 grid grid-cols-1 gap-1.5">
-              {BRAND_MOODS.map((m) => (
+              {moods.map((m) => (
                 <li
                   key={m}
                   className="text-dim flex items-baseline gap-3 border-b border-[var(--stroke-card)] py-1.5 text-[0.92rem]"
@@ -1455,17 +1538,20 @@ function BrandEditorialCodex() {
             </ul>
           </div>
           <div>
-            <span className="meta accent text-[0.55rem] tracking-[0.35em]">§03 — RULE</span>
+            <span className="meta accent text-[0.55rem] tracking-[0.35em]">{t("§03 — RULE", "§03 — REGEL")}</span>
             <p
               className="display mt-4 text-[1.5rem] leading-[1.15]"
               style={{ fontFamily: "var(--highlight-font, inherit)" }}
             >
-              Never the word
+              {t("Never the word", "Nie das Wort,")}
               <br />
-              that begins with <span className="accent-text">B</span>.
+              {t("that begins with", "das mit")} <span className="accent-text">B</span>{t(".", " beginnt.")}
             </p>
             <p className="meta text-faint mt-3 text-[0.65rem]">
-              No "bunker". Lifestyle, sanctuary, retreat, vault, atelier.
+              {t(
+                'No "bunker". Lifestyle, sanctuary, retreat, vault, atelier.',
+                'Kein „Bunker". Lifestyle, Refugium, Rückzug, Tresor, Atelier.',
+              )}
             </p>
           </div>
         </div>
@@ -1473,7 +1559,7 @@ function BrandEditorialCodex() {
         {/* printer's color bar */}
         <div className="mt-14 border-t border-[var(--stroke-card)] pt-5">
           <span className="meta text-faint text-[0.55rem] tracking-[0.4em]">
-            COLOR REGISTRATION
+            {t("COLOR REGISTRATION", "FARBREGISTER")}
           </span>
           <div className="mt-3 flex h-10 w-full overflow-hidden">
             {BRAND_PALETTE.map((c) => (
@@ -1496,7 +1582,15 @@ function BrandEditorialCodex() {
    each, wordmark centered as an overlay, type-only typography sample,
    hover-expand. No card chrome, total immersion. */
 function BrandPaletteWall({ fullscreen = false }: { fullscreen?: boolean } = {}) {
-  const PALETTE_LABELS = ["Onyx", "Walnut", "Cognac", "Brushed Gold", "Sunlit Sand"];
+  const t = useT();
+  const moods = useBrandMoods();
+  const PALETTE_LABELS = [
+    t("Onyx", "Onyx"),
+    t("Walnut", "Walnuss"),
+    t("Cognac", "Cognac"),
+    t("Brushed Gold", "Brushed Gold"),
+    t("Sunlit Sand", "Sonnen-Sand"),
+  ];
   return (
     <Reveal delay={0.1}>
       <div
@@ -1521,7 +1615,7 @@ function BrandPaletteWall({ fullscreen = false }: { fullscreen?: boolean } = {})
                   opacity: 0.55,
                 }}
               >
-                {BRAND_MOODS[i] ?? PALETTE_LABELS[i]}
+                {moods[i] ?? PALETTE_LABELS[i]}
               </span>
               {/* swatch label corner */}
               <div
@@ -1538,7 +1632,7 @@ function BrandPaletteWall({ fullscreen = false }: { fullscreen?: boolean } = {})
         {/* center overlay: wordmark + tagline + type sample */}
         <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center text-center">
           <span className="meta text-faint mb-3 text-[0.6rem] tracking-[0.5em]" style={{ color: "rgba(255,255,255,0.55)" }}>
-            BRAND WORLD
+            {t("BRAND WORLD", "MARKEN-WELT")}
           </span>
           <h3
             className="display text-[clamp(3.5rem,10vw,7.5rem)] leading-none text-white"
@@ -1554,13 +1648,13 @@ function BrandPaletteWall({ fullscreen = false }: { fullscreen?: boolean } = {})
             className="meta accent mt-5 text-[0.7rem] tracking-[0.45em]"
             style={{ textShadow: "0 2px 16px rgba(0,0,0,0.7)" }}
           >
-            DISCREET · MODULAR · UNCOMPROMISING
+            {t("DISCREET · MODULAR · UNCOMPROMISING", "DISKRET · MODULAR · KOMPROMISSLOS")}
           </p>
         </div>
 
         {/* corner hint */}
         <span className="meta absolute right-4 top-4 text-[0.55rem] tracking-[0.4em]" style={{ color: "rgba(255,255,255,0.5)" }}>
-          HOVER — A PALETTE BREATHES
+          {t("HOVER — A PALETTE BREATHES", "HOVER — DIE PALETTE ATMET")}
         </span>
       </div>
     </Reveal>
@@ -1571,6 +1665,15 @@ function BrandPaletteWall({ fullscreen = false }: { fullscreen?: boolean } = {})
    Klim / Pangram-Pangram foundry-style specimen page. Type scale down the
    left, ruled palette + mood index on the right. Ruler-precise, no card. */
 function BrandTypeSpecimen() {
+  const t = useT();
+  const moods = useBrandMoods();
+  const paletteLabels = [
+    t("Onyx", "Onyx"),
+    t("Walnut", "Walnuss"),
+    t("Cognac", "Cognac"),
+    t("Brushed Gold", "Brushed Gold"),
+    t("Sunlit Sand", "Sonnen-Sand"),
+  ];
   return (
     <Reveal delay={0.1}>
       <div
@@ -1579,7 +1682,7 @@ function BrandTypeSpecimen() {
       >
         {/* spec header */}
         <div className="flex items-baseline justify-between border-b border-[var(--stroke-card)] pb-3">
-          <span className="meta text-faint text-[0.55rem] tracking-[0.4em]">TYPE · SPECIMEN</span>
+          <span className="meta text-faint text-[0.55rem] tracking-[0.4em]">{t("TYPE · SPECIMEN", "TYPO · MUSTERBOGEN")}</span>
           <span className="meta text-faint text-[0.55rem] tracking-[0.4em]">
             DISPLAY / TEXT / META
           </span>
@@ -1603,29 +1706,37 @@ function BrandTypeSpecimen() {
             <div className="flex items-baseline gap-6 border-b border-[var(--stroke-card)] pb-5">
               <span className="meta text-faint w-16 shrink-0 font-mono text-[0.6rem]">56 · H1</span>
               <p className="display text-[clamp(2rem,4.5vw,3.5rem)] leading-tight">
-                Underground. <em className="accent-text">Above standards.</em>
+                {t("Underground. ", "Untertage. ")}<em className="accent-text">{t("Above standards.", "Über jedem Standard.")}</em>
               </p>
             </div>
             {/* size 32 */}
             <div className="flex items-baseline gap-6 border-b border-[var(--stroke-card)] pb-5">
               <span className="meta text-faint w-16 shrink-0 font-mono text-[0.6rem]">32 · H2</span>
               <p className="text-[1.5rem] leading-snug text-ink">
-                A villa lives on top. A sanctuary lives beneath.
+                {t(
+                  "A villa lives on top. A sanctuary lives beneath.",
+                  "Oben lebt die Villa. Unten lebt das Refugium.",
+                )}
               </p>
             </div>
             {/* size 16 */}
             <div className="flex items-baseline gap-6 border-b border-[var(--stroke-card)] pb-5">
               <span className="meta text-faint w-16 shrink-0 font-mono text-[0.6rem]">16 · BDY</span>
               <p className="text-dim text-[1rem] leading-relaxed">
-                The brand carries a calm, twilight confidence. Cognac leather,
-                brushed gold, dark walnut. Never the word that begins with B.
+                {t(
+                  "The brand carries a calm, twilight confidence. Cognac leather, brushed gold, dark walnut. Never the word that begins with B.",
+                  "Die Marke trägt eine ruhige, dämmrige Souveränität. Cognac-Leder, Brushed Gold, dunkler Walnuss. Nie das Wort, das mit B beginnt.",
+                )}
               </p>
             </div>
             {/* size 11 */}
             <div className="flex items-baseline gap-6">
               <span className="meta text-faint w-16 shrink-0 font-mono text-[0.6rem]">11 · META</span>
               <p className="meta text-faint text-[0.7rem] tracking-[0.3em]">
-                DXB · UNDERGROUND SANCTUARIES · DISCREET · MODULAR · UNCOMPROMISING
+                {t(
+                  "DXB · UNDERGROUND SANCTUARIES · DISCREET · MODULAR · UNCOMPROMISING",
+                  "DXB · UNTERIRDISCHE REFUGEN · DISKRET · MODULAR · KOMPROMISSLOS",
+                )}
               </p>
             </div>
           </div>
@@ -1633,7 +1744,7 @@ function BrandTypeSpecimen() {
           {/* RIGHT: palette + mood */}
           <div className="space-y-10">
             <div>
-              <span className="meta text-faint text-[0.55rem] tracking-[0.4em]">PALETTE</span>
+              <span className="meta text-faint text-[0.55rem] tracking-[0.4em]">{t("PALETTE", "PALETTE")}</span>
               <div className="mt-4 space-y-2">
                 {BRAND_PALETTE.map((c, i) => (
                   <div key={c} className="flex items-center gap-3 border-b border-[var(--stroke-card)] py-2">
@@ -1644,7 +1755,7 @@ function BrandTypeSpecimen() {
                     <div className="flex-1">
                       <div className="font-mono text-[0.7rem] text-ink">{c.toUpperCase()}</div>
                       <div className="meta text-faint text-[0.55rem]">
-                        {["Onyx", "Walnut", "Cognac", "Brushed Gold", "Sunlit Sand"][i]}
+                        {paletteLabels[i]}
                       </div>
                     </div>
                   </div>
@@ -1652,9 +1763,9 @@ function BrandTypeSpecimen() {
               </div>
             </div>
             <div>
-              <span className="meta text-faint text-[0.55rem] tracking-[0.4em]">MOOD INDEX</span>
+              <span className="meta text-faint text-[0.55rem] tracking-[0.4em]">{t("MOOD INDEX", "STIMMUNGS-INDEX")}</span>
               <div className="mt-4 flex flex-wrap gap-1.5">
-                {BRAND_MOODS.map((m, i) => (
+                {moods.map((m, i) => (
                   <span
                     key={m}
                     className="meta border border-[var(--stroke-card)] px-2.5 py-1 text-[0.6rem] tracking-[0.15em]"
@@ -1792,7 +1903,8 @@ function ScrollThroughDots({
 }: {
   progress: import("motion/react").MotionValue<number>;
 }) {
-  const labels = ["Palette", "Mockups", "3D Stack"];
+  const t = useT();
+  const labels = [t("Palette", "Palette"), t("Mockups", "Mockups"), t("3D Stack", "3D-Stack")];
   return (
     <div
       data-pdf-hide
@@ -2980,10 +3092,12 @@ export function Contact() {
 /* Shared CTA: prefers Calendly, falls back to mailto. External target so
    Calendly opens in a new tab. Keeps every Contact variant in sync. */
 function ConsultationButton({
-  label = "Book a private consultation",
+  label,
   className = "btn btn-primary",
 }: { label?: string; className?: string }) {
   const { brand } = useOffer();
+  const { lang } = useLang();
+  const defaultLabel = lang === "de" ? "Privates Beratungsgespräch buchen" : "Book a private consultation";
   const href = brand.calendly ?? `mailto:${SAMY_EMAIL}`;
   return (
     <a
@@ -2992,7 +3106,7 @@ function ConsultationButton({
       rel="noreferrer noopener"
       className={className}
     >
-      {label}
+      {label ?? defaultLabel}
     </a>
   );
 }
@@ -3001,6 +3115,7 @@ type CxContent = { eyebrow: string; headline: string; headlineAccent: string; su
 
 /* variant 0: centered + samy card (default) */
 function ContactCentered({ cx }: { cx: CxContent }) {
+  const t = useT();
   return (
     <Reveal>
       <p className="eyebrow mb-4">{cx.eyebrow}</p>
@@ -3020,7 +3135,10 @@ function ContactCentered({ cx }: { cx: CxContent }) {
           <div className="display text-[1.05rem]">Samuel Heymig</div>
           <div className="meta accent mt-0.5 text-[0.58rem]">ZamboDezigns · Stuttgart</div>
           <p className="text-dim mt-1.5 text-[0.85rem] leading-snug">
-            Clean web design, optimized shops, and striking 3D &amp; motion work.
+            {t(
+              "Clean web design, optimized shops, and striking 3D & motion work.",
+              "Klares Webdesign, optimierte Shops und prägnante 3D- und Motion-Arbeit.",
+            )}
           </p>
         </div>
       </div>
@@ -3028,7 +3146,7 @@ function ContactCentered({ cx }: { cx: CxContent }) {
         <ConsultationButton />
       </div>
       <p className="meta text-faint mt-16 text-[0.62rem]">
-        ZamboDezigns · Samuel Heymig · Stuttgart, Germany
+        ZamboDezigns · Samuel Heymig · {t("Stuttgart, Germany", "Stuttgart, Deutschland")}
       </p>
     </Reveal>
   );
