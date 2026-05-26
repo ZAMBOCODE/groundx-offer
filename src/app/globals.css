@@ -378,18 +378,20 @@ body {
   }
 }
 
-/* dev-panel toggles: scroll-snap to section. Mandatory because every
-   section is now 100vh-baseline; proximity was too loose to navigate
-   cleanly. Sticky-scroll sections still scroll internally because the
-   snap-point sits at section's top edge (start), and snap-stop:normal
-   lets the browser pass through during fast scrolls. */
+/* dev-panel toggles: scroll-snap to section. Mandatory + scroll-snap-
+   stop: always so each section.top is a forced snap-stop — clean
+   section-to-section jumps (Samy 2026-05-26: "scroll snap muss sauber
+   von sektion zu sektion springen, 100vh in der mitte"). Sticky-scroll
+   sections (Why-me, Work, Brand, Process) still scroll internally
+   because the snap-point sits at section.top only; mid-section scroll
+   is unconstrained so the scroll-driven animations still play. */
 html.snap {
   scroll-snap-type: y mandatory;
 }
 html.snap section,
 html.snap header {
   scroll-snap-align: start;
-  scroll-snap-stop: normal;
+  scroll-snap-stop: always;
 }
 
 /* showcase screenshot cards — pre-tilted, minimal hover */
