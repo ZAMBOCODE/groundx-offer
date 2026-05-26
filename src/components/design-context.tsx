@@ -22,7 +22,7 @@ export type Variants = Record<SectionKey, number>;
 
 const DEFAULTS: Variants = {
   hero: 0, trustedBy: 0, about: 4, angle: 4, capabilities: 3, work: 4,
-  testimonials: 0, brand: 2, offer: 2, process: 2, faq: 0, contact: 4,
+  testimonials: 0, brand: 1, offer: 2, process: 2, faq: 0, contact: 4,
 };
 
 /** how many variants each section offers (for the dev-panel selector) */
