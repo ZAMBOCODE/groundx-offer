@@ -481,13 +481,26 @@ export function Angle() {
   const c = useOffer().content.angle;
   const points = c.points;
   const v = variants.angle;
-  const scrollDriven = v === 4;
+
+  // V5 (variant 4) = Sticky-Counter. Header sitzt INSIDE the sticky
+  // frame so both fit in one 100vh viewport (Samy 2026-05-26 screenshot:
+  // header + counter passten vorher nicht zusammen in 100vh).
+  if (v === 4) {
+    return (
+      <section id="angle" className="section" data-scroll-driven>
+        <AngleStickyCounter
+          eyebrow={c.eyebrow}
+          title={c.title}
+          titleAccent={c.titleAccent}
+          sub={c.sub}
+          points={points}
+        />
+      </section>
+    );
+  }
+
   return (
-    <section
-      id="angle"
-      className="section"
-      data-scroll-driven={scrollDriven || undefined}
-    >
+    <section id="angle" className="section">
       <SectionHead
         eyebrow={c.eyebrow}
         title={
@@ -583,11 +596,6 @@ export function Angle() {
         </div>
       )}
 
-      {/* variant 4: sticky-counter — Samy 2026-05-26: "ein Counter null eins,
-         dann scrollt man weiter nach unten, aber es scrollt bloß der Counter
-         nach oben". Counter sticks in viewport while page scrolls; content
-         (erstens, zweitens, drittens, viertens) swaps synchron. */}
-      {v === 4 && <AngleStickyCounter points={points} />}
 
       {/* variant 5: manifesto — first point as huge display, rest as chips */}
       {v === 5 && (
@@ -625,8 +633,16 @@ export function Angle() {
  * Bigger numbers stay readable; the counter is the focal anchor.
  */
 function AngleStickyCounter({
+  eyebrow,
+  title,
+  titleAccent,
+  sub,
   points,
 }: {
+  eyebrow: string;
+  title: string;
+  titleAccent: string;
+  sub?: string;
   points: { k: string; v: string }[];
 }) {
   const outer = useRef<HTMLDivElement>(null);
@@ -637,21 +653,23 @@ function AngleStickyCounter({
   const total = Math.max(points.length, 1);
   const pdf = usePdfMode();
 
-  // outer height = (total) viewports of scroll. Samy 2026-05-26:
-  // "der Platz zwischen 01 und 02 muss größer sein, sonst überlappen
-  // sich alles". 130vh per step gives enough scroll room so each digit
-  // settles cleanly before the next enters.
-  const outerVh = pdf ? total * 100 : Math.max(total, 2) * 130;
+  // (total) viewports of scroll is the snap rhythm: each step lands the
+  // next digit + content. 110vh per step ≈ one section-snap-stop per
+  // digit, plus 20vh tail so the last digit reads before leaving.
+  const outerVh = pdf ? total * 100 : Math.max(total, 2) * 110 + 20;
 
   if (pdf) {
-    // Static PDF fallback: just lay out the rows.
     return (
       <div className="mt-12 flex flex-col gap-8">
+        <div>
+          <p className="eyebrow mb-3">{eyebrow}</p>
+          <h2 className="display max-w-3xl text-[2.4rem] sm:text-[3.3rem]">
+            {title} <span className="accent-text">{titleAccent}</span>
+          </h2>
+          {sub && <p className="text-dim mt-5 max-w-2xl text-[1.12rem] leading-relaxed">{sub}</p>}
+        </div>
         {points.map((p, i) => (
-          <div
-            key={p.k}
-            className="grid grid-cols-[auto_1fr] items-baseline gap-8"
-          >
+          <div key={p.k} className="grid grid-cols-[auto_1fr] items-baseline gap-8">
             <span className="display-light accent text-[6rem] leading-none">
               {String(i + 1).padStart(2, "0")}
             </span>
@@ -665,16 +683,13 @@ function AngleStickyCounter({
     );
   }
 
-  // Sliding counter track. CHAR_H is the slot height per digit; the
-  // visible window equals CHAR_H so only ONE digit is fully visible at
-  // any time.
-  // Samy 2026-05-26 screenshot: at scroll-midpoint the previous digit
-  // and the next digit were both ~50 % visible (overlap). Fix: instead
-  // of lerping linearly between digit positions, hold digit i during
-  // the first 40 % of its window, snap-transition 40–60 %, settle on
-  // digit i+1 from 60 % onward. Each digit feels stable most of the
-  // time, transition is sharp + brief.
-  const CHAR_H = 240; // px
+  // Sliding counter track. CHAR_H = slot height per digit. Snap-hold:
+  // digit i sits stable during first 40 % of its window, transitions
+  // sharply over 40–60 %, then digit i+1 sits stable from 60 % on.
+  // 200px slot keeps the digit visually self-contained without needing
+  // aggressive fades that crop it (Samy 2026-05-26: digit was cut at
+  // top + bottom by the 40 % fades).
+  const CHAR_H = 200;
   const trackY = useTransform(scrollYProgress, (p) => {
     const raw = p * (total - 1);
     const idx = Math.floor(raw);
@@ -683,69 +698,77 @@ function AngleStickyCounter({
       frac < 0.4 ? 0 : frac > 0.6 ? 1 : (frac - 0.4) / 0.2;
     return -(idx + snapped) * CHAR_H;
   });
-  // Active integer index — flips at the midpoint of each window so
-  // the content panel swaps in sync with the counter snap.
   const activeIdx = useTransform(scrollYProgress, (p) =>
     Math.round(p * (total - 1)),
   );
 
   return (
-    <div
-      ref={outer}
-      className="relative"
-      style={{ height: `${outerVh}vh` }}
-    >
-      <div className="sticky top-0 flex h-screen items-center">
-        <div className="grid w-full grid-cols-[auto_1fr] items-center gap-10 sm:gap-16">
-          {/* COUNTER pillar */}
-          <div
-            className="relative overflow-hidden"
-            style={{ height: `${CHAR_H}px`, width: "10rem" }}
-          >
-            {/* heavy top + bottom fades so adjacent digits never overlap
-               visibly during scroll-transitions (Samy: "sonst überlappen
-               sich alles") */}
-            <div
-              className="pointer-events-none absolute inset-x-0 top-0 z-10"
-              style={{
-                height: "40%",
-                background:
-                  "linear-gradient(180deg, #050507 0%, #050507 30%, transparent 100%)",
-              }}
-            />
-            <div
-              className="pointer-events-none absolute inset-x-0 bottom-0 z-10"
-              style={{
-                height: "40%",
-                background:
-                  "linear-gradient(0deg, #050507 0%, #050507 30%, transparent 100%)",
-              }}
-            />
-            <motion.div
-              className="flex flex-col items-start"
-              style={{ y: trackY, willChange: "transform" }}
-            >
-              {points.map((p, i) => (
-                <div
-                  key={p.k}
-                  className="display-light accent flex w-full items-center justify-center"
-                  style={{
-                    height: `${CHAR_H}px`,
-                    fontSize: "clamp(6rem, 13vw, 11rem)",
-                    lineHeight: 1,
-                    letterSpacing: "-0.04em",
-                  }}
-                >
-                  {String(i + 1).padStart(2, "0")}
-                </div>
-              ))}
-            </motion.div>
-          </div>
+    <div ref={outer} className="relative" style={{ height: `${outerVh}vh` }}>
+      <div className="sticky top-0 flex h-screen flex-col">
+        {/* HEAD (kept inside the sticky frame so head + counter share
+           one 100vh viewport) */}
+        <div className="pt-16 sm:pt-20">
+          <p className="eyebrow mb-3">{eyebrow}</p>
+          <h2 className="display max-w-3xl text-[2rem] leading-[1.05] sm:text-[2.6rem]">
+            {title} <span className="accent-text">{titleAccent}</span>
+          </h2>
+          {sub && (
+            <p className="text-dim mt-4 max-w-xl text-[0.95rem] leading-relaxed sm:text-[1.02rem]">
+              {sub}
+            </p>
+          )}
+        </div>
 
-          {/* CONTENT — only one point visible at a time (AnimatePresence
-             wait-mode). Swap-fade triggers at the midpoint of each
-             window, in sync with the counter snap. */}
-          <AnglePointPanel points={points} activeIdx={activeIdx} />
+        {/* COUNTER + CONTENT row, vertically centered in the remaining
+           viewport space below the head */}
+        <div className="flex flex-1 items-center">
+          <div className="grid w-full grid-cols-[auto_1fr] items-center gap-8 sm:gap-14">
+            <div
+              className="relative overflow-hidden"
+              style={{ height: `${CHAR_H}px`, width: "8.5rem" }}
+            >
+              {/* light edge-fades — enough to soften the half-digit
+                 sliver during the 20 % transition, NOT enough to crop
+                 the resting digit */}
+              <div
+                className="pointer-events-none absolute inset-x-0 top-0 z-10"
+                style={{
+                  height: "18%",
+                  background:
+                    "linear-gradient(180deg, #050507 0%, transparent 100%)",
+                }}
+              />
+              <div
+                className="pointer-events-none absolute inset-x-0 bottom-0 z-10"
+                style={{
+                  height: "18%",
+                  background:
+                    "linear-gradient(0deg, #050507 0%, transparent 100%)",
+                }}
+              />
+              <motion.div
+                className="flex flex-col items-start"
+                style={{ y: trackY, willChange: "transform" }}
+              >
+                {points.map((p, i) => (
+                  <div
+                    key={p.k}
+                    className="display-light accent flex w-full items-center justify-center"
+                    style={{
+                      height: `${CHAR_H}px`,
+                      fontSize: "clamp(5rem, 10vw, 8.5rem)",
+                      lineHeight: 1,
+                      letterSpacing: "-0.04em",
+                    }}
+                  >
+                    {String(i + 1).padStart(2, "0")}
+                  </div>
+                ))}
+              </motion.div>
+            </div>
+
+            <AnglePointPanel points={points} activeIdx={activeIdx} />
+          </div>
         </div>
       </div>
     </div>
@@ -770,20 +793,20 @@ function AnglePointPanel({
   const p = points[active] ?? points[0];
   if (!p) return null;
   return (
-    <div className="relative h-[360px] sm:h-[440px]">
+    <div className="relative h-[260px] sm:h-[320px]">
       <AnimatePresence mode="wait">
         <motion.div
           key={active}
-          initial={{ opacity: 0, y: 24 }}
+          initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -24 }}
-          transition={{ duration: 0.35, ease: [0.2, 0.8, 0.2, 1] }}
+          exit={{ opacity: 0, y: -20 }}
+          transition={{ duration: 0.3, ease: [0.2, 0.8, 0.2, 1] }}
           className="absolute inset-0 flex flex-col justify-center"
         >
-          <h3 className="display text-[1.7rem] leading-tight sm:text-[2.2rem]">
+          <h3 className="display text-[1.6rem] leading-tight sm:text-[2rem]">
             {p.k}
           </h3>
-          <p className="text-dim mt-4 max-w-xl text-[1.02rem] leading-relaxed sm:text-[1.1rem]">
+          <p className="text-dim mt-4 max-w-xl text-[0.98rem] leading-relaxed sm:text-[1.05rem]">
             {p.v}
           </p>
         </motion.div>
