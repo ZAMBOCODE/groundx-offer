@@ -7,7 +7,7 @@ import { cases, type CaseStudy } from "@/lib/data";
 import { useDesign } from "./design-context";
 import { useOffer } from "./OfferProvider";
 import { StickyWork } from "./StickyWork";
-import { WorkShowcase, WorkBigWheel } from "./WorkShowcase";
+import { WorkShowcase } from "./WorkShowcase";
 import { MockupShowcase } from "./MockupShowcase";
 import { MagazineSpread } from "./MagazineSpread";
 import { IsometricScrollStack } from "./IsometricScrollStack";
@@ -1048,18 +1048,20 @@ export function Work() {
     );
   }
 
-  // variant 4 was extracted into the WorkShowcase component (logo + facts +
-  // staggered tilted shots). Samy 2026-05-24: "Var 5 war gut so, style und
-  // anordnung perfekt" — kept as-is, rendered below in the regular flow.
-  // 2026-05-25: WorkShowcase now also contains a sticky-scroll WorkWheel
-  // for the remaining cases, so v4 needs scroll-driven opt-out.
+  // variant 4 (V5 in the UI) = WorkShowcase. Curved sticky-scroll carousel
+  // that cycles through ALL projects with a sticky heading. WorkShowcase
+  // renders its own heading inside the sticky frame, so we skip the
+  // outer SectionHead here. Samy 2026-05-26.
+  if (v === 4) {
+    return (
+      <section id="work" data-scroll-driven>
+        <WorkShowcase />
+      </section>
+    );
+  }
 
   return (
-    <section
-      id="work"
-      className="section"
-      data-scroll-driven={v === 4 || undefined}
-    >
+    <section id="work" className="section">
       {head}
 
       {/* variant 0: 2-col image cards */}
@@ -1130,14 +1132,8 @@ export function Work() {
         </Reveal>
       )}
 
-      {/* variant 4: showcase — logo + facts + tags | staggered tilted shots */}
-      {v === 4 && <WorkShowcase />}
-
       {/* variant 5: polaroid stack — overlapping tilted cards spread on hover */}
       {v === 5 && <WorkPolaroidStack cases={visible} />}
-
-      {/* variant 6: big rotating wheel — 100vh, large images, auto-rotate */}
-      {v === 6 && <WorkBigWheel list={visible} />}
     </section>
   );
 }

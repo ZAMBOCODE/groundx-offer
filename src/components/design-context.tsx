@@ -21,13 +21,13 @@ export type SectionKey = "hero" | "trustedBy" | "about" | "angle" | "capabilitie
 export type Variants = Record<SectionKey, number>;
 
 const DEFAULTS: Variants = {
-  hero: 0, trustedBy: 0, about: 4, angle: 4, capabilities: 3, work: 6,
-  testimonials: 0, brand: 1, offer: 0, process: 0, faq: 0, contact: 4,
+  hero: 0, trustedBy: 0, about: 4, angle: 4, capabilities: 3, work: 4,
+  testimonials: 0, brand: 2, offer: 2, process: 2, faq: 0, contact: 4,
 };
 
 /** how many variants each section offers (for the dev-panel selector) */
 export const VARIANT_COUNT: Record<SectionKey, number> = {
-  hero: 6, trustedBy: 2, about: 6, angle: 6, capabilities: 6, work: 7,
+  hero: 6, trustedBy: 2, about: 6, angle: 6, capabilities: 6, work: 6,
   testimonials: 3, brand: 6, offer: 6, process: 3, faq: 2, contact: 6,
 };
 
@@ -86,9 +86,8 @@ export const VARIANT_NOTES: Record<SectionKey, string[]> = {
     "Alternating · wide rows",
     "Horizontal · scroll strip",
     "Sticky · horizontal scroll",
-    "Showcase · facts + shots",
+    "Showcase · curved sticky carousel",
     "Polaroid · tilt stack",
-    "Wheel · big rotating carousel",
   ],
   brand: [
     "Brand · editorial codex",

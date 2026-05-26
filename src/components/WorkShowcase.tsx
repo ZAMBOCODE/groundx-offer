@@ -1,39 +1,43 @@
 "use client";
 
-import { useEffect, useRef, useState, type CSSProperties } from "react";
+import { useRef, useState, type CSSProperties } from "react";
 import { motion, AnimatePresence, useScroll, useTransform, type MotionValue } from "motion/react";
-import { Maximize2, ChevronLeft, ChevronRight } from "lucide-react";
+import { Maximize2 } from "lucide-react";
 import { cases, type CaseStudy } from "@/lib/data";
+import { useOffer } from "./OfferProvider";
 import { usePdfMode } from "@/lib/pdfMode";
 import { iconFor as brandIconFor } from "./BrandIcons";
 
-/* Samy 2026-05-25, Selected Work pick = v5 (this WorkShowcase).
-   Changes from prior:
-   - First case stays as the prominent ShowcaseRow (logo + facts + 3
-     screenshots) but:
-       · max 4 tags shown (the 4 most important)
-       · favicon-style logo faded into the bottom-right of the shots area
-       · hover any screenshot → fullscreen indicator (clickable lightbox)
-   - The REMAINING cases no longer stack vertically. They scroll via a
-     gumball-wheel sticky scroll (WorkWheel) — three projects visible at
-     a time on a curved arc, sides fade into the background. */
+/* Selected Work — V5 (Samy 2026-05-26 voice briefing).
+ *
+ * Curved sticky-scroll carousel that cycles through ALL projects.
+ *   - Section heading "Selected work" is rendered INSIDE the sticky frame
+ *     so it stays visible the whole time you scroll through projects.
+ *   - One project visible at a time. Layout: company NAME in display
+ *     typography on the left (replaces the logo top-left from older V5),
+ *     screenshots staggered + tilted on the right, faded favicon-style
+ *     logo behind the shots bottom-right corner.
+ *   - On scroll, the active project leaves with a curved rotateY + slide,
+ *     the next enters from the opposite side on the same arc. Not a flat
+ *     linear strip — a wheel-like curve, as Samy specified.
+ *   - Images bigger than the previous V5 (75% column width, 16:10).
+ *   - "More work, less wall of text — scroll to spin the wheel" copy is
+ *     removed; the movement explains itself.
+ *
+ * PDF / static fallback renders each project as a vertical ShowcaseRow,
+ * no animation. */
 
 export function WorkShowcase() {
   const [lightbox, setLightbox] = useState<string | null>(null);
-  const first = cases[0];
-  const rest = cases.slice(1);
+  const pdf = usePdfMode();
+  const list = cases;
   return (
     <>
-      {/* First case fills the section's first viewport so the layout
-         doesn't leave dead-space above the sticky wheel that follows. */}
-      <div className="flex min-h-[calc(100vh-12rem)] items-center">
-        {first && (
-          <div className="w-full">
-            <ShowcaseRow c={first} flip={false} onOpen={setLightbox} />
-          </div>
-        )}
-      </div>
-      {rest.length > 0 && <WorkWheel cases={rest} onOpen={setLightbox} />}
+      {pdf ? (
+        <WorkShowcaseStatic list={list} onOpen={setLightbox} />
+      ) : (
+        <WorkShowcaseDynamic list={list} onOpen={setLightbox} />
+      )}
       <AnimatePresence>
         {lightbox && <Lightbox src={lightbox} onClose={() => setLightbox(null)} />}
       </AnimatePresence>
@@ -41,40 +45,143 @@ export function WorkShowcase() {
   );
 }
 
-/* ----------------------------------------------- Prominent showcase row */
+/* ----------------------------------------------- Dynamic curved scroll */
 
-function ShowcaseRow({
+function WorkShowcaseDynamic({
+  list,
+  onOpen,
+}: {
+  list: CaseStudy[];
+  onOpen: (src: string) => void;
+}) {
+  const outer = useRef<HTMLDivElement>(null);
+  const { scrollYProgress } = useScroll({
+    target: outer,
+    offset: ["start start", "end end"],
+  });
+  const total = list.length;
+  // ~90vh of scroll per project keeps the rhythm tight without feeling
+  // like the section is endless. +40vh tail so the last project can
+  // settle before the next section begins.
+  const outerVh = Math.max(total, 1) * 90 + 40;
+
+  const head = <Heading />;
+
+  return (
+    <div ref={outer} className="relative" style={{ height: `${outerVh}vh` }}>
+      <div
+        className="sticky top-0 flex h-screen flex-col overflow-hidden"
+        style={{ perspective: "1600px" }}
+      >
+        <div className="pt-16 sm:pt-20">{head}</div>
+        <div className="relative flex-1">
+          {list.map((c, i) => (
+            <ShowcaseSlot
+              key={c.name}
+              c={c}
+              index={i}
+              total={total}
+              progress={scrollYProgress}
+              onOpen={onOpen}
+            />
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ShowcaseSlot({
   c,
-  flip,
+  index,
+  total,
+  progress,
   onOpen,
 }: {
   c: CaseStudy;
-  flip: boolean;
+  index: number;
+  total: number;
+  progress: MotionValue<number>;
   onOpen: (src: string) => void;
 }) {
-  const shots = c.shots ?? (c.image ? [c.image] : []);
-  // Samy 2026-05-25: "es sollten immer nur vier Tags da dranstehen"
-  const tags = c.tags?.slice(0, 4);
+  const denom = Math.max(1, total - 1);
+
+  const x = useTransform(progress, (p) => {
+    const cur = p * denom;
+    const d = index - cur;
+    // 95vw per step keeps neighbouring slides nearly off-screen but
+    // hints at the carousel.
+    return `${d * 95}vw`;
+  });
+  const rotateY = useTransform(progress, (p) => {
+    const cur = p * denom;
+    const d = index - cur;
+    return d * -22;
+  });
+  const opacity = useTransform(progress, (p) => {
+    const cur = p * denom;
+    const d = Math.abs(index - cur);
+    if (d > 1.4) return 0;
+    return Math.max(0, 1 - d * 0.85);
+  });
+  const scale = useTransform(progress, (p) => {
+    const cur = p * denom;
+    const d = Math.abs(index - cur);
+    return Math.max(0.78, 1 - d * 0.16);
+  });
+  const zIndex = useTransform(progress, (p) => {
+    const cur = p * denom;
+    return Math.round(120 - Math.abs(index - cur) * 12);
+  });
+
   return (
     <motion.div
-      initial={{ opacity: 0, y: 30 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: "-80px" }}
-      transition={{ duration: 0.7, ease: [0.2, 0.8, 0.2, 1] }}
-      className={`grid items-center gap-10 md:grid-cols-[0.85fr_1.15fr] ${flip ? "md:[&>*:first-child]:order-2" : ""}`}
+      className="absolute inset-0 flex items-center justify-center px-4 sm:px-12"
+      style={{
+        x,
+        rotateY,
+        opacity,
+        scale,
+        zIndex,
+        transformStyle: "preserve-3d",
+        transformOrigin: "center",
+        willChange: "transform, opacity",
+      }}
     >
-      {/* left — identity */}
+      <div className="w-full max-w-[1280px]">
+        <ProjectCard c={c} onOpen={onOpen} />
+      </div>
+    </motion.div>
+  );
+}
+
+/* ----------------------------------------------- One project card */
+
+function ProjectCard({
+  c,
+  onOpen,
+}: {
+  c: CaseStudy;
+  onOpen: (src: string) => void;
+}) {
+  const shots = (c.shots ?? (c.image ? [c.image] : [])).slice(0, 3);
+  // Samy 2026-05-25: max 4 tags shown
+  const tags = c.tags?.slice(0, 4);
+
+  return (
+    <div className="grid items-center gap-10 md:grid-cols-[0.9fr_1.1fr]">
+      {/* LEFT — identity. Samy 2026-05-26: company name in display
+         typography replaces the logo top-left. */}
       <div>
-        {c.logo ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={c.logo} alt={c.name} className="mb-5 h-9 w-auto opacity-95" />
-        ) : (
-          <div className="display mb-4 text-[1.8rem]">{c.name}</div>
-        )}
-        <p className="meta accent text-[0.6rem]">{c.tag}</p>
-        <p className="text-dim mt-4 text-[1rem] leading-relaxed">{c.what}</p>
+        <h3 className="display text-[2.2rem] leading-[0.95] sm:text-[3.2rem]">
+          {c.name}
+        </h3>
+        <p className="meta accent mt-3 text-[0.62rem] tracking-[0.3em]">
+          {c.tag}
+        </p>
+        <p className="text-dim mt-5 text-[1rem] leading-relaxed">{c.what}</p>
         <p className="accent mt-3 text-[0.9rem] italic">{c.why}</p>
-        {tags && (
+        {tags && tags.length > 0 && (
           <div className="mt-5 flex flex-wrap gap-2">
             {tags.map((t) => {
               const Icon = brandIconFor(t);
@@ -90,18 +197,21 @@ function ShowcaseRow({
             })}
           </div>
         )}
-        <p className="meta text-faint mt-5 text-[0.58rem]">{c.stack}</p>
+        {c.stack && (
+          <p className="meta text-faint mt-5 text-[0.58rem]">{c.stack}</p>
+        )}
       </div>
 
-      {/* right — staggered tilted screenshot cards (+ favicon corner + hover indicator) */}
-      <div className="relative h-[320px] overflow-hidden sm:h-[440px] sm:overflow-visible">
+      {/* RIGHT — staggered tilted screenshots, bigger than V5-classic
+         (75% column width, 16:10), plus faded favicon-logo behind */}
+      <div className="relative h-[360px] overflow-visible sm:h-[520px]">
         {shots.map((src, i) => {
           const rot = (i - (shots.length - 1) / 2) * 6;
-          const left = shots.length > 1 ? (i / (shots.length - 1)) * 34 : 8;
-          const top = i % 2 === 0 ? 0 : 30;
+          const left = shots.length > 1 ? (i / (shots.length - 1)) * 30 : 8;
+          const top = i % 2 === 0 ? 0 : 40;
           return (
             <button
-              key={src}
+              key={src + i}
               onClick={() => onOpen(src)}
               className="shot-card group absolute overflow-hidden"
               style={
@@ -109,7 +219,7 @@ function ShowcaseRow({
                   "--r": `${rot}deg`,
                   left: `${left}%`,
                   top: `${top}px`,
-                  width: "72%",
+                  width: "75%",
                   aspectRatio: "16 / 10",
                   zIndex: i + 1,
                 } as CSSProperties
@@ -122,7 +232,6 @@ function ShowcaseRow({
                 alt={`${c.name} ${i + 1}`}
                 className="h-full w-full object-cover object-top transition-transform duration-500 group-hover:scale-[1.03]"
               />
-              {/* hover-only fullscreen indicator (Samy: "Indikator dass man klicken kann") */}
               <span
                 className="meta pointer-events-none absolute right-2 top-2 flex items-center gap-1 rounded-md border border-[var(--stroke-card)] bg-[rgba(8,7,5,0.7)] px-2 py-1 text-[0.55rem] tracking-[0.3em] opacity-0 backdrop-blur transition-opacity duration-300 group-hover:opacity-100"
                 style={{ color: "var(--accent-bright)" }}
@@ -134,7 +243,7 @@ function ShowcaseRow({
           );
         })}
 
-        {/* favicon-style logo faded bottom-right of the shots area */}
+        {/* faded favicon-style logo behind the shots, bottom-right */}
         {c.logo && (
           <div
             aria-hidden
@@ -142,491 +251,53 @@ function ShowcaseRow({
             style={{
               opacity: 0.18,
               filter: "blur(0.3px)",
-              maskImage: "linear-gradient(135deg, black 30%, transparent 100%)",
-              WebkitMaskImage: "linear-gradient(135deg, black 30%, transparent 100%)",
+              maskImage:
+                "linear-gradient(135deg, black 30%, transparent 100%)",
+              WebkitMaskImage:
+                "linear-gradient(135deg, black 30%, transparent 100%)",
             }}
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={c.logo} alt="" className="h-32 w-auto sm:h-44" />
+            <img src={c.logo} alt="" className="h-32 w-auto sm:h-48" />
           </div>
         )}
       </div>
-    </motion.div>
-  );
-}
-
-/* ----------------------------------------------- Gumball-wheel scroll */
-
-/* Three slots visible at once. As scroll progresses, the wheel rotates
-   so the next case enters from the right and the leftmost exits. Side
-   slots are tilted outward + faded; the middle slot is fully opaque.
-   Each slot shows the project's logo, tag, three thumbs, and a hover
-   line. */
-function WorkWheel({ cases: list, onOpen }: { cases: CaseStudy[]; onOpen: (src: string) => void }) {
-  const pdf = usePdfMode();
-  if (pdf) return <WorkWheelStatic list={list} onOpen={onOpen} />;
-  return <WorkWheelDynamic list={list} onOpen={onOpen} />;
-}
-
-/* PDF fallback: same per-case WheelCard but rendered in a vertical
-   2-col grid instead of a sticky horizontal wheel. */
-function WorkWheelStatic({ list, onOpen }: { list: CaseStudy[]; onOpen: (src: string) => void }) {
-  return (
-    <div className="mt-16">
-      <div className="mb-8 text-center">
-        <p className="eyebrow">More work</p>
-      </div>
-      <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
-        {list.map((c) => {
-          const shots = (c.shots ?? (c.image ? [c.image] : [])).slice(0, 3);
-          return <WheelCard key={c.name} c={c} shots={shots} onOpen={onOpen} />;
-        })}
-      </div>
     </div>
   );
 }
 
-function WorkWheelDynamic({ list, onOpen }: { list: CaseStudy[]; onOpen: (src: string) => void }) {
-  const outer = useRef<HTMLDivElement>(null);
-  const { scrollYProgress } = useScroll({
-    target: outer,
-    offset: ["start start", "end end"],
-  });
+/* ----------------------------------------------- Heading (sticky) */
 
-  // The track holds `list.length` slots, but visually 3 are visible.
-  // Index along the wheel = progress * (list.length - 1). Each slot's
-  // position on screen is its index minus the current scrolled index.
+function Heading() {
+  const c = useOffer().content.work;
   return (
-    <div
-      ref={outer}
-      className="relative mt-24"
-      style={{ height: `${Math.max(2, list.length - 1) * 90 + 40}vh` }}
-    >
-      <div className="sticky top-0 flex h-screen flex-col items-center justify-center overflow-hidden">
-        <div className="mb-10 text-center">
-          <p className="eyebrow">More work, less wall of text</p>
-          <p className="text-dim mt-2 text-[0.92rem]">scroll to spin the wheel · click to enlarge</p>
-        </div>
-
-        <div
-          className="relative h-[440px] w-full"
-          style={{ perspective: "1500px" }}
-        >
-          {list.map((c, i) => (
-            <WheelSlot
-              key={c.name}
-              c={c}
-              index={i}
-              total={list.length}
-              progress={scrollYProgress}
-              onOpen={onOpen}
-            />
-          ))}
-        </div>
-
-        {/* edge gradient masks (sides fade into bg) */}
-        <div
-          className="pointer-events-none absolute inset-y-0 left-0 z-30 w-[18vw]"
-          style={{
-            background: "linear-gradient(90deg, var(--bg, #050507) 0%, transparent 100%)",
-          }}
-        />
-        <div
-          className="pointer-events-none absolute inset-y-0 right-0 z-30 w-[18vw]"
-          style={{
-            background: "linear-gradient(270deg, var(--bg, #050507) 0%, transparent 100%)",
-          }}
-        />
-      </div>
+    <div className="px-4 sm:px-12">
+      <p className="eyebrow mb-3">{c.eyebrow}</p>
+      <h2 className="display text-[2.2rem] sm:text-[3rem]">
+        {c.title} <span className="accent-text">{c.titleAccent}</span>
+      </h2>
     </div>
   );
 }
 
-function WheelSlot({
-  c,
-  index,
-  total,
-  progress,
+/* ----------------------------------------------- Static / PDF fallback */
+
+function WorkShowcaseStatic({
+  list,
   onOpen,
 }: {
-  c: CaseStudy;
-  index: number;
-  total: number;
-  progress: MotionValue<number>;
+  list: CaseStudy[];
   onOpen: (src: string) => void;
 }) {
-  // currentIdx in [0, total-1] as scroll moves
-  // slot offset = index - currentIdx → negative = left, 0 = center, positive = right
-  const SLOT_W = 380; // px between slot centers
-
-  const offsetPx = useTransform(progress, (p) => {
-    const denom = Math.max(1, total - 1);
-    const current = p * denom;
-    return (index - current) * SLOT_W;
-  });
-  const opacity = useTransform(progress, (p) => {
-    const current = p * Math.max(1, total - 1);
-    const dist = Math.abs(index - current);
-    if (dist > 2) return 0;
-    return 1 - Math.min(1, dist * 0.45);
-  });
-  const scale = useTransform(progress, (p) => {
-    const current = p * Math.max(1, total - 1);
-    const dist = Math.abs(index - current);
-    return Math.max(0.7, 1 - dist * 0.12);
-  });
-  const rotateY = useTransform(progress, (p) => {
-    const current = p * Math.max(1, total - 1);
-    return (index - current) * -18; // tilt outward
-  });
-  const zIndex = useTransform(progress, (p) => {
-    const current = p * Math.max(1, total - 1);
-    return Math.round(100 - Math.abs(index - current) * 10);
-  });
-
-  const shots = (c.shots ?? (c.image ? [c.image] : [])).slice(0, 3);
-
   return (
-    <motion.div
-      className="absolute left-1/2 top-1/2 w-[360px] -translate-x-1/2 -translate-y-1/2"
-      style={{
-        x: offsetPx,
-        opacity,
-        scale,
-        rotateY,
-        zIndex,
-        transformStyle: "preserve-3d",
-        transformOrigin: "center",
-      }}
-    >
-      <WheelCard c={c} shots={shots} onOpen={onOpen} />
-    </motion.div>
-  );
-}
-
-function WheelCard({
-  c,
-  shots,
-  onOpen,
-}: {
-  c: CaseStudy;
-  shots: string[];
-  onOpen: (src: string) => void;
-}) {
-  const [hoverShot, setHoverShot] = useState<number | null>(null);
-  const HOVER_LINES: Record<number, string> = {
-    0: c.what,
-    1: c.why,
-    2: c.stack || c.what,
-  };
-  return (
-    <div
-      className="card glow-border flex flex-col gap-3 overflow-hidden p-5"
-      style={{
-        boxShadow:
-          "0 30px 80px rgba(0,0,0,0.55), 0 6px 20px rgba(0,0,0,0.4)",
-      }}
-    >
-      <div className="flex items-center justify-between">
-        {c.logo ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={c.logo} alt={c.name} className="h-6 w-auto opacity-90" />
-        ) : (
-          <span className="display text-[1.1rem]">{c.name}</span>
-        )}
-        <span className="meta accent text-[0.55rem] tracking-[0.3em]">{c.tag}</span>
-      </div>
-
-      {/* three thumb tiles */}
-      <div className="grid grid-cols-3 gap-1.5">
-        {[0, 1, 2].map((i) => {
-          const src = shots[i];
-          if (!src) {
-            return (
-              <div
-                key={i}
-                className="aspect-square rounded-md border border-dashed border-[var(--stroke-card)]"
-              />
-            );
-          }
-          return (
-            <button
-              key={src + i}
-              onClick={() => onOpen(src)}
-              onMouseEnter={() => setHoverShot(i)}
-              onMouseLeave={() => setHoverShot((h) => (h === i ? null : h))}
-              className="group relative aspect-square overflow-hidden rounded-md border border-[var(--stroke-card)]"
-              aria-label={`${c.name} screenshot ${i + 1}`}
-            >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={src}
-                alt=""
-                className="h-full w-full object-cover object-top transition-transform duration-500 group-hover:scale-[1.06]"
-              />
-              <span
-                className="pointer-events-none absolute inset-0 flex items-center justify-center bg-[rgba(8,7,5,0.45)] opacity-0 backdrop-blur-sm transition-opacity duration-300 group-hover:opacity-100"
-              >
-                <Maximize2 size={14} strokeWidth={2.2} style={{ color: "var(--accent-bright)" }} />
-              </span>
-            </button>
-          );
-        })}
-      </div>
-
-      {/* one-liner — swaps when you hover a thumb */}
-      <div className="min-h-[34px] px-1 text-[0.78rem] leading-snug text-dim">
-        <AnimatePresence mode="wait" initial={false}>
-          <motion.p
-            key={hoverShot ?? "default"}
-            initial={{ opacity: 0, y: 4 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -4 }}
-            transition={{ duration: 0.22 }}
-          >
-            {hoverShot !== null ? HOVER_LINES[hoverShot] : c.what}
-          </motion.p>
-        </AnimatePresence>
-      </div>
-    </div>
-  );
-}
-
-/* ----------------------------------------------- Big Wheel (variant 6)
-
-   Samy 2026-05-25: full-viewport rotating wheel. Cards arranged on a
-   horizontal arc, the center one is large with a big image; sides fade
-   and tilt away. Auto-rotates slowly. Click prev/next, drag, or click a
-   side card to advance. Fits in one 100vh frame — no scroll hijacking. */
-
-export function WorkBigWheel({ list }: { list: CaseStudy[] }) {
-  const [active, setActive] = useState(0);
-  const [lightbox, setLightbox] = useState<string | null>(null);
-  const [paused, setPaused] = useState(false);
-  const n = list.length;
-
-  // auto-rotate every 5s when not paused / not lightboxed
-  useEffect(() => {
-    if (paused || lightbox || n < 2) return;
-    const t = setInterval(() => setActive((a) => (a + 1) % n), 5000);
-    return () => clearInterval(t);
-  }, [paused, lightbox, n]);
-
-  // keyboard arrows
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (lightbox) return;
-      const tag = (e.target as HTMLElement)?.tagName;
-      if (tag === "INPUT" || tag === "TEXTAREA") return;
-      if (e.key === "ArrowRight") setActive((a) => (a + 1) % n);
-      if (e.key === "ArrowLeft") setActive((a) => (a - 1 + n) % n);
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [n, lightbox]);
-
-  const go = (delta: number) => setActive((a) => (a + delta + n) % n);
-
-  if (n === 0) return null;
-  const current = list[active];
-  const heroShot = current.shots?.[0] ?? current.image ?? null;
-
-  return (
-    <div
-      className="relative mt-6 flex flex-col items-center"
-      onMouseEnter={() => setPaused(true)}
-      onMouseLeave={() => setPaused(false)}
-    >
-      {/* the wheel itself */}
-      <div
-        className="relative w-full"
-        style={{
-          height: "min(62vh, 620px)",
-          perspective: "2200px",
-        }}
-      >
-        {list.map((c, i) => {
-          // signed shortest distance on a ring [-n/2, n/2]
-          let d = i - active;
-          if (d > n / 2) d -= n;
-          if (d < -n / 2) d += n;
-          return (
-            <WheelArcCard
-              key={c.name}
-              c={c}
-              distance={d}
-              isActive={i === active}
-              onActivate={() => setActive(i)}
-              onOpen={(src) => setLightbox(src)}
-            />
-          );
-        })}
-
-        {/* side fades */}
-        <div
-          className="pointer-events-none absolute inset-y-0 left-0 z-30 w-[14vw]"
-          style={{ background: "linear-gradient(90deg, #050507 0%, transparent 100%)" }}
-        />
-        <div
-          className="pointer-events-none absolute inset-y-0 right-0 z-30 w-[14vw]"
-          style={{ background: "linear-gradient(270deg, #050507 0%, transparent 100%)" }}
-        />
-      </div>
-
-      {/* prev / dots / next + active project name */}
-      <div className="mt-7 flex w-full max-w-4xl items-center justify-between gap-6 px-6">
-        <button
-          onClick={() => go(-1)}
-          aria-label="Previous project"
-          className="inner-card flex h-12 w-12 items-center justify-center rounded-full text-dim hover:text-[var(--accent-bright)]"
-        >
-          <ChevronLeft size={20} />
-        </button>
-
-        <div className="flex flex-col items-center text-center">
-          <div className="display text-[1.6rem] sm:text-[2rem]">{current.name}</div>
-          <div className="meta accent mt-1.5 text-[0.62rem]">{current.tag}</div>
-          <p className="text-dim mt-3 max-w-xl text-[0.95rem] leading-relaxed">{current.what}</p>
-          {heroShot && (
-            <button
-              onClick={() => setLightbox(heroShot)}
-              className="meta mt-3 text-[0.6rem] uppercase tracking-[0.3em] hover:text-[var(--accent-bright)]"
-              style={{ color: "var(--ink-3)" }}
-            >
-              click image for fullscreen
-            </button>
-          )}
-        </div>
-
-        <button
-          onClick={() => go(1)}
-          aria-label="Next project"
-          className="inner-card flex h-12 w-12 items-center justify-center rounded-full text-dim hover:text-[var(--accent-bright)]"
-        >
-          <ChevronRight size={20} />
-        </button>
-      </div>
-
-      {/* dots */}
-      <div className="mt-4 flex gap-2">
-        {list.map((c, i) => (
-          <button
-            key={c.name}
-            onClick={() => setActive(i)}
-            aria-label={`Go to ${c.name}`}
-            className="h-1.5 rounded-full transition-all"
-            style={{
-              width: i === active ? 28 : 10,
-              background: i === active ? "var(--accent)" : "rgba(255,255,255,0.18)",
-            }}
-          />
+    <div className="px-4 sm:px-12">
+      <Heading />
+      <div className="mt-12 flex flex-col gap-20">
+        {list.map((c) => (
+          <ProjectCard key={c.name} c={c} onOpen={onOpen} />
         ))}
       </div>
-
-      <AnimatePresence>
-        {lightbox && <Lightbox src={lightbox} onClose={() => setLightbox(null)} />}
-      </AnimatePresence>
     </div>
-  );
-}
-
-function WheelArcCard({
-  c,
-  distance,
-  isActive,
-  onActivate,
-  onOpen,
-}: {
-  c: CaseStudy;
-  distance: number;
-  isActive: boolean;
-  onActivate: () => void;
-  onOpen: (src: string) => void;
-}) {
-  // arc geometry — clamp to keep far-away cards hidden
-  const absD = Math.abs(distance);
-  const visible = absD <= 3;
-  if (!visible) return null;
-
-  const SPREAD = 320; // horizontal px between neighbours
-  const x = distance * SPREAD;
-  const rotateY = distance * -28; // tilt away from camera
-  const scale = isActive ? 1 : Math.max(0.62, 1 - absD * 0.16);
-  const z = isActive ? 30 : 80 + distance * 4; // active in front
-  const opacity = isActive ? 1 : Math.max(0.15, 1 - absD * 0.35);
-  const blur = isActive ? 0 : absD * 1.6;
-
-  const src = c.shots?.[0] ?? c.image ?? null;
-
-  return (
-    <motion.button
-      onClick={isActive ? () => src && onOpen(src) : onActivate}
-      aria-label={isActive ? `${c.name} fullscreen` : `Show ${c.name}`}
-      className="absolute left-1/2 top-1/2 block"
-      initial={false}
-      animate={{ x, rotateY, scale, opacity }}
-      transition={{ duration: 0.7, ease: [0.2, 0.8, 0.2, 1] }}
-      style={{
-        translateX: "-50%",
-        translateY: "-50%",
-        width: "min(640px, 70vw)",
-        zIndex: z,
-        transformStyle: "preserve-3d",
-        transformOrigin: "center",
-        filter: blur ? `blur(${blur}px)` : undefined,
-        cursor: isActive && src ? "zoom-in" : "pointer",
-      }}
-    >
-      <div
-        className="card glow-border relative overflow-hidden"
-        style={{
-          aspectRatio: "16 / 10",
-          padding: 0,
-          boxShadow: isActive
-            ? "0 50px 120px rgba(0,0,0,0.7), 0 12px 30px rgba(0,0,0,0.5)"
-            : "0 30px 60px rgba(0,0,0,0.5)",
-          borderColor: isActive ? "var(--accent-dim)" : undefined,
-        }}
-      >
-        {src ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={src}
-            alt={c.name}
-            className="h-full w-full object-cover object-top"
-            style={{ objectFit: c.fit === "contain" ? "contain" : "cover" }}
-          />
-        ) : (
-          <div className="flex h-full w-full items-center justify-center">
-            <div className="display text-center text-[2rem] text-dim">{c.name}</div>
-          </div>
-        )}
-
-        {/* logo + name strip on active card */}
-        {isActive && (
-          <div
-            className="pointer-events-none absolute inset-x-0 bottom-0 flex items-end justify-between p-5"
-            style={{
-              background:
-                "linear-gradient(180deg, transparent 0%, rgba(5,5,7,0.85) 100%)",
-            }}
-          >
-            <div className="flex items-center gap-3">
-              {c.logo ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={c.logo} alt={c.name} className="h-7 w-auto opacity-95" />
-              ) : (
-                <span className="display text-[1.15rem]">{c.name}</span>
-              )}
-            </div>
-            <span className="meta accent text-[0.55rem] tracking-[0.3em]">
-              <Maximize2 size={11} className="mr-1.5 inline" />
-              FULLSCREEN
-            </span>
-          </div>
-        )}
-      </div>
-    </motion.button>
   );
 }
 
@@ -642,6 +313,7 @@ function Lightbox({ src, onClose }: { src: string; onClose: () => void }) {
       className="fixed inset-0 z-[100] flex items-center justify-center p-6"
       style={{ background: "rgba(0,0,0,0.86)", backdropFilter: "blur(10px)" }}
     >
+      {/* eslint-disable-next-line @next/next/no-img-element */}
       <motion.img
         initial={{ scale: 0.96 }}
         animate={{ scale: 1 }}

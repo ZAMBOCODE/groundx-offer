@@ -331,6 +331,250 @@ export const DEFAULT_CONFIG: OfferConfig = {
   },
 };
 
+/* ============================================================
+ * GERMAN CONTENT (Samy 2026-05-26: "ich möchte dass auf Deutsch
+ * übersetzt wird alles"). Mirrors the shape of OfferContent.
+ * OfferProvider merges this over DEFAULT_CONFIG.content when
+ * the active language is 'de'. Default UI language is now 'de'.
+ * ============================================================ */
+export const DE_CONTENT: OfferContent = {
+  hero: {
+    eyebrow: "Angebot",
+    headline: "Eine Marke, die einschlägt",
+    headlineAccent: "ohne sich zu zeigen.",
+    sub: "Marke, KI-Visuals, Web und Content — als ein System gebaut für das privateste Luxusprodukt der Golf-Region. Das, was ich für Ground X bauen würde, plus die Arbeiten, die zeigen, dass ich es schon kann.",
+  },
+  angle: {
+    eyebrow: "Warum ich, genau dafür",
+    title: "Kein Generalist. Jemand, der euer Universum",
+    titleAccent: "schon gebaut hat.",
+    sub: "Ground X braucht Dubai-Verständnis, Luxus-und-Sicherheit-Ton, Container-Knowhow und Systemdenken. Vier Punkte, die sich mit Arbeiten überlappen, die ich bereits ausgeliefert habe.",
+    points: [
+      { k: "Dubai", v: "Ich baue bereits für den GCC-Markt und seine Käufer." },
+      { k: "Luxus + Sicherheit", v: "Gulf Rescue, Löwenhardt — genau der Ton, den Ground X braucht." },
+      { k: "Container", v: "Ich habe schon einen 3D-Container-Konfigurator ausgeliefert." },
+      { k: "Systeme", v: "AETHER und zZzlim beweisen, dass ich Marketing als System fahre." },
+    ],
+  },
+  capabilities: {
+    eyebrow: "Was ich liefere",
+    title: "Ein voller Marketing-Stack inklusive Software-Seite —",
+    titleAccent: "eine Person, ein System.",
+    sub: "Web, Software, 3D, KI-Visuals, Ads, Content und Monitoring. Jeder Punkt ist etwas, das ich gebaut und ausgeliefert habe — keine Service-Zeile auf einem Blatt Papier.",
+    items: [
+      { title: "Websites — Design & Entwicklung", blurb: "Schnelle, mehrsprachige, conversion-fokussierte Seiten mit cinematischer Bewegung. Ende zu Ende: Design in Figma, Code in Next.js, deployed auf Vercel. Lead-Erfassung, private Beratungs-Flows, RTL-fähig.", proof: "Gulf Rescue & Löwenhardt — live, Luxus/Sicherheit" },
+      { title: "Software-Entwicklung", blurb: "Maßgeschneiderte Web-Apps, interne Tools und Automatisierungen. Dashboards, Konfiguratoren, Lead-Systeme, KI-Pipelines. Kein Wix-Template — echter Code, euer Repo, eure Kontrolle.", proof: "AETHER Operating System + zZzlim Dashboard, beide täglich im Einsatz" },
+      { title: "3D & Konfiguratoren", blurb: "Interaktive Produkt-Builder im Browser: drehen, Module kombinieren, Ergebnis live sehen. Echte GLB-Modelle, React Three Fiber, deployed.", proof: "Container-Konfigurator bereits ausgeliefert (Next.js + R3F)" },
+      { title: "KI-Renderings & Visual Systems", blurb: "Fotorealistische Innen- und Außenansichten aus einem kontrollierten Prompt-System, kein zufälliger KI-Output. Echte Kamera-Profile, konsistentes Licht, marken-konsistent.", proof: "12-Prompt-Mastersystem + Enhancer-Pipeline für Ground X gebaut" },
+      { title: "KI-Video-Produktion", blurb: "Cinematische Walkthroughs, Reels und Timelapses aus einer KI-Video-Pipeline. Sound, Bewegung und Grading — keine Slideshow-Exports.", proof: "End-to-End KI-Video-Pipeline in Produktion" },
+      { title: "Branding & Design-System", blurb: "Logo, Farbe, Schrift und Tonalität in einer Guideline, die das Team wirklich nutzen kann. Konsistent über Web, Print, Social und Produkt.", proof: "Vollständige Brand-Systeme bei mehreren Kunden" },
+      { title: "Social Media Management", blurb: "Content-Kalender, Scheduling, DM-Funnels und Community-Arbeit. ManyChat-Auto-Reply und Lead-Routing direkt am Content-Plan.", proof: "ManyChat-Flows + Content-Plan-System live auf zZzlim" },
+      { title: "Ad-Management", blurb: "Paid-Media-Setup und laufende Optimierung: Meta, Google, TikTok. Kampagnen-Architektur, Creative-Tests, monatlicher Performance-Review.", proof: "Performance-Accounts für eigene Marken und Kunden im Einsatz" },
+      { title: "Monitoring & Analytics", blurb: "Custom Dashboards, die eure Daten zusammenführen: Web-Analytics, Ad-Performance, Pipeline, Uptime. Das gleiche Monitoring, das ich für mich selbst baue.", proof: "AETHER-Monitoring + maßgeschneiderte Kunden-Dashboards" },
+      { title: "Investor-Pitch-Decks", blurb: "Decks, die Geld einsammeln: klare Story, echte Zahlen, Design, das nach einer ernsten Firma aussieht. Von der Narrative bis zum finalen Layout.", proof: "Athena und weitere Investor-Decks ausgeliefert" },
+    ],
+  },
+  work: { eyebrow: "Ausgewählte Arbeiten", title: "Schon gebaut,", titleAccent: "schon live." },
+  brand: {
+    eyebrow: "Marken-Richtung",
+    title: "So könnte sich Ground X",
+    titleAccent: "anfühlen.",
+    sub: "Ein erster Geschmack der visuellen Sprache: eine Gentleman’s-Club-Welt, kein Survival-Produkt. Finale Brand-Locks, sobald eure Assets vorliegen.",
+  },
+  offer: {
+    eyebrow: "Das Angebot",
+    title: "Such dir aus, wie wir",
+    titleAccent: "zusammen arbeiten.",
+    sub: "Zum Vergleich: Agenturen in Dubai berechnen 3.000–8.000 $/Monat für diesen Umfang, und Ground X verkauft ab 50.000 $ pro Modul.",
+    tabs: [
+      {
+        label: "Einmal-Aufträge",
+        note: "Eigenständige Projekte, einmal bezahlt. Keine Retainer-Bindung.",
+        cards: [
+          { tag: "Web", name: "Informative Website", price: "2.000–3.000 €", items: ["EN + DE, responsive", "Lead-Capture / Beratung", "Deployed auf Vercel", "Privacy-first Analytics"] },
+          { tag: "Shop", name: "Shopify-Rebuild", price: "1.500–2.500 €", items: ["Premium-Theme", "Produktseiten pro Modul", "KI-Renderings integriert", "Checkout-Optimierung"] },
+          { tag: "3D", name: "Modul-Konfigurator", price: "2.000–4.000 €", items: ["Modul selbst zusammenstellen in 3D", "Echte GLB-Modelle", "Im Browser", "Three.js / R3F"] },
+          { tag: "Deck", name: "Investor-Pitch-Deck", price: "1.500–3.500 €", items: ["Narrative + Struktur", "Echte Zahlen, kein Füllstoff", "10–15 Folien, Custom-Design", "Optional Loom-Voiceover"] },
+        ],
+      },
+      {
+        label: "Partnerschaft",
+        note: "Einmal aufgesetzt, dann ein System, das jeden Monat läuft.",
+        cards: [
+          { tag: "Setup", name: "Setup & Fundament", price: "ab 3.500 €", items: ["Brand-Guidelines final", "10–15 fotorealistische KI-Renderings", "Landingpage, deployed", "2–3 Marketing-Videos", "Social-Template-Set", "Drive + Content-Kalender"] },
+          { tag: "Monatlich", name: "Laufende Partnerschaft", price: "ab 1.500 € / Monat", items: ["15–20 Social-Posts", "4–6 KI-Videos", "3–5 neue Renderings", "Content-Kalender & Scheduling", "Paid-Ads-Management", "Monatliche Analytics & Optimierung"] },
+          { tag: "Soft Start", name: "Testmonat", price: "1.500 € flat", items: ["Ein Monat, voller Output", "Keine lange Bindung", "Geht in den Retainer über", "Entkoppelt die Entscheidung"] },
+        ],
+      },
+      {
+        label: "À la carte",
+        note: "Einzelne Deliverables, pro Stück bepreist. Beliebig kombinierbar.",
+        cards: [
+          { tag: "Visual", name: "Pro Deliverable", price: "ab 120 €", items: ["KI-Rendering — ab 120 €", "KI-Video / Reel — ab 250 €", "Logo-Animation — ab 300 €", "Pitch-Deck-Folie — ab 90 €"] },
+          { tag: "Web Add-ons", name: "Web & Content", price: "ab 500 €", items: ["Landingpage — ab 900 €", "Arabisch + RTL — 500–1.000 €", "Analytics-Dashboard — 1–2k €", "Brand-Guidelines — ab 700 €"] },
+          { tag: "Laufend", name: "Social & Ads", price: "ab 40 € / Post", items: ["Social-Post — ab 40 €", "ManyChat-DM-Funnel — ab 400 €", "Ad-Kampagne Setup — ab 350 €", "Monats-Report — ab 150 €"] },
+        ],
+      },
+    ],
+  },
+  process: {
+    eyebrow: "Wie das abläuft",
+    title: "Vom Handshake bis zu den ersten",
+    titleAccent: "Renderings in 14 Tagen.",
+    sub: "Ein kurzer Zeitplan, damit Ground X genau weiß, was wann landet — und was wir von euch brauchen. Jeder Meilenstein hat ein hartes Deliverable, kein Status-Update.",
+    milestones: [
+      {
+        when: "Tag 0",
+        title: "Kickoff-Call",
+        deliverables: [
+          "30-Min Calendly-Slot, keine Vorbereitung nötig",
+          "Ich teile meine Checkliste: was ich von euch brauche (Assets, Referenzen, Logins)",
+          "Drive-Ordner angelegt, ihr bekommt Edit-Rechte",
+        ],
+      },
+      {
+        when: "Woche 1",
+        title: "Erste Samples",
+        deliverables: [
+          "3 fotorealistische KI-Renderings (gewünschter Winkel)",
+          "Erstes Brand-Direction-Frame (Palette + Typografie)",
+          "Site-Wireframe in Figma falls Teil des Umfangs",
+        ],
+      },
+      {
+        when: "Woche 2",
+        title: "Approval-Runde",
+        deliverables: [
+          "Brand-Richtung gelockt (Palette, Typo, Tonalität)",
+          "5–7 finale Renderings, einsatzbereit",
+          "Site-Mockup in hoher Fidelity",
+        ],
+      },
+      {
+        when: "Woche 4",
+        title: "Launch",
+        deliverables: [
+          "Site live auf Vercel, EN+DE",
+          "Erste 2 Marketing-Videos ausgeliefert",
+          "Social-Kalender für Monat 2 vorbereitet",
+        ],
+      },
+      {
+        when: "Monat 2+",
+        title: "System läuft",
+        deliverables: [
+          "Monatliche Frequenz gelockt: Posts, Reels, Renderings, Ads",
+          "Monatlicher Report: was gelandet ist, was bewegt hat",
+          "Quartals-Review zur Richtung-Justierung",
+        ],
+      },
+    ],
+  },
+  trustedBy: {
+    eyebrow: "Vertrauen genießen",
+    logos: DEFAULT_CONFIG.content.trustedBy.logos,
+  },
+  testimonials: {
+    eyebrow: "Was Kunden sagen",
+    title: "Echte Worte, echte",
+    titleAccent: "Auslieferungen.",
+    items: [
+      {
+        quote:
+          "Samy hat die komplette Markenwelt plus die Website in drei Wochen gebaut. Die Renderings lagen schon vor, bevor das Engineering den Prototypen fertig hatte.",
+        author: "Stefan",
+        role: "Gründer · Gulf Rescue",
+        logo: "/assets/gulfrescue-logo.svg",
+      },
+      {
+        quote:
+          "Eine Person, voller Marketing-Stack. Wir haben aufgehört, drei Agenturen zu jonglieren. Der Shopify-Rebuild hat sich im ersten Monat amortisiert.",
+        author: "Anonym",
+        role: "Co-Founder · Löwenhardt",
+        logo: "/assets/loewenhardt-logo.png",
+      },
+      {
+        quote:
+          "Was wir zurückbekommen haben, war kein Mood-Board-Deck. Es war ein funktionierender Konfigurator, echte Modelle, deployed. Zwei Wochen.",
+        author: "Anonym",
+        role: "CEO · Modul-Konfigurator-Kunde",
+      },
+    ],
+  },
+  faq: {
+    eyebrow: "Häufige Fragen",
+    title: "Alles, was ihr vor dem Call",
+    titleAccent: "fragen würdet.",
+    sub: "Kurze Antworten. Was fehlt, klärt der Beratungs-Slot.",
+    items: [
+      {
+        q: "Wie schnell können wir starten?",
+        a: "Kickoff innerhalb einer Woche nach Unterschrift. Erste Renderings innerhalb von zwei Wochen. Der Process-Abschnitt oben zeigt es Tag für Tag.",
+      },
+      {
+        q: "Wem gehören die Assets?",
+        a: "Ground X gehört alles, was ich produziere — Renderings, Brand-Dateien, Site-Source, Konfigurator-Code. Geliefert in euer Drive + GitHub.",
+      },
+      {
+        q: "Was, wenn wir den Retainer stoppen wollen?",
+        a: "Monatliche Kündigung. Ihr behaltet alles, was bis dahin ausgeliefert wurde. Keine Ausstiegsgebühr, kein IP-Rückhalt.",
+      },
+      {
+        q: "Was ist nicht inbegriffen?",
+        a: "Paid-Media-Budget selbst (nur das Management). Foto-Shootings vor Ort. Übersetzungen außerhalb DE / EN / AR. Jedes davon separat angebbar.",
+      },
+      {
+        q: "Wie kommunizieren wir?",
+        a: "Async-first über einen geteilten Drive-Ordner + WhatsApp / E-Mail für schnelle Threads. Wöchentlicher 30-Min-Call während des Builds, alle zwei Wochen, sobald der Retainer läuft.",
+      },
+      {
+        q: "Lagerst du aus?",
+        a: "Nein. Ich baue alles selbst. AETHER (mein eigenes Operating System) übernimmt die repetitive Arbeit; die kreativen und strategischen Entscheidungen sind meine.",
+      },
+    ],
+  },
+  contact: {
+    eyebrow: "Nächster Schritt",
+    headline: "Lass uns die ersten",
+    headlineAccent: "Renderings bauen.",
+    sub: "Samples landen zuerst, das Angebot direkt dahinter. Nehmt es mit ans Tisch zu eurem Team, und wir starten.",
+  },
+};
+
+/** Pick the content block matching the active language. */
+export function pickContent(lang: "en" | "de", content: OfferContent): OfferContent {
+  if (lang === "en") return content;
+  // Deep-merge DE_CONTENT over the EN content so any missing DE field
+  // (or any partial override coming from a fetched offer) still falls
+  // back to the EN text. Arrays come straight from DE_CONTENT (they
+  // are full replacements, not merges, since indices have to line up).
+  return {
+    hero: { ...content.hero, ...DE_CONTENT.hero },
+    angle: { ...content.angle, ...DE_CONTENT.angle, points: DE_CONTENT.angle.points },
+    capabilities: {
+      ...content.capabilities,
+      ...DE_CONTENT.capabilities,
+      items: DE_CONTENT.capabilities.items,
+    },
+    work: { ...content.work, ...DE_CONTENT.work },
+    brand: { ...content.brand, ...DE_CONTENT.brand },
+    offer: { ...content.offer, ...DE_CONTENT.offer, tabs: DE_CONTENT.offer.tabs },
+    process: {
+      ...content.process,
+      ...DE_CONTENT.process,
+      milestones: DE_CONTENT.process.milestones,
+    },
+    trustedBy: { ...content.trustedBy, ...DE_CONTENT.trustedBy },
+    testimonials: {
+      ...content.testimonials,
+      ...DE_CONTENT.testimonials,
+      items: DE_CONTENT.testimonials.items,
+    },
+    faq: { ...content.faq, ...DE_CONTENT.faq, items: DE_CONTENT.faq.items },
+    contact: { ...content.contact, ...DE_CONTENT.contact },
+  };
+}
+
 /** shallow-merge a partial fetched config over the default */
 export function mergeConfig(partial: Partial<OfferConfig> | null | undefined): OfferConfig {
   if (!partial) return DEFAULT_CONFIG;

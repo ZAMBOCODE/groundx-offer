@@ -1,13 +1,14 @@
 "use client";
 
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
-import { DEFAULT_CONFIG, mergeConfig, type OfferConfig } from "@/lib/config";
+import { DEFAULT_CONFIG, mergeConfig, pickContent, type OfferConfig } from "@/lib/config";
 import {
   VARIANTS_CHANGE_EVENT,
   applyCopyVariants,
   loadCopyVariantSelections,
   type CopyVariantSelections,
 } from "@/lib/copyVariants";
+import { useLang } from "./language-context";
 
 const API =
   process.env.NEXT_PUBLIC_AETHER_API || "https://178.104.134.120.sslip.io/api";
@@ -75,12 +76,17 @@ export function OfferProvider({ children }: { children: React.ReactNode }) {
     };
   }, []);
 
-  // Merge active copy-variant patches over the section content. Memoized
-  // so identity stays stable across re-renders that don't change inputs.
+  // Merge active copy-variant patches over the section content, then
+  // swap to the German translation if the active language is 'de'.
+  // Memoized so identity stays stable across no-op re-renders.
+  const { lang } = useLang();
   const merged = useMemo<OfferConfig>(() => {
-    if (Object.keys(copyVariants).length === 0) return cfg;
-    return { ...cfg, content: applyCopyVariants(cfg.content, copyVariants) };
-  }, [cfg, copyVariants]);
+    const withCopy =
+      Object.keys(copyVariants).length === 0
+        ? cfg
+        : { ...cfg, content: applyCopyVariants(cfg.content, copyVariants) };
+    return { ...withCopy, content: pickContent(lang, withCopy.content) };
+  }, [cfg, copyVariants, lang]);
 
   return <Ctx.Provider value={merged}>{children}</Ctx.Provider>;
 }

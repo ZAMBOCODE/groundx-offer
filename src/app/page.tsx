@@ -7,14 +7,14 @@ import { DeckBody } from "@/components/DeckBody";
 
 export default function Page() {
   return (
-    <OfferProvider>
-      <LanguageProvider>
+    <LanguageProvider>
+      <OfferProvider>
         <DesignProvider>
           <HeaderActions />
           <DeckBody />
           <WhatsAppFloat />
         </DesignProvider>
-      </LanguageProvider>
-    </OfferProvider>
+      </OfferProvider>
+    </LanguageProvider>
   );
 }
