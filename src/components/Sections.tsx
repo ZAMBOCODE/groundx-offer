@@ -839,18 +839,18 @@ export function Capabilities() {
         sub={c.sub}
       />
 
-      {/* variant 0: 3-col cards — Samy 2026-05-26: kein Tilt, kein Proof,
-         Bilder-Slot (wird durch CAPABILITY_IMAGE map befüllt sobald Samy
-         eigene Bilder ablegt). */}
+      {/* variant 0: 3-col cards — Samy 2026-05-26: 6 Capabilities auf
+         100vh sichtbar. Karten kompakt: h-28 Bild, p-4, Text-Größen
+         runter damit 2×3 Grid mit Header in eine Viewport-Höhe paßt. */}
       {v === 0 && (
-        <div className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {c.items.map((c, i) => {
             const img = CAPABILITY_IMAGE[c.title];
             return (
               <Reveal key={c.title} delay={(i % 3) * 0.07}>
                 <div className="card glow-border flex h-full flex-col overflow-hidden p-0">
                   {img && (
-                    <div className="relative h-40 w-full overflow-hidden">
+                    <div className="relative h-28 w-full overflow-hidden sm:h-32">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
                         src={img}
@@ -858,14 +858,16 @@ export function Capabilities() {
                         className="absolute inset-0 h-full w-full object-cover object-center"
                       />
                       <div
-                        className="pointer-events-none absolute inset-x-0 bottom-0 h-1/2"
-                        style={{ background: "linear-gradient(180deg, transparent, rgba(5,5,7,0.85))" }}
+                        className="pointer-events-none absolute inset-x-0 bottom-0 h-2/3"
+                        style={{ background: "linear-gradient(180deg, transparent, rgba(5,5,7,0.9))" }}
                       />
                     </div>
                   )}
-                  <div className="flex flex-1 flex-col p-6">
-                    <h3 className="display text-[1.15rem]">{c.title}</h3>
-                    <p className="text-dim mt-3 flex-1 text-[0.92rem] leading-relaxed">{c.blurb}</p>
+                  <div className="flex flex-1 flex-col p-4 sm:p-5">
+                    <h3 className="display text-[1rem] sm:text-[1.05rem]">{c.title}</h3>
+                    <p className="text-dim mt-2 flex-1 text-[0.82rem] leading-snug sm:text-[0.85rem]">
+                      {c.blurb}
+                    </p>
                   </div>
                 </div>
               </Reveal>
@@ -1484,13 +1486,29 @@ export function BrandTeaser() {
   const { variants } = useDesign();
   const cb = useOffer().content.brand;
   const v = variants.brand;
-  // v1 (Cinematic Palette Wall) is now a sticky scroll-through that
-  // transitions Palette → Mockup → Isometric; v5 (Isometric standalone)
-  // is also scroll-driven. Both opt out of section flex-centering.
-  const scrollDriven = v === 1 || v === 5;
   // Replace "Ground X" in the title with the GroundX wordmark image so
   // the section heading carries the actual client logo (Samy 2026-05-25).
   const titleWithLogo = renderTitleWithGroundXLogo(cb.title);
+
+  // V2 (variant 1) = ScrollThrough. The sticky outer is 300vh; the
+  // section head sits INSIDE the sticky frame so head + phase share
+  // one 100vh viewport (Samy 2026-05-26: "alle 100vh"). Per-phase
+  // snap rails so the browser lands cleanly on Palette / Mockup /
+  // Stack instead of free-scrolling.
+  if (v === 1) {
+    return (
+      <section id="brand" className="section" data-scroll-driven>
+        <BrandScrollThrough
+          eyebrow={cb.eyebrow}
+          titleWithLogo={titleWithLogo}
+          titleAccent={cb.titleAccent}
+          sub={cb.sub}
+        />
+      </section>
+    );
+  }
+  // v5 also scroll-driven but uses its own component layout.
+  const scrollDriven = v === 5;
   return (
     <section id="brand" className="section" data-scroll-driven={scrollDriven || undefined}>
       <SectionHead
@@ -1510,11 +1528,6 @@ export function BrandTeaser() {
 
       {/* v0: Editorial Codex — broadsheet / type-foundry brandbook */}
       {v === 0 && <BrandEditorialCodex />}
-
-      {/* v1: SCROLL-THROUGH — sticky 300vh that crossfades the Palette
-         Wall → MockupShowcase → Isometric stacked final. Samy's pick
-         for Brand Direction 2026-05-25. */}
-      {v === 1 && <BrandScrollThrough />}
 
       {/* v2: Type Specimen Sheet — Klim-style foundry spec page */}
       {v === 2 && <BrandTypeSpecimen />}
@@ -1859,17 +1872,30 @@ function renderTitleWithGroundXLogo(title: string): React.ReactNode {
                               positions per Samy's "alle drei in 3D-mäßig
                               gelayert sichtbar" note)
    Each phase fades in then out around its window via opacity tracks. */
-function BrandScrollThrough() {
+type BrandScrollHeadProps = {
+  eyebrow: string;
+  titleWithLogo: React.ReactNode;
+  titleAccent: string;
+  sub?: string;
+};
+
+function BrandScrollThrough(props: BrandScrollHeadProps) {
   const pdf = usePdfMode();
-  if (pdf) return <BrandScrollThroughStatic />;
-  return <BrandScrollThroughDynamic />;
+  if (pdf) return <BrandScrollThroughStatic {...props} />;
+  return <BrandScrollThroughDynamic {...props} />;
 }
 
-/* PDF fallback: render all three phases vertically with spacing instead
-   of crossfading them in a sticky 300vh container. */
-function BrandScrollThroughStatic() {
+/* PDF fallback: head + all three phases vertically. */
+function BrandScrollThroughStatic({ eyebrow, titleWithLogo, titleAccent, sub }: BrandScrollHeadProps) {
   return (
     <div className="mt-10 flex flex-col gap-16">
+      <div>
+        <p className="eyebrow mb-3">{eyebrow}</p>
+        <h2 className="display max-w-3xl text-[2.4rem] sm:text-[3.3rem]">
+          {titleWithLogo} <span className="accent-text">{titleAccent}</span>
+        </h2>
+        {sub && <p className="text-dim mt-5 max-w-2xl text-[1.12rem] leading-relaxed">{sub}</p>}
+      </div>
       <BrandPaletteWall />
       <MockupShowcase showBusinessCard={false} />
       <BrandFinalStack />
@@ -1877,36 +1903,48 @@ function BrandScrollThroughStatic() {
   );
 }
 
-function BrandScrollThroughDynamic() {
+function BrandScrollThroughDynamic({ eyebrow, titleWithLogo, titleAccent, sub }: BrandScrollHeadProps) {
   const outer = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({
     target: outer,
     offset: ["start start", "end end"],
   });
 
-  // Samy 2026-05-26: "alle Phasen sollen immer Fullscreen sein, die
-  // Palette ist hinten zu sehen". Fix: non-overlapping fades + opaque
-  // bg on every phase wrapper, so during transitions you see a brief
-  // page-bg snap, never the previous phase bleeding through.
-  // 4% wipe windows feel snappy without ever showing two phases at once.
+  // Non-overlapping fades + opaque bg per phase (Samy 2026-05-26
+  // screenshot 15.21.41: vorherige Phasen leuchteten hinten durch).
   const p1 = useTransform(scrollYProgress, [0, 0.30, 0.34], [1, 1, 0]);
   const p2 = useTransform(scrollYProgress, [0.30, 0.34, 0.62, 0.66], [0, 1, 1, 0]);
   const p3 = useTransform(scrollYProgress, [0.62, 0.66, 1], [0, 1, 1]);
 
   return (
-    <div ref={outer} className="relative mt-10" style={{ height: "300vh" }}>
+    <div ref={outer} className="relative" style={{ height: "300vh" }}>
+      {/* Sticky frame: head at top, phase pinned below in flex-1.
+         marginBottom: -100vh pulls the snap-rails up to start AT
+         outer.top so rails span exactly outer's vertical range. */}
       <div
-        className="sticky top-0 h-screen overflow-hidden"
-        style={{ background: "#050507" }}
+        className="sticky top-0 z-10 flex h-screen flex-col overflow-hidden"
+        style={{ background: "#050507", marginBottom: "-100vh" }}
       >
-        <div className="relative h-full w-full">
-          {/* always-on opaque base for the snap moment between phases */}
+        <div className="px-4 pt-12 sm:px-12 sm:pt-16">
+          <p className="eyebrow mb-3">{eyebrow}</p>
+          <h2 className="display max-w-3xl text-[1.8rem] leading-[1.05] sm:text-[2.4rem]">
+            {titleWithLogo} <span className="accent-text">{titleAccent}</span>
+          </h2>
+          {sub && (
+            <p className="text-dim mt-3 max-w-xl text-[0.92rem] leading-relaxed">
+              {sub}
+            </p>
+          )}
+        </div>
+
+        <div className="relative flex-1">
+          {/* opaque base layer for the snap moment between phases */}
           <div
             className="absolute inset-0"
             style={{ background: "#050507" }}
           />
 
-          {/* Phase 1 — Palette Wall, full-bleed */}
+          {/* Phase 1 — Palette Wall */}
           <motion.div
             className="absolute inset-0 flex items-center justify-center"
             style={{ opacity: p1, background: "#050507" }}
@@ -1916,7 +1954,7 @@ function BrandScrollThroughDynamic() {
             </div>
           </motion.div>
 
-          {/* Phase 2 — Safari + iPhone mockups, centered */}
+          {/* Phase 2 — Safari + iPhone mockups */}
           <motion.div
             className="absolute inset-0 flex items-center justify-center px-6"
             style={{ opacity: p2, background: "#050507" }}
@@ -1926,7 +1964,7 @@ function BrandScrollThroughDynamic() {
             </div>
           </motion.div>
 
-          {/* Phase 3 — Final stacked 3D mockups */}
+          {/* Phase 3 — Final fanned trio */}
           <motion.div
             className="absolute inset-0 flex items-center justify-center"
             style={{ opacity: p3, background: "#050507" }}
@@ -1939,6 +1977,17 @@ function BrandScrollThroughDynamic() {
 
         <ScrollThroughDots progress={scrollYProgress} />
       </div>
+
+      {/* Per-phase snap rails: 3 × 100vh inline blocks, scroll-snap-align
+         start so the browser lands cleanly on Palette / Mockup / Stack. */}
+      {[0, 1, 2].map((i) => (
+        <div
+          key={i}
+          aria-hidden
+          className="pointer-events-none"
+          style={{ height: "100vh", scrollSnapAlign: "start" }}
+        />
+      ))}
     </div>
   );
 }

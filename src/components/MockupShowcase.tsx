@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { TiltCard } from "./TiltCard";
+import { useLang } from "./language-context";
 import { Lock, ChevronLeft, ChevronRight, Plus, Share, PanelLeft, RotateCw, Wifi, Signal, Battery } from "lucide-react";
 
 /* Brand-direction mockup showcase — variant 3 of the brand section.
@@ -251,6 +252,7 @@ function IPhoneFrame({ screenshot, label }: { screenshot: string; label: string 
 /* ---------------- Cleaner business card ---------------- */
 
 function CleanerCard() {
+  const { lang } = useLang();
   return (
     <div
       className="card glow-border flex w-[210px] flex-col gap-4 p-4"
@@ -271,8 +273,12 @@ function CleanerCard() {
       <img src="/assets/groundx-logo.png" alt="GROUND X" className="w-[120px]" />
 
       <div className="mt-auto flex items-baseline justify-between text-[var(--ink-3)]">
-        <span className="meta text-[0.5rem] tracking-[0.3em]">UNDERGROUND</span>
-        <span className="meta text-[0.5rem] tracking-[0.3em]">SANCTUARY</span>
+        <span className="meta text-[0.5rem] tracking-[0.3em]">
+          {lang === "de" ? "UNTERTAGE" : "UNDERGROUND"}
+        </span>
+        <span className="meta text-[0.5rem] tracking-[0.3em]">
+          {lang === "de" ? "REFUGIUM" : "SANCTUARY"}
+        </span>
       </div>
     </div>
   );
