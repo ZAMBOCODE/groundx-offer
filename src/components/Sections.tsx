@@ -2307,71 +2307,78 @@ function OfferAccordion({ co }: { co: OfferShape }) {
    add-on price / dash. Footer row = starting price per tab. Tab columns
    are sortable by clicking the header (puts the chosen one on the left
    so the buyer can study it). Hover a row to highlight across the matrix. */
-const OFFER_COMPARE_MATRIX: Array<{
-  category: string;
-  detail: string;
-  cells: Record<string, string>; // tab.label → "✓" | "+€price" | "—"
-}> = [
+/* Compare-matrix is keyed by TAB-INDEX (Partnership, One-time builds,
+ * À la carte) instead of by tab label — labels switch between EN/DE so
+ * a string-keyed lookup would silently break in DE mode. Order matches
+ * config.ts tabs order: [One-time builds, Partnership, À la carte].
+ * Each `cells` tuple = [oneTime, partnership, alaCarte]. */
+type CompareRow = {
+  category: { en: string; de: string };
+  detail: { en: string; de: string };
+  cells: [string, string, string];
+};
+const OFFER_COMPARE_MATRIX: CompareRow[] = [
   {
-    category: "Brand system",
-    detail: "Guidelines, palette, type, tone",
-    cells: { Partnership: "✓", "One-time builds": "✓", "À la carte": "+€700" },
+    category: { en: "Brand system", de: "Marken-System" },
+    detail: { en: "Guidelines, palette, type, tone", de: "Guideline, Palette, Typo, Tonalität" },
+    cells: ["✓", "✓", "+700 €"],
   },
   {
-    category: "Website / landing",
-    detail: "EN+DE, lead-capture, Vercel",
-    cells: { Partnership: "✓", "One-time builds": "€2–3K", "À la carte": "+€900" },
+    category: { en: "Website / landing", de: "Website / Landingpage" },
+    detail: { en: "EN+DE, lead-capture, Vercel", de: "EN+DE, Lead-Capture, Vercel" },
+    cells: ["2–3 k €", "✓", "+900 €"],
   },
   {
-    category: "Shopify rebuild",
-    detail: "Premium theme, product pages",
-    cells: { Partnership: "+€1.5K", "One-time builds": "€1.5–2.5K", "À la carte": "—" },
+    category: { en: "Shopify rebuild", de: "Shopify-Rebuild" },
+    detail: { en: "Premium theme, product pages", de: "Premium-Theme, Produktseiten" },
+    cells: ["1,5–2,5 k €", "+1,5 k €", "—"],
   },
   {
-    category: "AI renderings",
-    detail: "Photoreal, prompt-system locked",
-    cells: { Partnership: "10–15 / setup, 3–5 / mo", "One-time builds": "incl. landing", "À la carte": "from €120" },
+    category: { en: "AI renderings", de: "KI-Renderings" },
+    detail: { en: "Photoreal, prompt-system locked", de: "Fotoreal, Prompt-System gelockt" },
+    cells: ["inkl. Landing", "10–15 Setup, 3–5 / Mo", "ab 120 €"],
   },
   {
-    category: "AI video / reels",
-    detail: "Cinematic walkthroughs, social",
-    cells: { Partnership: "4–6 / month", "One-time builds": "—", "À la carte": "from €250" },
+    category: { en: "AI video / reels", de: "KI-Video / Reels" },
+    detail: { en: "Cinematic walkthroughs, social", de: "Cinematische Walkthroughs, Social" },
+    cells: ["—", "4–6 / Monat", "ab 250 €"],
   },
   {
-    category: "3D configurator",
-    detail: "R3F build-your-module",
-    cells: { Partnership: "+€2–4K", "One-time builds": "€2–4K", "À la carte": "—" },
+    category: { en: "3D configurator", de: "3D-Konfigurator" },
+    detail: { en: "R3F build-your-module", de: "R3F · Modul selbst zusammenstellen" },
+    cells: ["2–4 k €", "+2–4 k €", "—"],
   },
   {
-    category: "Social posts",
-    detail: "Content calendar + scheduling",
-    cells: { Partnership: "15–20 / month", "One-time builds": "—", "À la carte": "from €40" },
+    category: { en: "Social posts", de: "Social-Posts" },
+    detail: { en: "Content calendar + scheduling", de: "Content-Kalender + Scheduling" },
+    cells: ["—", "15–20 / Monat", "ab 40 €"],
   },
   {
-    category: "Paid-ads management",
-    detail: "Campaigns, A/B, optimization",
-    cells: { Partnership: "✓", "One-time builds": "—", "À la carte": "from €350" },
+    category: { en: "Paid-ads management", de: "Paid-Ads-Management" },
+    detail: { en: "Campaigns, A/B, optimization", de: "Kampagnen, A/B, Optimierung" },
+    cells: ["—", "✓", "ab 350 €"],
   },
   {
-    category: "Analytics dashboard",
-    detail: "Custom view, privacy-first",
-    cells: { Partnership: "monthly report", "One-time builds": "+€1–2K", "À la carte": "from €1K" },
+    category: { en: "Analytics dashboard", de: "Analytics-Dashboard" },
+    detail: { en: "Custom view, privacy-first", de: "Eigene Sicht, Privacy-first" },
+    cells: ["+1–2 k €", "Monats-Report", "ab 1 k €"],
   },
   {
-    category: "Multilingual (DE/EN/AR)",
-    detail: "RTL-ready Arabic optional",
-    cells: { Partnership: "✓", "One-time builds": "+€500–1K", "À la carte": "+€500" },
+    category: { en: "Multilingual (DE/EN/AR)", de: "Mehrsprachig (DE/EN/AR)" },
+    detail: { en: "RTL-ready Arabic optional", de: "RTL-fähig, Arabisch optional" },
+    cells: ["+500 €–1 k €", "✓", "+500 €"],
   },
   {
-    category: "Investor pitch deck",
-    detail: "Narrative + numbers + 10–15 slides",
-    cells: { Partnership: "+€1.5K", "One-time builds": "€1.5–3.5K", "À la carte": "from €90 / slide" },
+    category: { en: "Investor pitch deck", de: "Investor-Pitch-Deck" },
+    detail: { en: "Narrative + numbers + 10–15 slides", de: "Story + Zahlen + 10–15 Folien" },
+    cells: ["1,5–3,5 k €", "+1,5 k €", "ab 90 € / Folie"],
   },
 ];
 
 function OfferCompare({ co }: { co: OfferShape }) {
   const tabLabels = co.tabs.map((t) => t.label);
   const [hoverRow, setHoverRow] = useState<number | null>(null);
+  const { lang } = useLang();
   return (
     <Reveal>
       <div className="mt-10 overflow-x-auto">
@@ -2382,7 +2389,7 @@ function OfferCompare({ co }: { co: OfferShape }) {
                 className="meta text-faint sticky left-0 top-0 z-10 p-3 text-[0.55rem] tracking-[0.3em]"
                 style={{ background: "rgba(8,7,5,0.96)" }}
               >
-                CAPABILITY
+                {lang === "de" ? "LEISTUNG" : "CAPABILITY"}
               </th>
               {tabLabels.map((label, i) => (
                 <th
@@ -2395,7 +2402,9 @@ function OfferCompare({ co }: { co: OfferShape }) {
                 >
                   {label.toUpperCase()}
                   {i === 1 && (
-                    <div className="meta accent mt-0.5 text-[0.5rem]">— recommended</div>
+                    <div className="meta accent mt-0.5 text-[0.5rem]">
+                      {lang === "de" ? "— empfohlen" : "— recommended"}
+                    </div>
                   )}
                 </th>
               ))}
@@ -2404,9 +2413,11 @@ function OfferCompare({ co }: { co: OfferShape }) {
           <tbody>
             {OFFER_COMPARE_MATRIX.map((row, ri) => {
               const isHover = hoverRow === ri;
+              const category = lang === "de" ? row.category.de : row.category.en;
+              const detail = lang === "de" ? row.detail.de : row.detail.en;
               return (
                 <tr
-                  key={row.category}
+                  key={row.category.en}
                   onMouseEnter={() => setHoverRow(ri)}
                   onMouseLeave={() => setHoverRow((h) => (h === ri ? null : h))}
                   className="border-t border-[var(--stroke-card)] transition-colors"
@@ -2415,16 +2426,16 @@ function OfferCompare({ co }: { co: OfferShape }) {
                   }}
                 >
                   <td className="p-3.5">
-                    <div className="text-[0.9rem] text-white">{row.category}</div>
-                    <div className="meta text-faint mt-0.5 text-[0.6rem]">{row.detail}</div>
+                    <div className="text-[0.9rem] text-white">{category}</div>
+                    <div className="meta text-faint mt-0.5 text-[0.6rem]">{detail}</div>
                   </td>
-                  {tabLabels.map((label, ci) => {
-                    const cell = row.cells[label] ?? "—";
+                  {co.tabs.map((_, ci) => {
+                    const cell = row.cells[ci] ?? "—";
                     const isCheck = cell === "✓";
                     const isMissing = cell === "—";
                     return (
                       <td
-                        key={label}
+                        key={ci}
                         className="p-3 text-center"
                         style={{
                           color: isMissing
@@ -2448,12 +2459,17 @@ function OfferCompare({ co }: { co: OfferShape }) {
             {/* footer: starting price per tab */}
             <tr className="border-t-2 border-[var(--stroke-card)]">
               <td className="p-3.5">
-                <div className="meta text-faint text-[0.55rem] tracking-[0.3em]">FROM</div>
+                <div className="meta text-faint text-[0.55rem] tracking-[0.3em]">
+                  {lang === "de" ? "AB" : "FROM"}
+                </div>
               </td>
               {co.tabs.map((t, ci) => {
                 const minPrice =
-                  t.cards.find((c) => c.price?.toLowerCase().includes("from"))?.price ??
-                  t.cards[0]?.price ?? "—";
+                  t.cards.find((c) =>
+                    /^(from|ab)\b/i.test(c.price ?? ""),
+                  )?.price ??
+                  t.cards[0]?.price ??
+                  "—";
                 return (
                   <td
                     key={t.label}
@@ -2576,12 +2592,15 @@ const SAMY_EMAIL = "sheymig98@gmail.com";
 
 function useContactChannels() {
   const { brand } = useOffer();
+  const { lang } = useLang();
   return [
     { label: "Mail", value: SAMY_EMAIL, href: `mailto:${SAMY_EMAIL}` },
     { label: "Web", value: "zambodezigns.com", href: "https://zambodezigns.com" },
     {
       label: "Calendly",
-      value: "private consultation · 30 min",
+      value: lang === "de"
+        ? "Privates Beratungsgespräch · 30 Min"
+        : "private consultation · 30 min",
       href: brand.calendly ?? `mailto:${SAMY_EMAIL}`,
     },
   ];
@@ -3173,6 +3192,7 @@ function ContactQuote({ cx }: { cx: CxContent }) {
 function ContactSplit({ cx }: { cx: CxContent }) {
   const { brand } = useOffer();
   const channels = useContactChannels();
+  const { lang } = useLang();
   return (
     <div className="grid items-stretch gap-6 text-left md:grid-cols-2">
       <Reveal>
@@ -3190,7 +3210,7 @@ function ContactSplit({ cx }: { cx: CxContent }) {
             rel="noreferrer noopener"
             className="btn btn-primary mt-8 self-start"
           >
-            Book a private consultation
+            {lang === "de" ? "Privates Beratungsgespräch buchen" : "Book a private consultation"}
           </a>
         </TiltCard>
       </Reveal>
@@ -3240,6 +3260,7 @@ function ContactCinematic({ cx }: { cx: CxContent }) {
 function ContactCardRow({ cx }: { cx: CxContent }) {
   const { brand } = useOffer();
   const cal = brand.calendly ?? `mailto:${SAMY_EMAIL}`;
+  const t = useT();
   return (
     <>
       {/* editorial sign-off top — borrowed from v5's typography rhythm */}
@@ -3259,7 +3280,7 @@ function ContactCardRow({ cx }: { cx: CxContent }) {
               rel="noreferrer noopener"
               className="btn btn-primary"
             >
-              Book a private consultation
+              {t("Book a private consultation", "Privates Beratungsgespräch buchen")}
             </a>
             <p className="meta text-faint text-[0.6rem]">
               ZamboDezigns · Samuel Heymig · Stuttgart
@@ -3290,7 +3311,10 @@ function ContactCardRow({ cx }: { cx: CxContent }) {
                 </p>
               </div>
               <span className="meta text-faint mt-6 text-[0.6rem]">
-                → fastest reply, usually under a day
+                {t(
+                  "→ fastest reply, usually under a day",
+                  "→ schnellste Antwort, meist unter einem Tag",
+                )}
               </span>
             </TiltCard>
           </a>
@@ -3301,17 +3325,21 @@ function ContactCardRow({ cx }: { cx: CxContent }) {
             target={brand.calendly ? "_blank" : undefined}
             rel="noreferrer noopener"
             className="block h-full"
-            aria-label="Book on Calendly"
+            aria-label={t("Book on Calendly", "Auf Calendly buchen")}
           >
             <TiltCard className="flex h-full flex-col justify-between p-8 sm:p-10">
               <div>
                 <span className="meta accent text-[0.6rem] tracking-[0.35em]">— CALENDLY</span>
                 <p className="display mt-3 text-[1.5rem] sm:text-[1.8rem]">
-                  Private consultation
+                  {t("Private consultation", "Privates Beratungsgespräch")}
                 </p>
-                <p className="text-dim mt-2 text-[0.9rem]">30 minutes, any time that fits.</p>
+                <p className="text-dim mt-2 text-[0.9rem]">
+                  {t("30 minutes, any time that fits.", "30 Minuten, wann es euch passt.")}
+                </p>
               </div>
-              <span className="meta text-faint mt-6 text-[0.6rem]">→ pick a slot</span>
+              <span className="meta text-faint mt-6 text-[0.6rem]">
+                {t("→ pick a slot", "→ Slot wählen")}
+              </span>
             </TiltCard>
           </a>
         </Reveal>
@@ -3322,6 +3350,7 @@ function ContactCardRow({ cx }: { cx: CxContent }) {
 
 /* variant 5: minimal footer-style sign-off */
 function ContactMinimalFooter({ cx }: { cx: CxContent }) {
+  const t = useT();
   return (
     <Reveal>
       <div className="mx-auto flex max-w-4xl flex-col items-start gap-6 border-t border-[var(--stroke-card)] pt-12 text-left md:flex-row md:items-end md:justify-between">
@@ -3333,9 +3362,9 @@ function ContactMinimalFooter({ cx }: { cx: CxContent }) {
           <p className="text-dim mt-3 max-w-md text-[0.92rem] leading-relaxed">{cx.sub}</p>
         </div>
         <div className="flex flex-col items-start gap-2 md:items-end">
-          <ConsultationButton label="Book a consultation" />
+          <ConsultationButton label={t("Book a consultation", "Beratung buchen")} />
           <p className="meta text-faint text-[0.6rem]">
-            ZamboDezigns · Stuttgart, Germany
+            ZamboDezigns · {t("Stuttgart, Germany", "Stuttgart, Deutschland")}
           </p>
         </div>
       </div>

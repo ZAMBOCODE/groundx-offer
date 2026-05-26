@@ -3,6 +3,7 @@
 import { useRef } from "react";
 import { motion, useScroll, useTransform, type MotionValue } from "motion/react";
 import { usePdfMode } from "@/lib/pdfMode";
+import { useLang } from "./language-context";
 
 /* "How Ground X could feel" — variant: isometric scroll-stack.
    Three Safari mockups in 3D perspective. Each one rises from below
@@ -73,11 +74,18 @@ function IsometricScrollStackDynamic() {
           ))}
         </div>
 
-        <span className="meta accent absolute bottom-6 left-1/2 -translate-x-1/2 text-[0.6rem] tracking-[0.4em]">
-          SCROLL — ONE BRAND, THREE SURFACES
-        </span>
+        <ScrollStackHint />
       </div>
     </div>
+  );
+}
+
+function ScrollStackHint() {
+  const { lang } = useLang();
+  return (
+    <span className="meta accent absolute bottom-6 left-1/2 -translate-x-1/2 text-[0.6rem] tracking-[0.4em]">
+      {lang === "de" ? "SCROLL — EINE MARKE, DREI OBERFLÄCHEN" : "SCROLL — ONE BRAND, THREE SURFACES"}
+    </span>
   );
 }
 

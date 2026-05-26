@@ -1,6 +1,7 @@
 "use client";
 
 import { TiltCard } from "./TiltCard";
+import { useLang } from "./language-context";
 
 /* "How Ground X could feel" — variant: print magazine spread.
    Two-page layout. Left page is the screenshot bleeding to the gutter,
@@ -10,6 +11,8 @@ import { TiltCard } from "./TiltCard";
 const PALETTE = ["#0a0907", "#1a1714", "#8a5a1c", "#c8862e", "#e8b563"];
 
 export function MagazineSpread() {
+  const { lang } = useLang();
+  const t = (en: string, de: string) => (lang === "de" ? de : en);
   return (
     <div className="mt-12">
       <TiltCard className="overflow-hidden p-0">
@@ -33,7 +36,7 @@ export function MagazineSpread() {
               className="meta absolute bottom-4 left-5 z-20 text-[0.55rem] tracking-[0.35em]"
               style={{ color: "rgba(255,255,255,0.7)" }}
             >
-              FIG. 01 — DIGITAL PRESENCE
+              {t("FIG. 01 — DIGITAL PRESENCE", "ABB. 01 — DIGITALE PRÄSENZ")}
             </span>
           </div>
 
@@ -62,13 +65,13 @@ export function MagazineSpread() {
                 className="meta text-[0.55rem] tracking-[0.4em]"
                 style={{ color: "rgba(26,18,8,0.7)" }}
               >
-                GROUND X · ISSUE 01
+                {t("GROUND X · ISSUE 01", "GROUND X · AUSGABE 01")}
               </span>
               <span
                 className="meta text-[0.55rem] tracking-[0.4em]"
                 style={{ color: "rgba(26,18,8,0.7)" }}
               >
-                BRAND BOOK
+                {t("BRAND BOOK", "MARKEN-BUCH")}
               </span>
             </div>
 
@@ -80,7 +83,7 @@ export function MagazineSpread() {
                 color: "#0a0907",
               }}
             >
-              Underground.
+              {t("Underground.", "Untertage.")}
               <br />
               <em
                 style={{
@@ -89,7 +92,7 @@ export function MagazineSpread() {
                   fontWeight: 400,
                 }}
               >
-                Above standards.
+                {t("Above standards.", "Über jedem Standard.")}
               </em>
             </h3>
 
@@ -97,9 +100,10 @@ export function MagazineSpread() {
               className="mt-7 max-w-md text-[0.96rem] leading-relaxed"
               style={{ color: "rgba(26,18,8,0.78)" }}
             >
-              A villa lives on top. A sanctuary lives beneath. The brand never
-              shouts. It carries a calm, twilight confidence — cognac leather,
-              brushed gold, dark walnut. Never the word that begins with B.
+              {t(
+                "A villa lives on top. A sanctuary lives beneath. The brand never shouts. It carries a calm, twilight confidence — cognac leather, brushed gold, dark walnut. Never the word that begins with B.",
+                "Oben lebt die Villa. Unten lebt das Refugium. Die Marke schreit nie. Sie trägt eine ruhige, dämmrige Souveränität — Cognac-Leder, Brushed Gold, dunkler Walnuss. Nie das Wort, das mit B beginnt.",
+              )}
             </p>
 
             {/* palette strip */}
@@ -108,7 +112,7 @@ export function MagazineSpread() {
                 className="meta text-[0.55rem] tracking-[0.4em]"
                 style={{ color: "rgba(26,18,8,0.55)" }}
               >
-                PALETTE
+                {t("PALETTE", "PALETTE")}
               </span>
               <div className="mt-3 flex h-9 w-full overflow-hidden rounded-[2px] border border-[rgba(26,18,8,0.2)]">
                 {PALETTE.map((c) => (
@@ -134,7 +138,7 @@ export function MagazineSpread() {
                 className="meta text-[0.55rem] tracking-[0.4em]"
                 style={{ color: "rgba(26,18,8,0.55)" }}
               >
-                — DISCREET · MODULAR · UNCOMPROMISING
+                {t("— DISCREET · MODULAR · UNCOMPROMISING", "— DISKRET · MODULAR · KOMPROMISSLOS")}
               </span>
               <span
                 className="display text-[1.6rem] leading-none"
