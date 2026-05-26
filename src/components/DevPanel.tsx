@@ -244,7 +244,18 @@ export function DevPanel() {
   // Agent-generated copy variants per section (overrides the curated set).
   const [dynamicCopy, setDynamicCopy] = useState<Partial<Record<SectionCopyKey, CopyVariant[]>>>({});
   const [copyBusy, setCopyBusy] = useState<SectionCopyKey | null>(null);
-  const { variants, setVariant, enabledOverride, toggleSection, workProjects, setWorkProjects } = useDesign();
+  const {
+    variants,
+    setVariant,
+    enabledOverride,
+    toggleSection,
+    workProjects,
+    setWorkProjects,
+    heroButtons,
+    setHeroButtons,
+    heroOverride,
+    setHeroOverride,
+  } = useDesign();
   const offer = useOffer();
 
   const generateCopyVariants = useCallback(
@@ -772,6 +783,81 @@ export function DevPanel() {
                     onGenerate={() => generateCopyVariants(key as SectionCopyKey)}
                   />
                 )}
+                {/* Hero panel — Samy 2026-05-26: Buttons toggle-bar +
+                   Überschrift/Unterschrift editierbar. */}
+                {key === "hero" && (
+                  <div className="mt-1.5 flex flex-col gap-2">
+                    <div className="grid grid-cols-2 gap-1.5">
+                      <button
+                        onClick={() => setHeroButtons({ primary: !heroButtons.primary })}
+                        className="inner-card flex items-center justify-between px-3 py-2"
+                        title={`Primary button: ${heroButtons.primary ? "on" : "off"}`}
+                      >
+                        <span
+                          className="text-[0.72rem]"
+                          style={{ color: heroButtons.primary ? "var(--ink)" : "var(--ink-3)" }}
+                        >
+                          Primary button
+                        </span>
+                        <span
+                          className="relative h-4 w-7 rounded-full transition"
+                          style={{ background: heroButtons.primary ? "var(--accent)" : "rgba(255,255,255,0.1)" }}
+                        >
+                          <span
+                            className="absolute top-0.5 h-3 w-3 rounded-full bg-white transition-all"
+                            style={{ left: heroButtons.primary ? "0.875rem" : "0.125rem" }}
+                          />
+                        </span>
+                      </button>
+                      <button
+                        onClick={() => setHeroButtons({ ghost: !heroButtons.ghost })}
+                        className="inner-card flex items-center justify-between px-3 py-2"
+                        title={`Ghost button: ${heroButtons.ghost ? "on" : "off"}`}
+                      >
+                        <span
+                          className="text-[0.72rem]"
+                          style={{ color: heroButtons.ghost ? "var(--ink)" : "var(--ink-3)" }}
+                        >
+                          Ghost button
+                        </span>
+                        <span
+                          className="relative h-4 w-7 rounded-full transition"
+                          style={{ background: heroButtons.ghost ? "var(--accent)" : "rgba(255,255,255,0.1)" }}
+                        >
+                          <span
+                            className="absolute top-0.5 h-3 w-3 rounded-full bg-white transition-all"
+                            style={{ left: heroButtons.ghost ? "0.875rem" : "0.125rem" }}
+                          />
+                        </span>
+                      </button>
+                    </div>
+                    <HeroCopyField
+                      label="Eyebrow"
+                      placeholder={offer.content.hero.eyebrow}
+                      value={heroOverride.eyebrow ?? ""}
+                      onChange={(v) => setHeroOverride({ eyebrow: v })}
+                    />
+                    <HeroCopyField
+                      label="Headline"
+                      placeholder={offer.content.hero.headline}
+                      value={heroOverride.headline ?? ""}
+                      onChange={(v) => setHeroOverride({ headline: v })}
+                    />
+                    <HeroCopyField
+                      label="Headline accent"
+                      placeholder={offer.content.hero.headlineAccent}
+                      value={heroOverride.headlineAccent ?? ""}
+                      onChange={(v) => setHeroOverride({ headlineAccent: v })}
+                    />
+                    <HeroCopyField
+                      label="Subline"
+                      placeholder={offer.content.hero.sub}
+                      value={heroOverride.sub ?? ""}
+                      onChange={(v) => setHeroOverride({ sub: v })}
+                      multiline
+                    />
+                  </div>
+                )}
                 {/* Project-filter only for Work — Samy 2026-05-24: "ich will auswählen welche Projekte gezeigt werden" */}
                 {key === "work" && (
                   <div className="mt-1.5 flex flex-col gap-1">
@@ -848,6 +934,60 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
     <div>
       <p className="meta text-faint mb-2 text-[0.58rem]">{label}</p>
       {children}
+    </div>
+  );
+}
+
+/* Small inline text field used by the Hero panel. Placeholder shows the
+ * current offer-config default so empty input = use default. */
+function HeroCopyField({
+  label,
+  value,
+  placeholder,
+  onChange,
+  multiline = false,
+}: {
+  label: string;
+  value: string;
+  placeholder: string;
+  onChange: (v: string) => void;
+  multiline?: boolean;
+}) {
+  return (
+    <div className="flex flex-col gap-1">
+      <div className="flex items-baseline justify-between">
+        <span className="meta text-faint text-[0.55rem] tracking-[0.3em]">
+          {label.toUpperCase()}
+        </span>
+        {value !== "" && (
+          <button
+            onClick={() => onChange("")}
+            className="meta text-faint hover:text-accent-bright text-[0.55rem] underline-offset-2 hover:underline"
+            title="Auf Default zurücksetzen"
+          >
+            reset
+          </button>
+        )}
+      </div>
+      {multiline ? (
+        <textarea
+          value={value}
+          placeholder={placeholder}
+          onChange={(e) => onChange(e.target.value)}
+          rows={3}
+          className="inner-card resize-y px-2.5 py-1.5 text-[0.78rem]"
+          style={{ color: "var(--ink)", fontFamily: "var(--font-sans)" }}
+        />
+      ) : (
+        <input
+          type="text"
+          value={value}
+          placeholder={placeholder}
+          onChange={(e) => onChange(e.target.value)}
+          className="inner-card px-2.5 py-1.5 text-[0.78rem]"
+          style={{ color: "var(--ink)", fontFamily: "var(--font-sans)" }}
+        />
+      )}
     </div>
   );
 }

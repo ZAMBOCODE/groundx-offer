@@ -4,11 +4,19 @@ import { motion } from "motion/react";
 import { TiltCard } from "./TiltCard";
 import { useOffer } from "./OfferProvider";
 import { useDesign } from "./design-context";
+import { useLang } from "./language-context";
 
 export function Hero() {
   const { content } = useOffer();
-  const h = content.hero;
-  const { variants } = useDesign();
+  const { variants, heroOverride } = useDesign();
+  // Merge DevPanel overrides over the offer-config defaults so Samy can
+  // edit Headline / Subline / Eyebrow live without touching code.
+  const h: HeroContent = {
+    eyebrow: heroOverride.eyebrow ?? content.hero.eyebrow,
+    headline: heroOverride.headline ?? content.hero.headline,
+    headlineAccent: heroOverride.headlineAccent ?? content.hero.headlineAccent,
+    sub: heroOverride.sub ?? content.hero.sub,
+  };
   const v = variants.hero;
 
   let inner: React.ReactNode;
@@ -24,6 +32,36 @@ export function Hero() {
       {inner}
       <HeroTrustedStrip />
     </>
+  );
+}
+
+/* DevPanel-toggleable CTA buttons. Samy 2026-05-26: each button can be
+ * switched off independently in the design panel. Labels follow active
+ * language (DE / EN). */
+function HeroButtons({ align = "left" }: { align?: "left" | "center" }) {
+  const { heroButtons } = useDesign();
+  const { lang } = useLang();
+  const ctaSeeOffer = lang === "de" ? "Angebot ansehen" : "See the offer";
+  const ctaViewWork = lang === "de" ? "Arbeiten ansehen" : "View the work";
+  if (!heroButtons.primary && !heroButtons.ghost) return null;
+  return (
+    <div
+      className={
+        "mt-9 flex flex-wrap gap-3" +
+        (align === "center" ? " justify-center" : "")
+      }
+    >
+      {heroButtons.primary && (
+        <a href="#offer" className="btn btn-primary">
+          {ctaSeeOffer}
+        </a>
+      )}
+      {heroButtons.ghost && (
+        <a href="#work" className="btn btn-ghost">
+          {ctaViewWork}
+        </a>
+      )}
+    </div>
   );
 }
 
@@ -111,10 +149,8 @@ function HeroCentered({ h }: { h: HeroContent }) {
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.9, delay: 0.45 }}
-        className="mt-10 flex flex-wrap items-center justify-center gap-3"
       >
-        <a href="#offer" className="btn btn-primary">See the offer</a>
-        <a href="#work" className="btn btn-ghost">View the work</a>
+        <HeroButtons align="center" />
       </motion.div>
     </header>
   );
@@ -134,10 +170,7 @@ function HeroSplit({ h }: { h: HeroContent }) {
             {h.headline} <span className="accent-text">{h.headlineAccent}</span>
           </h1>
           <p className="text-dim mt-6 max-w-md text-[1.05rem] leading-relaxed">{h.sub}</p>
-          <div className="mt-9 flex flex-wrap gap-3">
-            <a href="#offer" className="btn btn-primary">See the offer</a>
-            <a href="#work" className="btn btn-ghost">View the work</a>
-          </div>
+          <HeroButtons />
         </motion.div>
       </div>
     </header>
@@ -202,10 +235,7 @@ function HeroMarquee({ h }: { h: HeroContent }) {
       </motion.div>
       <div className="mx-6 mt-16 flex flex-col items-start gap-6 sm:mx-16 sm:flex-row sm:items-end sm:justify-between">
         <p className="text-dim max-w-md text-[1rem] leading-relaxed">{h.sub}</p>
-        <div className="flex gap-3">
-          <a href="#offer" className="btn btn-primary">See the offer</a>
-          <a href="#work" className="btn btn-ghost">View the work</a>
-        </div>
+        <HeroButtons />
       </div>
     </header>
   );
@@ -234,10 +264,7 @@ function HeroCinematic({ h }: { h: HeroContent }) {
           <span className="accent-text">{h.headlineAccent}</span>
         </h1>
         <p className="text-dim mt-6 max-w-xl text-[1.05rem] leading-relaxed">{h.sub}</p>
-        <div className="mt-8 flex flex-wrap gap-3">
-          <a href="#offer" className="btn btn-primary">See the offer</a>
-          <a href="#work" className="btn btn-ghost">View the work</a>
-        </div>
+        <HeroButtons />
       </motion.div>
     </header>
   );
@@ -255,10 +282,7 @@ function HeroStackedFrame({ h }: { h: HeroContent }) {
             {h.headline} <span className="accent-text">{h.headlineAccent}</span>
           </h1>
           <p className="text-dim mt-5 max-w-xl text-[1rem] leading-relaxed">{h.sub}</p>
-          <div className="mt-8 flex flex-wrap justify-center gap-3">
-            <a href="#offer" className="btn btn-primary">See the offer</a>
-            <a href="#work" className="btn btn-ghost">View the work</a>
-          </div>
+          <HeroButtons align="center" />
         </TiltCard>
       </motion.div>
     </header>

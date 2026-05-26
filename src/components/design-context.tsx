@@ -136,6 +136,22 @@ export const VARIANT_NOTES: Record<SectionKey, string[]> = {
 const KEY = "groundx.variants";
 const KEY_ENABLED = "groundx.sectionEnabled";
 const KEY_WORK_PROJECTS = "groundx.workProjects";
+const KEY_HERO_BUTTONS = "groundx.heroButtons";
+const KEY_HERO_OVERRIDE = "groundx.heroOverride";
+
+/** which Hero CTA buttons to render (Samy 2026-05-26: "die Buttons unten
+ *  in der Hero Section sollen anwählbar sein, ob man die haben will oder nicht"). */
+export type HeroButtons = { primary: boolean; ghost: boolean };
+const HERO_BUTTONS_DEFAULT: HeroButtons = { primary: true, ghost: true };
+
+/** Editable Hero copy overrides (Samy 2026-05-26: "dass man eine Überschrift
+ *  und Unterschrift ändern kann"). Empty string = use offer-config default. */
+export type HeroOverride = {
+  eyebrow?: string;
+  headline?: string;
+  headlineAccent?: string;
+  sub?: string;
+};
 
 type Ctx = {
   variants: Variants;
@@ -146,6 +162,10 @@ type Ctx = {
   /** Whitelist of work-project names to show in Selected Work. Empty = all. */
   workProjects: string[];
   setWorkProjects: (names: string[]) => void;
+  heroButtons: HeroButtons;
+  setHeroButtons: (patch: Partial<HeroButtons>) => void;
+  heroOverride: HeroOverride;
+  setHeroOverride: (patch: Partial<HeroOverride>) => void;
 };
 
 const DesignCtx = createContext<Ctx>({
@@ -155,6 +175,10 @@ const DesignCtx = createContext<Ctx>({
   toggleSection: () => {},
   workProjects: [],
   setWorkProjects: () => {},
+  heroButtons: HERO_BUTTONS_DEFAULT,
+  setHeroButtons: () => {},
+  heroOverride: {},
+  setHeroOverride: () => {},
 });
 
 export function DesignProvider({ children }: { children: React.ReactNode }) {
@@ -162,6 +186,8 @@ export function DesignProvider({ children }: { children: React.ReactNode }) {
   const [variants, setVariants] = useState<Variants>(DEFAULTS);
   const [enabledOverride, setEnabledOverride] = useState<Partial<Record<ConfigSectionKey, boolean>>>({});
   const [workProjects, setWorkProjectsState] = useState<string[]>([]);
+  const [heroButtons, setHeroButtonsState] = useState<HeroButtons>(HERO_BUTTONS_DEFAULT);
+  const [heroOverride, setHeroOverrideState] = useState<HeroOverride>({});
 
   // Seed variants from the offer config (so the pipeline drives layout per
   // client); a saved dev-panel choice in localStorage always wins.
@@ -185,6 +211,14 @@ export function DesignProvider({ children }: { children: React.ReactNode }) {
     try {
       const rawP = localStorage.getItem(KEY_WORK_PROJECTS);
       if (rawP) setWorkProjectsState(JSON.parse(rawP));
+    } catch {}
+    try {
+      const rawH = localStorage.getItem(KEY_HERO_BUTTONS);
+      if (rawH) setHeroButtonsState({ ...HERO_BUTTONS_DEFAULT, ...JSON.parse(rawH) });
+    } catch {}
+    try {
+      const rawHO = localStorage.getItem(KEY_HERO_OVERRIDE);
+      if (rawHO) setHeroOverrideState(JSON.parse(rawHO));
     } catch {}
   }, [cfg]);
 
@@ -211,8 +245,41 @@ export function DesignProvider({ children }: { children: React.ReactNode }) {
     try { localStorage.setItem(KEY_WORK_PROJECTS, JSON.stringify(names)); } catch {}
   }, []);
 
+  const setHeroButtons = useCallback((patch: Partial<HeroButtons>) => {
+    setHeroButtonsState((prev) => {
+      const next = { ...prev, ...patch };
+      try { localStorage.setItem(KEY_HERO_BUTTONS, JSON.stringify(next)); } catch {}
+      return next;
+    });
+  }, []);
+
+  const setHeroOverride = useCallback((patch: Partial<HeroOverride>) => {
+    setHeroOverrideState((prev) => {
+      const next = { ...prev };
+      for (const [k, v] of Object.entries(patch)) {
+        if (v === undefined || v === "") delete (next as Record<string, string>)[k];
+        else (next as Record<string, string>)[k] = v as string;
+      }
+      try { localStorage.setItem(KEY_HERO_OVERRIDE, JSON.stringify(next)); } catch {}
+      return next;
+    });
+  }, []);
+
   return (
-    <DesignCtx.Provider value={{ variants, setVariant, enabledOverride, toggleSection, workProjects, setWorkProjects }}>
+    <DesignCtx.Provider
+      value={{
+        variants,
+        setVariant,
+        enabledOverride,
+        toggleSection,
+        workProjects,
+        setWorkProjects,
+        heroButtons,
+        setHeroButtons,
+        heroOverride,
+        setHeroOverride,
+      }}
+    >
       {children}
     </DesignCtx.Provider>
   );
