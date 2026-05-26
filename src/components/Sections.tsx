@@ -637,12 +637,14 @@ function AngleStickyCounter({
   const total = Math.max(points.length, 1);
   const pdf = usePdfMode();
 
-  // outer height = one viewport intro + (total-1) viewports of scroll.
-  // gives Samy enough scroll room per point to feel the counter tick.
-  const outerVh = pdf ? total * 100 : Math.max(total, 2) * 95;
+  // outer height = (total) viewports of scroll. Samy 2026-05-26:
+  // "der Platz zwischen 01 und 02 muss größer sein, sonst überlappen
+  // sich alles". 130vh per step gives enough scroll room so each digit
+  // settles cleanly before the next enters.
+  const outerVh = pdf ? total * 100 : Math.max(total, 2) * 130;
 
   if (pdf) {
-    // Static PDF fallback: just lay out the 4 rows.
+    // Static PDF fallback: just lay out the rows.
     return (
       <div className="mt-12 flex flex-col gap-8">
         {points.map((p, i) => (
@@ -663,10 +665,11 @@ function AngleStickyCounter({
     );
   }
 
-  // sliding counter track. CHAR_H is the height each digit occupies; the
-  // whole track translateY by -active * CHAR_H so the active digit sits
-  // centered in the visible window.
-  const CHAR_H = 160; // px
+  // Sliding counter track. CHAR_H is the slot height per digit; the
+  // visible window equals CHAR_H so only ONE digit is fully visible at
+  // any time. Larger CHAR_H + stronger fades = less digit overlap during
+  // transitions.
+  const CHAR_H = 240; // px
   const trackY = useTransform(scrollYProgress, (p) => {
     const active = p * (total - 1);
     return -active * CHAR_H;
@@ -675,29 +678,33 @@ function AngleStickyCounter({
   return (
     <div
       ref={outer}
-      className="relative mt-10"
+      className="relative"
       style={{ height: `${outerVh}vh` }}
     >
       <div className="sticky top-0 flex h-screen items-center">
-        <div className="grid w-full grid-cols-[auto_1fr] items-center gap-10 sm:gap-20">
+        <div className="grid w-full grid-cols-[auto_1fr] items-center gap-10 sm:gap-16">
           {/* COUNTER pillar */}
           <div
             className="relative overflow-hidden"
-            style={{ height: `${CHAR_H}px`, width: "9rem" }}
+            style={{ height: `${CHAR_H}px`, width: "10rem" }}
           >
-            {/* top + bottom fade so digits leaving / entering soften */}
+            {/* heavy top + bottom fades so adjacent digits never overlap
+               visibly during scroll-transitions (Samy: "sonst überlappen
+               sich alles") */}
             <div
-              className="pointer-events-none absolute inset-x-0 top-0 z-10 h-16"
+              className="pointer-events-none absolute inset-x-0 top-0 z-10"
               style={{
+                height: "40%",
                 background:
-                  "linear-gradient(180deg, #050507 0%, transparent 100%)",
+                  "linear-gradient(180deg, #050507 0%, #050507 30%, transparent 100%)",
               }}
             />
             <div
-              className="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-16"
+              className="pointer-events-none absolute inset-x-0 bottom-0 z-10"
               style={{
+                height: "40%",
                 background:
-                  "linear-gradient(0deg, #050507 0%, transparent 100%)",
+                  "linear-gradient(0deg, #050507 0%, #050507 30%, transparent 100%)",
               }}
             />
             <motion.div
@@ -707,10 +714,10 @@ function AngleStickyCounter({
               {points.map((p, i) => (
                 <div
                   key={p.k}
-                  className="display-light accent flex w-full items-center"
+                  className="display-light accent flex w-full items-center justify-center"
                   style={{
                     height: `${CHAR_H}px`,
-                    fontSize: "clamp(6rem, 12vw, 11rem)",
+                    fontSize: "clamp(6rem, 13vw, 11rem)",
                     lineHeight: 1,
                     letterSpacing: "-0.04em",
                   }}
@@ -721,9 +728,9 @@ function AngleStickyCounter({
             </motion.div>
           </div>
 
-          {/* CONTENT — each point absolute-positioned, fades + slides
+          {/* CONTENT — taller so longer points stay readable; fades + slides
              based on distance from current scroll-driven active index */}
-          <div className="relative h-[280px] sm:h-[320px]">
+          <div className="relative h-[360px] sm:h-[440px]">
             {points.map((p, i) => (
               <AnglePointSlide
                 key={p.k}
@@ -891,12 +898,23 @@ export function Capabilities() {
 
    Images come from Drive Techne/My Services/ once Samy drops them in;
    meanwhile we map title → best existing /public/assets/ shot. */
+/* Mockup-image per capability title. Keyed by both EN + DE titles so the
+ * lookup works in either language (capabilities content swaps between
+ * EN/DE via pickContent in OfferProvider). */
 const CAPABILITY_IMAGE: Record<string, string> = {
+  // EN titles
   "Websites — Design & Development": "/assets/gx-web-1.png",
   "Software Development": "/assets/gx-web-2.png",
-  "3D & Configurators": "/assets/gx-web-2.png",
-  "AI Renderings & Visual Systems": "/assets/gx-lifestyle.png",
-  "AI Video Production": "/assets/gulfrescue-vehicle.png",
+  "3D & Configurators": "/assets/gx-web-3.png",
+  "AI Renderings & Video": "/assets/gx-lifestyle.png",
+  "Brand & Design System": "/assets/loewenhardt-logo.png",
+  "Social Media & Ads": "/assets/gulfrescue-vehicle.png",
+  // DE titles
+  "Websites — Design & Entwicklung": "/assets/gx-web-1.png",
+  "Software-Entwicklung": "/assets/gx-web-2.png",
+  "3D & Konfiguratoren": "/assets/gx-web-3.png",
+  "KI-Renderings & Video": "/assets/gx-lifestyle.png",
+  "Branding & Design-System": "/assets/loewenhardt-logo.png",
 };
 
 function CapabilitiesStickyStack({
@@ -904,9 +922,9 @@ function CapabilitiesStickyStack({
 }: {
   items: Array<{ title: string; blurb: string; proof: string }>;
 }) {
-  // Stack only the first four — the design only resolves up to 04. The
-  // remaining four capabilities show in other variants / inline copy.
-  const stack = items.slice(0, 4);
+  // Show all (up to 6) capabilities — Samy 2026-05-26 reduced from 10
+  // to 6 explicitly so the full list fits in the sticky stack.
+  const stack = items.slice(0, 6);
   const pdf = usePdfMode();
   if (pdf) return <CapabilitiesStaticStack stack={stack} />;
   return <CapabilitiesStickyStackDynamic stack={stack} />;
@@ -1270,10 +1288,11 @@ export function Work() {
   // variant 4 (V5 in the UI) = WorkShowcase. Curved sticky-scroll carousel
   // that cycles through ALL projects with a sticky heading. WorkShowcase
   // renders its own heading inside the sticky frame, so we skip the
-  // outer SectionHead here. Samy 2026-05-26.
+  // outer SectionHead here. `.section` class added 2026-05-26 so the
+  // global scroll-snap-align: start applies cleanly when carousel ends.
   if (v === 4) {
     return (
-      <section id="work" data-scroll-driven>
+      <section id="work" className="section" data-scroll-driven>
         <WorkShowcase />
       </section>
     );
@@ -2915,7 +2934,11 @@ export function Process() {
   const p = useOffer().content.process;
   if (!p) return null;
   return (
-    <section id="process" className="section">
+    <section
+      id="process"
+      className="section"
+      data-scroll-driven={v === 2 || undefined}
+    >
       <SectionHead
         eyebrow={p.eyebrow}
         title={
@@ -2993,50 +3016,61 @@ function ProcessStickyReveal({ milestones }: { milestones: Milestone[] }) {
 }
 
 /* variant 2 — horizontal stations with scroll-driven progress line
- * (Samy 2026-05-26): "von day one to week eins der Strich, dann weiter
- * scrollen → week 2, weiter scrollen → week 4". The horizontal line
- * grows from 0% to 100% as the section enters and passes through the
- * viewport; the rest of the section is static. */
+ * (Samy 2026-05-26): "die Scroll-Animation muss bis zum letzten Punkt
+ * angekommen sein, erst dann kann man weiterscrollen." Wrapped in a
+ * sticky-scroll outer of ~ (stations × 70vh) so the line completes
+ * fully BEFORE the section releases and the next section snaps in. */
 function ProcessStations({ milestones }: { milestones: Milestone[] }) {
-  const ref = useRef<HTMLDivElement>(null);
+  const outer = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({
-    target: ref,
-    offset: ["start 80%", "end 40%"],
+    target: outer,
+    offset: ["start start", "end end"],
   });
-  const lineScaleX = useTransform(scrollYProgress, [0, 1], [0, 1]);
+  // 70vh per station beyond the first viewport gives enough scroll room
+  // for the line to grow visibly between dots. Plus a 20vh exit tail so
+  // the user briefly sees the fully-filled line before leaving.
+  const total = Math.max(milestones.length, 2);
+  const outerVh = total * 70 + 20;
+  // Line reaches 100% at progress 0.85, then holds for the last 15% so
+  // the completed state is readable before the next section snaps in.
+  const lineScaleX = useTransform(scrollYProgress, [0, 0.85, 1], [0, 1, 1]);
   return (
-    <div ref={ref} className="relative mt-14">
-      {/* base track */}
-      <div
-        className="absolute left-0 right-0 top-[14px] h-px"
-        style={{ background: "rgba(255,255,255,0.08)" }}
-      />
-      {/* growing accent line */}
-      <motion.div
-        className="absolute left-0 top-[14px] h-px origin-left"
-        style={{
-          background:
-            "linear-gradient(90deg, var(--accent), var(--accent-bright))",
-          scaleX: lineScaleX,
-          width: "100%",
-          boxShadow: "0 0 14px rgba(249,115,22,0.5)",
-        }}
-      />
-      <div
-        className="grid gap-6"
-        style={{
-          gridTemplateColumns: `repeat(${milestones.length}, minmax(0, 1fr))`,
-        }}
-      >
-        {milestones.map((m, i) => (
-          <ProcessStation
-            key={m.when + m.title}
-            m={m}
-            index={i}
-            total={milestones.length}
-            progress={scrollYProgress}
+    <div ref={outer} className="relative mt-10" style={{ height: `${outerVh}vh` }}>
+      <div className="sticky top-0 flex h-screen items-center">
+        <div className="relative w-full">
+          {/* base track */}
+          <div
+            className="absolute left-0 right-0 top-[14px] h-px"
+            style={{ background: "rgba(255,255,255,0.08)" }}
           />
-        ))}
+          {/* growing accent line */}
+          <motion.div
+            className="absolute left-0 top-[14px] h-px origin-left"
+            style={{
+              background:
+                "linear-gradient(90deg, var(--accent), var(--accent-bright))",
+              scaleX: lineScaleX,
+              width: "100%",
+              boxShadow: "0 0 14px rgba(249,115,22,0.5)",
+            }}
+          />
+          <div
+            className="grid gap-6"
+            style={{
+              gridTemplateColumns: `repeat(${milestones.length}, minmax(0, 1fr))`,
+            }}
+          >
+            {milestones.map((m, i) => (
+              <ProcessStation
+                key={m.when + m.title}
+                m={m}
+                index={i}
+                total={milestones.length}
+                progress={lineScaleX}
+              />
+            ))}
+          </div>
+        </div>
       </div>
     </div>
   );

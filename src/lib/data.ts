@@ -74,6 +74,11 @@ export type CaseStudy = {
   shots?: string[];
 };
 
+/* Samy 2026-05-26: "jeder Part vom Karussell soll auch die Bilder haben,
+ * genauso wie Gulf Rescue bei der ersten Folie: immer drei Bilder."
+ * Where real project screenshots aren't ready yet, we placeholder with
+ * the available /assets/gx-web-* + project-specific image so the layout
+ * stays full. Samy will swap these for real shots per project. */
 export const cases: CaseStudy[] = [
   {
     name: "Gulf Rescue",
@@ -98,6 +103,7 @@ export const cases: CaseStudy[] = [
     fit: "contain",
     logo: "/assets/loewenhardt-logo.png",
     tags: ["Web design", "Branding", "Partner platform", "Multilingual"],
+    shots: ["/assets/loewenhardt-logo.png", "/assets/gx-web-1.png", "/assets/gx-web-2.png"],
   },
   {
     name: "Container Configurator",
@@ -107,6 +113,7 @@ export const cases: CaseStudy[] = [
     why: "Ground X sells containers. This already exists.",
     stack: "",
     tags: ["3D / R3F", "Configurator", "Product viz", "Web app"],
+    shots: ["/assets/gx-web-3.png", "/assets/gx-web-2.png", "/assets/gx-lifestyle.png"],
   },
   {
     name: "AETHER",
@@ -117,6 +124,7 @@ export const cases: CaseStudy[] = [
     stack: "",
     image: "/assets/aether.png",
     tags: ["Dashboards", "AI agents", "Automation", "Self-heal", "Systems"],
+    shots: ["/assets/aether.png", "/assets/gx-web-2.png", "/assets/gx-web-3.png"],
   },
   {
     name: "zZzlim",
@@ -126,6 +134,7 @@ export const cases: CaseStudy[] = [
     why: "Same marketing-as-a-system thinking I'd run for you.",
     stack: "",
     tags: ["Content", "ManyChat", "Automation", "Dashboards", "Pipelines"],
+    shots: ["/assets/gx-web-2.png", "/assets/gx-web-1.png", "/assets/gx-web-3.png"],
   },
   {
     name: "Sambo Trades",
@@ -135,6 +144,7 @@ export const cases: CaseStudy[] = [
     why: "I think in systems, not just visuals.",
     stack: "",
     tags: ["ML", "Research", "Trading", "YouTube", "Pipelines"],
+    shots: ["/assets/gx-web-3.png", "/assets/gx-web-2.png", "/assets/gx-web-1.png"],
   },
   {
     name: "Athena Pitch Deck",
@@ -144,6 +154,7 @@ export const cases: CaseStudy[] = [
     why: "Decks that raise — same craft I'd put into yours.",
     stack: "",
     tags: ["Deck design", "Narrative", "Pitch", "Branding"],
+    shots: ["/assets/gx-lifestyle.png", "/assets/gx-web-1.png", "/assets/gx-web-2.png"],
   },
   {
     name: "Sambo Design Playground",
@@ -153,6 +164,7 @@ export const cases: CaseStudy[] = [
     why: "Lab + factory in one — that's how this deck was built.",
     stack: "",
     tags: ["Brand system", "Design tokens", "Live preview", "Playground"],
+    shots: ["/assets/gx-web-1.png", "/assets/gx-web-2.png", "/assets/gx-web-3.png"],
   },
   {
     name: "groundx-offer",
@@ -164,6 +176,7 @@ export const cases: CaseStudy[] = [
     image: "/assets/groundx-logo.png",
     fit: "contain",
     tags: ["Next.js", "Per-client config", "Variants", "Preset system"],
+    shots: ["/assets/groundx-logo.png", "/assets/gx-web-1.png", "/assets/gx-web-2.png"],
   },
   {
     name: "Croesus Finance",
@@ -173,5 +186,6 @@ export const cases: CaseStudy[] = [
     why: "I run my own books on my own software.",
     stack: "",
     tags: ["Finance", "Sparkasse", "P&L", "Dashboard"],
+    shots: ["/assets/gx-web-2.png", "/assets/gx-web-3.png", "/assets/gx-web-1.png"],
   },
 ];
