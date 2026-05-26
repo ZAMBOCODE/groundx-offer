@@ -1,46 +1,74 @@
 "use client";
 
-import { useRef, useState, type CSSProperties } from "react";
-import { motion, AnimatePresence, useScroll, useTransform, type MotionValue } from "motion/react";
-import { Maximize2 } from "lucide-react";
+import {
+  useEffect,
+  useRef,
+  useState,
+  type CSSProperties,
+} from "react";
+import {
+  motion,
+  AnimatePresence,
+  useScroll,
+  useTransform,
+  type MotionValue,
+} from "motion/react";
+import { ChevronLeft, ChevronRight, Maximize2 } from "lucide-react";
 import { cases, type CaseStudy } from "@/lib/data";
 import { useOffer } from "./OfferProvider";
 import { useLang } from "./language-context";
 import { usePdfMode } from "@/lib/pdfMode";
 import { iconFor as brandIconFor } from "./BrandIcons";
 
-/* Selected Work — V5 (Samy 2026-05-26 voice briefing).
+/* Selected Work — V5 (Samy 2026-05-26 voice briefing iterations).
  *
  * Curved sticky-scroll carousel that cycles through ALL projects.
- *   - Section heading "Selected work" is rendered INSIDE the sticky frame
- *     so it stays visible the whole time you scroll through projects.
- *   - One project visible at a time. Layout: company NAME in display
- *     typography on the left (replaces the logo top-left from older V5),
- *     screenshots staggered + tilted on the right, faded favicon-style
- *     logo behind the shots bottom-right corner.
- *   - On scroll, the active project leaves with a curved rotateY + slide,
- *     the next enters from the opposite side on the same arc. Not a flat
- *     linear strip — a wheel-like curve, as Samy specified.
- *   - Images bigger than the previous V5 (75% column width, 16:10).
- *   - "More work, less wall of text — scroll to spin the wheel" copy is
- *     removed; the movement explains itself.
+ *   - Section heading "Selected work" stays sticky inside the frame.
+ *   - One project on screen at a time. Layout: company NAME in display
+ *     typography on the left, ONE prominent 3D-tilted screenshot card
+ *     on the right (Samy 2026-05-26: "ich will doch nur ein bild bzw
+ *     zwei bilder zeigen, leicht tilted 3d-cards-mäßig").
+ *   - Hover the card → it crossfades to the second shot. Click → opens
+ *     a lightbox that registers BOTH shots so you can cycle them
+ *     (prev / next arrows + ←/→ keys).
+ *   - Scroll between projects: curved rotateY + slide. Each project is
+ *     also a CSS scroll-snap stop so the browser lands cleanly on the
+ *     next slide ("soll die carousell sektion auch snappen zu den
+ *     einzelnen pages").
  *
- * PDF / static fallback renders each project as a vertical ShowcaseRow,
- * no animation. */
+ * PDF / static fallback renders each project as a vertical
+ * ProjectCard, no animation, no hover cycle. */
 
 export function WorkShowcase() {
-  const [lightbox, setLightbox] = useState<string | null>(null);
+  const [lightboxCase, setLightboxCase] = useState<CaseStudy | null>(null);
+  const [lightboxIdx, setLightboxIdx] = useState(0);
   const pdf = usePdfMode();
   const list = cases;
+
+  function openLightbox(c: CaseStudy, startIdx = 0) {
+    setLightboxCase(c);
+    setLightboxIdx(startIdx);
+  }
+  function closeLightbox() {
+    setLightboxCase(null);
+  }
+
   return (
     <>
       {pdf ? (
-        <WorkShowcaseStatic list={list} onOpen={setLightbox} />
+        <WorkShowcaseStatic list={list} onOpen={openLightbox} />
       ) : (
-        <WorkShowcaseDynamic list={list} onOpen={setLightbox} />
+        <WorkShowcaseDynamic list={list} onOpen={openLightbox} />
       )}
       <AnimatePresence>
-        {lightbox && <Lightbox src={lightbox} onClose={() => setLightbox(null)} />}
+        {lightboxCase && (
+          <Lightbox
+            c={lightboxCase}
+            idx={lightboxIdx}
+            onIdx={setLightboxIdx}
+            onClose={closeLightbox}
+          />
+        )}
       </AnimatePresence>
     </>
   );
@@ -53,7 +81,7 @@ function WorkShowcaseDynamic({
   onOpen,
 }: {
   list: CaseStudy[];
-  onOpen: (src: string) => void;
+  onOpen: (c: CaseStudy, startIdx?: number) => void;
 }) {
   const outer = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({
@@ -61,20 +89,24 @@ function WorkShowcaseDynamic({
     offset: ["start start", "end end"],
   });
   const total = list.length;
-  // ~90vh of scroll per project keeps the rhythm tight without feeling
-  // like the section is endless. +40vh tail so the last project can
-  // settle before the next section begins.
-  const outerVh = Math.max(total, 1) * 90 + 40;
-
-  const head = <Heading />;
+  // outer = total * 100vh. Each project gets exactly one viewport of
+  // scroll, so the inline snap-rails (one per project, 100vh each)
+  // align with scroll-progress idx 0, 1, 2, … total-1.
+  const outerVh = Math.max(total, 1) * 100;
 
   return (
     <div ref={outer} className="relative" style={{ height: `${outerVh}vh` }}>
+      {/* Sticky carousel — visually overlays the inline snap-rails below.
+         marginBottom: -100vh pulls the following rails block up to start
+         AT outer.top, so the rails span exactly outer's vertical range
+         while the sticky child stays pinned. */}
       <div
-        className="sticky top-0 flex h-screen flex-col overflow-hidden"
-        style={{ perspective: "1600px" }}
+        className="sticky top-0 z-10 flex h-screen flex-col overflow-hidden"
+        style={{ marginBottom: "-100vh", perspective: "1600px" }}
       >
-        <div className="pt-16 sm:pt-20">{head}</div>
+        <div className="pt-16 sm:pt-20">
+          <Heading />
+        </div>
         <div className="relative flex-1">
           {list.map((c, i) => (
             <ShowcaseSlot
@@ -88,6 +120,17 @@ function WorkShowcaseDynamic({
           ))}
         </div>
       </div>
+
+      {/* Snap-rails: invisible inline 100vh blocks. Browser snap-align
+         lands the page on each project's slot when html.snap is on. */}
+      {list.map((c) => (
+        <div
+          key={`rail-${c.name}`}
+          aria-hidden
+          className="pointer-events-none"
+          style={{ height: "100vh", scrollSnapAlign: "start" }}
+        />
+      ))}
     </div>
   );
 }
@@ -103,15 +146,13 @@ function ShowcaseSlot({
   index: number;
   total: number;
   progress: MotionValue<number>;
-  onOpen: (src: string) => void;
+  onOpen: (c: CaseStudy, startIdx?: number) => void;
 }) {
   const denom = Math.max(1, total - 1);
 
   const x = useTransform(progress, (p) => {
     const cur = p * denom;
     const d = index - cur;
-    // 95vw per step keeps neighbouring slides nearly off-screen but
-    // hints at the carousel.
     return `${d * 95}vw`;
   });
   const rotateY = useTransform(progress, (p) => {
@@ -163,16 +204,19 @@ function ProjectCard({
   onOpen,
 }: {
   c: CaseStudy;
-  onOpen: (src: string) => void;
+  onOpen: (c: CaseStudy, startIdx?: number) => void;
 }) {
-  const shots = (c.shots ?? (c.image ? [c.image] : [])).slice(0, 3);
+  const shots = c.shots ?? (c.image ? [c.image] : []);
+  const primary = shots[0];
+  const secondary = shots[1];
+  const [hover, setHover] = useState(false);
+  const showingSecondary = hover && !!secondary;
   // Samy 2026-05-25: max 4 tags shown
   const tags = c.tags?.slice(0, 4);
 
   return (
     <div className="grid items-center gap-10 md:grid-cols-[0.9fr_1.1fr]">
-      {/* LEFT — identity. Samy 2026-05-26: company name in display
-         typography replaces the logo top-left. */}
+      {/* LEFT — identity. Company name as display typography. */}
       <div>
         <h3 className="display text-[2.2rem] leading-[0.95] sm:text-[3.2rem]">
           {c.name}
@@ -203,48 +247,86 @@ function ProjectCard({
         )}
       </div>
 
-      {/* RIGHT — staggered tilted screenshots, bigger than V5-classic
-         (75% column width, 16:10), plus faded favicon-logo behind */}
-      <div className="relative h-[360px] overflow-visible sm:h-[520px]">
-        {shots.map((src, i) => {
-          const rot = (i - (shots.length - 1) / 2) * 6;
-          const left = shots.length > 1 ? (i / (shots.length - 1)) * 30 : 8;
-          const top = i % 2 === 0 ? 0 : 40;
-          return (
-            <button
-              key={src + i}
-              onClick={() => onOpen(src)}
-              className="shot-card group absolute overflow-hidden"
-              style={
-                {
-                  "--r": `${rot}deg`,
-                  left: `${left}%`,
-                  top: `${top}px`,
-                  width: "75%",
-                  aspectRatio: "16 / 10",
-                  zIndex: i + 1,
-                } as CSSProperties
-              }
-              aria-label={`${c.name} screenshot ${i + 1} — click for fullscreen`}
-            >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={src}
-                alt={`${c.name} ${i + 1}`}
-                className="h-full w-full object-cover object-top transition-transform duration-500 group-hover:scale-[1.03]"
-              />
-              <FullscreenBadge />
-            </button>
-          );
-        })}
+      {/* RIGHT — ONE prominent 3D-tilted card; hover crossfades to shot 2.
+         Click opens the lightbox with the currently-shown shot pre-active
+         so the user can cycle prev/next there. */}
+      <div className="relative">
+        <button
+          type="button"
+          onClick={() => onOpen(c, showingSecondary ? 1 : 0)}
+          onMouseEnter={() => setHover(true)}
+          onMouseLeave={() => setHover(false)}
+          className="shot-card group relative block w-full overflow-hidden"
+          style={
+            {
+              "--r": "-2.5deg",
+              aspectRatio: "16 / 10",
+              maxWidth: "720px",
+              marginLeft: "auto",
+              transform:
+                "perspective(1300px) rotateY(-6deg) rotateX(2deg) rotate(-2.5deg)",
+              transformStyle: "preserve-3d",
+            } as CSSProperties
+          }
+          aria-label={`${c.name} — click for fullscreen`}
+        >
+          {primary && (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={primary}
+              alt={c.name}
+              className="absolute inset-0 h-full w-full object-cover object-top transition-opacity duration-500 ease-out"
+              style={{ opacity: showingSecondary ? 0 : 1 }}
+            />
+          )}
+          {secondary && (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={secondary}
+              alt={`${c.name} alternate view`}
+              className="absolute inset-0 h-full w-full object-cover object-top transition-opacity duration-500 ease-out"
+              style={{ opacity: showingSecondary ? 1 : 0 }}
+            />
+          )}
 
-        {/* faded favicon-style logo behind the shots, bottom-right */}
+          {/* counter dots — only shown when there's a second shot */}
+          {secondary && (
+            <div
+              className="pointer-events-none absolute right-3 top-3 flex gap-1.5"
+              aria-hidden
+            >
+              <span
+                className="h-1.5 w-3 rounded-full transition-all"
+                style={{
+                  background: !showingSecondary
+                    ? "var(--accent)"
+                    : "rgba(255,255,255,0.35)",
+                  width: !showingSecondary ? "20px" : "8px",
+                }}
+              />
+              <span
+                className="h-1.5 w-3 rounded-full transition-all"
+                style={{
+                  background: showingSecondary
+                    ? "var(--accent)"
+                    : "rgba(255,255,255,0.35)",
+                  width: showingSecondary ? "20px" : "8px",
+                }}
+              />
+            </div>
+          )}
+
+          {/* fullscreen indicator on hover */}
+          <FullscreenBadge />
+        </button>
+
+        {/* faded favicon-style logo behind/below the card */}
         {c.logo && (
           <div
             aria-hidden
-            className="pointer-events-none absolute -bottom-2 right-0 z-10"
+            className="pointer-events-none absolute -bottom-6 right-2 z-[-1]"
             style={{
-              opacity: 0.18,
+              opacity: 0.16,
               filter: "blur(0.3px)",
               maskImage:
                 "linear-gradient(135deg, black 30%, transparent 100%)",
@@ -282,7 +364,7 @@ function WorkShowcaseStatic({
   onOpen,
 }: {
   list: CaseStudy[];
-  onOpen: (src: string) => void;
+  onOpen: (c: CaseStudy, startIdx?: number) => void;
 }) {
   return (
     <div className="px-4 sm:px-12">
@@ -296,10 +378,39 @@ function WorkShowcaseStatic({
   );
 }
 
-/* ----------------------------------------------- Lightbox (shared) */
+/* ----------------------------------------------- Lightbox with cycle */
 
-function Lightbox({ src, onClose }: { src: string; onClose: () => void }) {
+function Lightbox({
+  c,
+  idx,
+  onIdx,
+  onClose,
+}: {
+  c: CaseStudy;
+  idx: number;
+  onIdx: (i: number) => void;
+  onClose: () => void;
+}) {
   const { lang } = useLang();
+  const shots = c.shots ?? (c.image ? [c.image] : []);
+  const total = shots.length;
+  const safeIdx = ((idx % total) + total) % total;
+  const src = shots[safeIdx];
+
+  // keyboard arrows + esc
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+      else if (e.key === "ArrowRight" && total > 1) onIdx((safeIdx + 1) % total);
+      else if (e.key === "ArrowLeft" && total > 1)
+        onIdx((safeIdx - 1 + total) % total);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose, onIdx, safeIdx, total]);
+
+  if (!src) return null;
+
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -309,20 +420,80 @@ function Lightbox({ src, onClose }: { src: string; onClose: () => void }) {
       className="fixed inset-0 z-[100] flex items-center justify-center p-6"
       style={{ background: "rgba(0,0,0,0.86)", backdropFilter: "blur(10px)" }}
     >
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <motion.img
-        initial={{ scale: 0.96 }}
-        animate={{ scale: 1 }}
-        exit={{ scale: 0.96 }}
+      <motion.div
+        key={safeIdx}
+        initial={{ scale: 0.96, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        exit={{ scale: 0.96, opacity: 0 }}
         transition={{ duration: 0.3, ease: [0.2, 0.8, 0.2, 1] }}
-        src={src}
-        alt="screenshot"
-        className="max-h-[90vh] max-w-[92vw] rounded-2xl border border-[var(--stroke-card)] shadow-2xl"
         onClick={(e) => e.stopPropagation()}
-      />
-      <span className="meta text-faint absolute bottom-6 left-1/2 -translate-x-1/2 text-[0.6rem]">
-        {lang === "de" ? "ÜBERALL KLICKEN ZUM SCHLIESSEN" : "CLICK ANYWHERE TO CLOSE"}
-      </span>
+        className="relative max-h-[90vh] max-w-[92vw]"
+      >
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={src}
+          alt={`${c.name} ${safeIdx + 1}`}
+          className="max-h-[90vh] max-w-[92vw] rounded-2xl border border-[var(--stroke-card)] shadow-2xl"
+        />
+      </motion.div>
+
+      {/* prev / next */}
+      {total > 1 && (
+        <>
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              onIdx((safeIdx - 1 + total) % total);
+            }}
+            aria-label={lang === "de" ? "Vorheriges Bild" : "Previous image"}
+            className="inner-card absolute left-6 top-1/2 -translate-y-1/2 flex h-12 w-12 items-center justify-center rounded-full text-dim hover:text-[var(--accent-bright)]"
+          >
+            <ChevronLeft size={22} />
+          </button>
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              onIdx((safeIdx + 1) % total);
+            }}
+            aria-label={lang === "de" ? "Nächstes Bild" : "Next image"}
+            className="inner-card absolute right-6 top-1/2 -translate-y-1/2 flex h-12 w-12 items-center justify-center rounded-full text-dim hover:text-[var(--accent-bright)]"
+          >
+            <ChevronRight size={22} />
+          </button>
+        </>
+      )}
+
+      {/* dots + hint */}
+      <div className="absolute bottom-6 left-1/2 flex -translate-x-1/2 flex-col items-center gap-3">
+        {total > 1 && (
+          <div className="flex gap-1.5">
+            {shots.map((_, i) => (
+              <button
+                key={i}
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onIdx(i);
+                }}
+                className="h-1.5 rounded-full transition-all"
+                style={{
+                  width: i === safeIdx ? 24 : 8,
+                  background:
+                    i === safeIdx ? "var(--accent)" : "rgba(255,255,255,0.25)",
+                }}
+                aria-label={`${c.name} ${i + 1}`}
+              />
+            ))}
+          </div>
+        )}
+        <span className="meta text-faint text-[0.55rem]">
+          {lang === "de"
+            ? "ÜBERALL KLICKEN ZUM SCHLIESSEN"
+            : "CLICK ANYWHERE TO CLOSE"}
+        </span>
+      </div>
     </motion.div>
   );
 }
@@ -331,7 +502,7 @@ function FullscreenBadge() {
   const { lang } = useLang();
   return (
     <span
-      className="meta pointer-events-none absolute right-2 top-2 flex items-center gap-1 rounded-md border border-[var(--stroke-card)] bg-[rgba(8,7,5,0.7)] px-2 py-1 text-[0.55rem] tracking-[0.3em] opacity-0 backdrop-blur transition-opacity duration-300 group-hover:opacity-100"
+      className="meta pointer-events-none absolute left-3 top-3 flex items-center gap-1 rounded-md border border-[var(--stroke-card)] bg-[rgba(8,7,5,0.7)] px-2 py-1 text-[0.55rem] tracking-[0.3em] opacity-0 backdrop-blur transition-opacity duration-300 group-hover:opacity-100"
       style={{ color: "var(--accent-bright)" }}
     >
       <Maximize2 size={9} strokeWidth={2.2} />

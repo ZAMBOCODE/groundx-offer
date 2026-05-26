@@ -10,6 +10,7 @@ import {
   type SectionKey,
 } from "./design-context";
 import { useOffer } from "./OfferProvider";
+import { useLang } from "./language-context";
 import { Presets } from "./Presets";
 import { cases as ALL_CASES } from "@/lib/data";
 import type { SectionKey as ConfigSectionKey } from "@/lib/config";
@@ -323,7 +324,12 @@ export function DevPanel() {
       const next = { ...prev };
       if (id === null) delete next[section];
       else next[section] = id;
-      saveCopyVariantSelections(next);
+      // Defer the save+dispatch to after this render commits. Calling
+      // saveCopyVariantSelections inside the updater triggers
+      // OfferProvider's event listener synchronously → React error
+      // "Cannot update a component while rendering a different
+      // component" (Samy 2026-05-26).
+      queueMicrotask(() => saveCopyVariantSelections(next));
       return next;
     });
   }, []);
@@ -1179,12 +1185,63 @@ function PresetIO({
   );
 }
 
-/* Per-section copy-variant picker.
-   Trigger row: "✨ Copy: [active vibe]" — disclosure-style, click to expand.
-   Expanded panel: Default + 3 alt variants (Direct / Editorial / Punchy).
-   Each option shows its vibe label + a one-line preview pulled from the
-   patch's headline/title field. Click an option → save selection +
-   scroll the section into view. Seed for the AETHER copy-variants agent. */
+/* Per-section copy-variant picker — DE/EN aware. */
+const COPY_LABEL_DE: Record<string, string> = {
+  Default: "Standard",
+  Direct: "Direkt",
+  Editorial: "Editorial",
+  Punchy: "Knackig",
+};
+const COPY_VIBE_DE: Record<string, string> = {
+  "Config copy as written": "Standard-Text wie konfiguriert",
+  // hero
+  "Plain, fast, what + why": "Klar, schnell, was + warum",
+  "Magazine cadence, narrative": "Magazin-Takt, erzählerisch",
+  "Short lines, momentum": "Kurze Zeilen, Tempo",
+  // angle
+  "Why I'm a fit, no warm-up": "Warum ich passe — ohne Aufwärmen",
+  "Soft sell, story-first": "Soft-Sell, Story zuerst",
+  "Punchy fit-statements": "Knackige Fit-Statements",
+  // capabilities
+  "What I ship, no fluff": "Was ich ausliefere — ohne Füllstoff",
+  "A craft-letter framing": "Ein Brief-Stil aus dem Handwerk",
+  "Rapid-fire capability list": "Schnelle Capability-Liste",
+  // work
+  "Reference set, no story": "Referenzen, keine Story",
+  "A portfolio with weight": "Ein Portfolio mit Gewicht",
+  "Receipts, fast": "Belege, schnell",
+  // brand
+  "What this could look like": "Wie sich das anfühlen könnte",
+  "A brand world with rules": "Eine Markenwelt mit Regeln",
+  "Mood + materials, terse": "Stimmung + Materialien, knapp",
+  // offer
+  "Pick a path": "Wähle einen Weg",
+  "Three doors, framed": "Drei Türen, gerahmt",
+  "Tabs + the price story": "Tabs + die Preis-Story",
+  // process
+  "Day-by-day, no fluff": "Tag für Tag, ohne Füllstoff",
+  "A guided onboarding": "Ein begleitetes Onboarding",
+  "From handshake to launch": "Vom Handschlag zum Launch",
+  // testimonials
+  "Real voices, plain": "Echte Stimmen, schlicht",
+  "Quote-page editorial": "Editorial-Zitatseite",
+  "Best lines only": "Nur die besten Zeilen",
+  // faq
+  "Direct Q&A": "Direkte Fragen & Antworten",
+  "Long-form FAQs": "FAQs in Langform",
+  "Snappy FAQs": "Knappe FAQs",
+  // contact
+  "Just say go": "Einfach Go sagen",
+  "An open-door close": "Ein offener Türabschluss",
+  "Now-or-later": "Jetzt oder später",
+};
+function localizeCopyLabel(label: string, lang: "en" | "de"): string {
+  return lang === "de" ? COPY_LABEL_DE[label] ?? label : label;
+}
+function localizeCopyVibe(vibe: string, lang: "en" | "de"): string {
+  return lang === "de" ? COPY_VIBE_DE[vibe] ?? vibe : vibe;
+}
+
 function CopyVariantPicker({
   section,
   selectedId,
@@ -1204,11 +1261,19 @@ function CopyVariantPicker({
   busy?: boolean;
   onGenerate?: () => void;
 }) {
+  const { lang } = useLang();
   const variants = overrideVariants ?? COPY_VARIANTS[section] ?? [];
   if (variants.length === 0) return null;
   const active = variants.find((v) => v.id === selectedId);
-  const label = selectedId ? active?.label ?? selectedId : "Default";
-  const sourceLabel = overrideVariants ? "AI" : "CURATED";
+  const rawLabel = selectedId ? active?.label ?? selectedId : "Default";
+  const label = localizeCopyLabel(rawLabel, lang);
+  const sourceLabel = overrideVariants
+    ? lang === "de" ? "KI" : "AI"
+    : lang === "de" ? "KURATIERT" : "CURATED";
+  const copyWord = lang === "de" ? "TEXT" : "COPY";
+  const aiTitle = lang === "de"
+    ? "3 frische Text-Varianten via Claude erzeugen (braucht ANTHROPIC_API_KEY in .env.local)"
+    : "Generate 3 fresh copy variants via Claude (needs ANTHROPIC_API_KEY in .env.local)";
 
   return (
     <div className="mt-1.5 flex flex-col gap-1">
@@ -1220,7 +1285,7 @@ function CopyVariantPicker({
           aria-expanded={open}
         >
           <span>
-            <span style={{ color: "var(--accent-bright)" }}>✦</span> COPY · {label.toUpperCase()}
+            <span style={{ color: "var(--accent-bright)" }}>✦</span> {copyWord} · {label.toUpperCase()}
             <span className="text-faint ml-2 text-[0.5rem] opacity-60">{sourceLabel}</span>
           </span>
           <span style={{ transform: open ? "rotate(90deg)" : "rotate(0deg)", transition: "transform 200ms" }}>›</span>
@@ -1235,9 +1300,9 @@ function CopyVariantPicker({
               color: busy ? "var(--ink-3)" : "var(--accent-bright)",
               borderColor: "var(--accent)",
             }}
-            title="Generate 3 fresh copy variants via Claude (needs ANTHROPIC_API_KEY in .env.local)"
+            title={aiTitle}
           >
-            {busy ? "…" : "✨ AI"}
+            {busy ? "…" : lang === "de" ? "✨ KI" : "✨ AI"}
           </button>
         )}
       </div>
@@ -1245,8 +1310,8 @@ function CopyVariantPicker({
         <div className="flex flex-col gap-1">
           <CopyOption
             isActive={!selectedId}
-            label="Default"
-            vibe="Config copy as written"
+            label={localizeCopyLabel("Default", lang)}
+            vibe={localizeCopyVibe("Config copy as written", lang)}
             preview={null}
             onPick={() => onPick(null)}
           />
@@ -1260,8 +1325,8 @@ function CopyVariantPicker({
               <CopyOption
                 key={v.id}
                 isActive={selectedId === v.id}
-                label={v.label}
-                vibe={v.vibe}
+                label={localizeCopyLabel(v.label, lang)}
+                vibe={localizeCopyVibe(v.vibe, lang)}
                 preview={previewSource}
                 onPick={() => {
                   onPick(v.id);
