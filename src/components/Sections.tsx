@@ -667,13 +667,27 @@ function AngleStickyCounter({
 
   // Sliding counter track. CHAR_H is the slot height per digit; the
   // visible window equals CHAR_H so only ONE digit is fully visible at
-  // any time. Larger CHAR_H + stronger fades = less digit overlap during
-  // transitions.
+  // any time.
+  // Samy 2026-05-26 screenshot: at scroll-midpoint the previous digit
+  // and the next digit were both ~50 % visible (overlap). Fix: instead
+  // of lerping linearly between digit positions, hold digit i during
+  // the first 40 % of its window, snap-transition 40–60 %, settle on
+  // digit i+1 from 60 % onward. Each digit feels stable most of the
+  // time, transition is sharp + brief.
   const CHAR_H = 240; // px
   const trackY = useTransform(scrollYProgress, (p) => {
-    const active = p * (total - 1);
-    return -active * CHAR_H;
+    const raw = p * (total - 1);
+    const idx = Math.floor(raw);
+    const frac = raw - idx;
+    const snapped =
+      frac < 0.4 ? 0 : frac > 0.6 ? 1 : (frac - 0.4) / 0.2;
+    return -(idx + snapped) * CHAR_H;
   });
+  // Active integer index — flips at the midpoint of each window so
+  // the content panel swaps in sync with the counter snap.
+  const activeIdx = useTransform(scrollYProgress, (p) =>
+    Math.round(p * (total - 1)),
+  );
 
   return (
     <div
@@ -728,64 +742,53 @@ function AngleStickyCounter({
             </motion.div>
           </div>
 
-          {/* CONTENT — taller so longer points stay readable; fades + slides
-             based on distance from current scroll-driven active index */}
-          <div className="relative h-[360px] sm:h-[440px]">
-            {points.map((p, i) => (
-              <AnglePointSlide
-                key={p.k}
-                p={p}
-                index={i}
-                total={total}
-                progress={scrollYProgress}
-              />
-            ))}
-          </div>
+          {/* CONTENT — only one point visible at a time (AnimatePresence
+             wait-mode). Swap-fade triggers at the midpoint of each
+             window, in sync with the counter snap. */}
+          <AnglePointPanel points={points} activeIdx={activeIdx} />
         </div>
       </div>
     </div>
   );
 }
 
-function AnglePointSlide({
-  p,
-  index,
-  total,
-  progress,
+function AnglePointPanel({
+  points,
+  activeIdx,
 }: {
-  p: { k: string; v: string };
-  index: number;
-  total: number;
-  progress: import("motion/react").MotionValue<number>;
+  points: { k: string; v: string }[];
+  activeIdx: import("motion/react").MotionValue<number>;
 }) {
-  const denom = Math.max(1, total - 1);
-  const opacity = useTransform(progress, (val) => {
-    const active = val * denom;
-    const dist = Math.abs(index - active);
-    if (dist > 1) return 0;
-    return 1 - dist;
-  });
-  const y = useTransform(progress, (val) => {
-    const active = val * denom;
-    return (index - active) * 70;
-  });
-
+  const [active, setActive] = useState(0);
+  useEffect(() => {
+    const unsub = activeIdx.on("change", (v) => {
+      const clamped = Math.max(0, Math.min(points.length - 1, Math.round(v)));
+      setActive(clamped);
+    });
+    return () => unsub();
+  }, [activeIdx, points.length]);
+  const p = points[active] ?? points[0];
+  if (!p) return null;
   return (
-    <motion.div
-      className="absolute inset-0 flex flex-col justify-center"
-      style={{
-        opacity,
-        y,
-        willChange: "opacity, transform",
-      }}
-    >
-      <h3 className="display text-[1.7rem] leading-tight sm:text-[2.2rem]">
-        {p.k}
-      </h3>
-      <p className="text-dim mt-4 max-w-xl text-[1.02rem] leading-relaxed sm:text-[1.1rem]">
-        {p.v}
-      </p>
-    </motion.div>
+    <div className="relative h-[360px] sm:h-[440px]">
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={active}
+          initial={{ opacity: 0, y: 24 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -24 }}
+          transition={{ duration: 0.35, ease: [0.2, 0.8, 0.2, 1] }}
+          className="absolute inset-0 flex flex-col justify-center"
+        >
+          <h3 className="display text-[1.7rem] leading-tight sm:text-[2.2rem]">
+            {p.k}
+          </h3>
+          <p className="text-dim mt-4 max-w-xl text-[1.02rem] leading-relaxed sm:text-[1.1rem]">
+            {p.v}
+          </p>
+        </motion.div>
+      </AnimatePresence>
+    </div>
   );
 }
 
@@ -1960,38 +1963,64 @@ function ScrollThroughDot({
   );
 }
 
-/* Three Safari mockups in their final isometric resting positions —
-   layered with depth + offset so all three are simultaneously visible
-   in a 3D stack. No internal scroll: this is the resolved state. */
+/* Three Safari mockups arranged as a fanned trio so all three are
+ * simultaneously + clearly visible. Samy 2026-05-26 screenshot showed
+ * the previous 3D-stacked version collapsed visually to a single card
+ * (back cards hidden behind the front one with near-identical pose).
+ * Fix: flat fan — left card tilted left + scaled down, right card
+ * tilted right + scaled down, middle card centered + full size.
+ * Strong drop-shadow per card so each separates against the dark bg. */
 function BrandFinalStack() {
+  const { lang } = useLang();
   const slides = [
-    { img: "/assets/gx-web-1.png", label: "Website", note: "groundx.ae" },
-    { img: "/assets/gx-web-2.png", label: "Configurator", note: "groundx.ae/configure" },
-    { img: "/assets/gx-web-3.png", label: "Owner Dashboard", note: "app.groundx.ae" },
+    {
+      img: "/assets/gx-web-1.png",
+      label: lang === "de" ? "Website" : "Website",
+      note: "groundx.ae",
+    },
+    {
+      img: "/assets/gx-web-2.png",
+      label: lang === "de" ? "Konfigurator" : "Configurator",
+      note: "groundx.ae/configure",
+    },
+    {
+      img: "/assets/gx-web-3.png",
+      label: lang === "de" ? "Owner-Dashboard" : "Owner Dashboard",
+      note: "app.groundx.ae",
+    },
   ];
   return (
-    <div
-      className="relative mx-auto h-[460px] w-full max-w-[920px]"
-      style={{ perspective: "1800px" }}
-    >
+    <div className="relative mx-auto h-[480px] w-full max-w-[1280px]">
       {slides.map((s, i) => {
-        // each card offset down-right with a small Z-step, slight rotation
-        const restingTransform = `translateX(${i * 36}px) translateY(${i * 22}px) rotateY(${(slides.length - 1 - i) * -8}deg) rotateZ(${(slides.length - 1 - i) * 0.6}deg) translateZ(${(slides.length - 1 - i) * -60}px)`;
+        // Fanned trio: -1 = left/back, 0 = center/front, +1 = right/back
+        const offset = i - 1;
+        const leftPercent = 50 + offset * 28; // center=50%, side=22% or 78%
+        const tilt = offset * 7; // outer cards rotate outward
+        const isCenter = offset === 0;
+        const scale = isCenter ? 1 : 0.82;
+        const lift = isCenter ? 0 : 36; // outer cards sit lower
+        const z = isCenter ? 20 : 10;
         return (
           <div
             key={s.img}
-            className="absolute left-1/2 top-1/2 w-[68%] max-w-[700px] -translate-x-1/2 -translate-y-1/2"
+            className="absolute top-1/2 w-[52%] max-w-[640px] -translate-x-1/2 -translate-y-1/2"
             style={{
-              transform: `translate(-50%, -50%) ${restingTransform}`,
-              zIndex: 10 + i,
-              transformStyle: "preserve-3d",
+              left: `${leftPercent}%`,
+              transform: `translate(-50%, calc(-50% + ${lift}px)) rotate(${tilt}deg) scale(${scale})`,
+              transformOrigin: "center center",
+              zIndex: z,
+              transition: "transform 0.7s var(--ease)",
             }}
           >
             <div
-              className="relative overflow-hidden rounded-[12px] border border-[var(--stroke-card)] bg-black"
+              className="relative overflow-hidden rounded-[14px] border bg-black"
               style={{
-                boxShadow:
-                  "0 40px 90px rgba(0,0,0,0.6), 0 0 0 1px rgba(232,181,99,0.05)",
+                borderColor: isCenter
+                  ? "rgba(232,181,99,0.18)"
+                  : "var(--stroke-card)",
+                boxShadow: isCenter
+                  ? "0 60px 120px rgba(0,0,0,0.7), 0 0 0 1px rgba(232,181,99,0.10), 0 0 60px rgba(249,115,22,0.08)"
+                  : "0 30px 80px rgba(0,0,0,0.65), 0 0 0 1px rgba(255,255,255,0.04)",
               }}
             >
               <div className="flex items-center gap-2 border-b border-[var(--stroke-card)] bg-[#0a0907] px-3 py-2">
@@ -2001,7 +2030,7 @@ function BrandFinalStack() {
                   <span className="h-2.5 w-2.5 rounded-full" style={{ background: "#28c840" }} />
                 </span>
                 <span
-                  className="meta ml-2 text-[0.55rem]"
+                  className="meta ml-2 truncate text-[0.55rem]"
                   style={{
                     color: "var(--ink-3)",
                     fontFamily: "var(--font-mono)",
@@ -2010,13 +2039,13 @@ function BrandFinalStack() {
                   {s.note}
                 </span>
                 <span
-                  className="meta ml-auto text-[0.55rem] tracking-[0.3em]"
+                  className="meta ml-auto whitespace-nowrap text-[0.55rem] tracking-[0.3em]"
                   style={{ color: "var(--gx-gold-hi)" }}
                 >
                   {String(i + 1).padStart(2, "0")} · {s.label.toUpperCase()}
                 </span>
               </div>
-              <div className="aspect-[16/9.5] w-full overflow-hidden">
+              <div className="aspect-[16/10] w-full overflow-hidden">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={s.img} alt={s.label} className="h-full w-full object-cover object-top" />
               </div>
