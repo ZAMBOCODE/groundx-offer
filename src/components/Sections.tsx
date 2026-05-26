@@ -1495,12 +1495,16 @@ function BrandEditorialCodex() {
    Full-bleed: five vertical palette slabs with mood words drifting over
    each, wordmark centered as an overlay, type-only typography sample,
    hover-expand. No card chrome, total immersion. */
-function BrandPaletteWall() {
+function BrandPaletteWall({ fullscreen = false }: { fullscreen?: boolean } = {}) {
   const PALETTE_LABELS = ["Onyx", "Walnut", "Cognac", "Brushed Gold", "Sunlit Sand"];
   return (
     <Reveal delay={0.1}>
-      <div className="relative mt-12 overflow-hidden">
-        <div className="relative flex h-[640px] w-full">
+      <div
+        className={`relative overflow-hidden ${fullscreen ? "h-full" : "mt-12"}`}
+      >
+        <div
+          className={`relative flex w-full ${fullscreen ? "h-screen" : "h-[640px]"}`}
+        >
           {BRAND_PALETTE.map((c, i) => (
             <div
               key={c}
@@ -1724,44 +1728,52 @@ function BrandScrollThroughDynamic() {
     offset: ["start start", "end end"],
   });
 
-  // phase windows (start, fadeIn, fadeOut, end) within [0, 1]
-  const p1 = useTransform(scrollYProgress, [0, 0.08, 0.30, 0.40], [1, 1, 1, 0]);
-  const p2 = useTransform(scrollYProgress, [0.30, 0.40, 0.60, 0.70], [0, 1, 1, 0]);
-  const p3 = useTransform(scrollYProgress, [0.60, 0.70, 0.95, 1], [0, 1, 1, 1]);
-
-  // subtle parallax per phase
-  const p1Y = useTransform(scrollYProgress, [0, 0.40], [0, -60]);
-  const p2Y = useTransform(scrollYProgress, [0.30, 0.70], [40, -40]);
-  const p3Y = useTransform(scrollYProgress, [0.60, 1], [40, 0]);
+  // Samy 2026-05-26: "alle Phasen sollen immer Fullscreen sein, die
+  // Palette ist hinten zu sehen". Fix: non-overlapping fades + opaque
+  // bg on every phase wrapper, so during transitions you see a brief
+  // page-bg snap, never the previous phase bleeding through.
+  // 4% wipe windows feel snappy without ever showing two phases at once.
+  const p1 = useTransform(scrollYProgress, [0, 0.30, 0.34], [1, 1, 0]);
+  const p2 = useTransform(scrollYProgress, [0.30, 0.34, 0.62, 0.66], [0, 1, 1, 0]);
+  const p3 = useTransform(scrollYProgress, [0.62, 0.66, 1], [0, 1, 1]);
 
   return (
     <div ref={outer} className="relative mt-10" style={{ height: "300vh" }}>
-      <div className="sticky top-0 flex h-screen items-center overflow-hidden">
-        <div className="relative w-full">
-          {/* Phase 1 — Palette Wall */}
+      <div
+        className="sticky top-0 h-screen overflow-hidden"
+        style={{ background: "#050507" }}
+      >
+        <div className="relative h-full w-full">
+          {/* always-on opaque base for the snap moment between phases */}
+          <div
+            className="absolute inset-0"
+            style={{ background: "#050507" }}
+          />
+
+          {/* Phase 1 — Palette Wall, full-bleed */}
           <motion.div
-            className="absolute inset-0 flex items-center"
-            style={{ opacity: p1, y: p1Y }}
+            className="absolute inset-0 flex items-center justify-center"
+            style={{ opacity: p1, background: "#050507" }}
           >
-            <div className="w-full">
-              <BrandPaletteWall />
+            <div className="h-full w-full">
+              <BrandPaletteWall fullscreen />
             </div>
           </motion.div>
 
-          {/* Phase 2 — Real Safari + iPhone mockups */}
+          {/* Phase 2 — Safari + iPhone mockups, centered */}
           <motion.div
-            className="absolute inset-0 flex items-center"
-            style={{ opacity: p2, y: p2Y }}
+            className="absolute inset-0 flex items-center justify-center px-6"
+            style={{ opacity: p2, background: "#050507" }}
           >
-            <div className="w-full px-4">
+            <div className="w-full max-w-[1400px]">
               <MockupShowcase showBusinessCard={false} />
             </div>
           </motion.div>
 
-          {/* Phase 3 — Final stacked 3D mockups, three cards offset+layered */}
+          {/* Phase 3 — Final stacked 3D mockups */}
           <motion.div
-            className="absolute inset-0 flex items-center"
-            style={{ opacity: p3, y: p3Y }}
+            className="absolute inset-0 flex items-center justify-center"
+            style={{ opacity: p3, background: "#050507" }}
           >
             <div className="w-full">
               <BrandFinalStack />
@@ -1769,7 +1781,6 @@ function BrandScrollThroughDynamic() {
           </motion.div>
         </div>
 
-        {/* tiny progress dots so Samy knows what stage he's on */}
         <ScrollThroughDots progress={scrollYProgress} />
       </div>
     </div>
