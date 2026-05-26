@@ -29,7 +29,7 @@ export function HeaderActions() {
             fontFamily: "var(--font-mono)",
             boxShadow: "0 6px 18px rgba(249,115,22,0.32), inset 0 1px 0 rgba(255,255,255,0.2)",
           }}
-          title="Book a 30-min call via Calendly"
+          title={lang === "de" ? "30-Min-Call via Calendly buchen" : "Book a 30-min call via Calendly"}
         >
           <CalIcon size={11} />
           <span>{lang === "de" ? "Termin buchen" : "Book a call"}</span>

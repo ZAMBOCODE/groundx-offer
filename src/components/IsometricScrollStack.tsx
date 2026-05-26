@@ -13,11 +13,25 @@ import { useLang } from "./language-context";
 
    PDF fallback: render the three mockups in a clean vertical stack. */
 
-const SLIDES = [
+type Slide = { img: string; label: string; note: string };
+
+/* Base slides — labels are lang-aware at render via useSlides(). The
+ * SLIDES const holds the EN baseline (used for type narrowing + length). */
+const SLIDES: readonly Slide[] = [
   { img: "/assets/gx-web-1.png", label: "Website", note: "groundx.ae" },
   { img: "/assets/gx-web-2.png", label: "Configurator", note: "groundx.ae/configure" },
   { img: "/assets/gx-web-3.png", label: "Owner Dashboard", note: "app.groundx.ae" },
 ];
+
+function useSlides(): Slide[] {
+  const { lang } = useLang();
+  if (lang !== "de") return [...SLIDES];
+  return [
+    SLIDES[0]!,
+    { ...SLIDES[1]!, label: "Konfigurator" },
+    { ...SLIDES[2]!, label: "Owner-Dashboard" },
+  ];
+}
 
 export function IsometricScrollStack() {
   const pdf = usePdfMode();
@@ -29,9 +43,10 @@ export function IsometricScrollStack() {
    transforms. Each gets the same Safari chrome treatment as the
    dynamic version. */
 function IsometricStaticStack() {
+  const slides = useSlides();
   return (
     <div className="mt-12 flex flex-col gap-10">
-      {SLIDES.map((s, i) => (
+      {slides.map((s, i) => (
         <MockupCard key={s.img} slide={s} index={i} />
       ))}
     </div>
@@ -44,9 +59,10 @@ function IsometricScrollStackDynamic() {
     target: outer,
     offset: ["start start", "end end"],
   });
+  const slides = useSlides();
 
   return (
-    <div ref={outer} style={{ height: `${SLIDES.length * 110 + 30}vh` }} className="mt-12">
+    <div ref={outer} style={{ height: `${slides.length * 110 + 30}vh` }} className="mt-12">
       <div className="sticky top-0 flex h-screen items-center justify-center overflow-hidden">
         {/* depth grid background */}
         <div
@@ -69,8 +85,8 @@ function IsometricScrollStackDynamic() {
             perspectiveOrigin: "center 35%",
           }}
         >
-          {SLIDES.map((s, i) => (
-            <Slide key={s.img} slide={s} index={i} total={SLIDES.length} progress={scrollYProgress} />
+          {slides.map((s, i) => (
+            <Slide key={s.img} slide={s} index={i} total={slides.length} progress={scrollYProgress} />
           ))}
         </div>
 
@@ -95,7 +111,7 @@ function Slide({
   total,
   progress,
 }: {
-  slide: (typeof SLIDES)[number];
+  slide: Slide;
   index: number;
   total: number;
   progress: MotionValue<number>;
@@ -156,7 +172,7 @@ function MockupCardChrome({
   index,
   total,
 }: {
-  slide: (typeof SLIDES)[number];
+  slide: Slide;
   index: number;
   total: number;
 }) {
@@ -195,7 +211,7 @@ function MockupCardChrome({
   );
 }
 
-function MockupCard({ slide, index }: { slide: (typeof SLIDES)[number]; index: number }) {
+function MockupCard({ slide, index }: { slide: Slide; index: number }) {
   return (
     <div className="mx-auto w-full max-w-[860px]">
       <MockupCardChrome slide={slide} index={index} total={SLIDES.length} />
