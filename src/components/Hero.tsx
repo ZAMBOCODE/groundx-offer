@@ -27,11 +27,16 @@ export function Hero() {
   else if (v === 5) inner = <HeroStackedFrame h={h} />;
   else inner = <HeroCentered h={h} />;
 
+  // Samy 2026-05-26: Trusted-Strip darf nicht UNTER den Hero rausragen
+  // (Screenshot 15.18.38 — unten abgeschnitten). Wrapper ist relative,
+  // Strip absolute am Bottom pinned. Hero-Variants haben min-h-screen,
+  // also bleibt der Container 100vh hoch und der Strip sitzt sauber
+  // INNERHALB des Viewports am unteren Rand.
   return (
-    <>
+    <div className="relative">
       {inner}
       <HeroTrustedStrip />
-    </>
+    </div>
   );
 }
 
@@ -74,19 +79,19 @@ function HeroTrustedStrip() {
   if (!t || !t.logos || t.logos.length === 0) return null;
   const track = [...t.logos, ...t.logos, ...t.logos];
   return (
-    <div className="-mt-10 pb-12 sm:-mt-14 sm:pb-16">
-      <p className="meta accent mb-5 text-center text-[0.58rem] tracking-[0.4em]">
+    <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 pb-5 sm:pb-7">
+      <p className="meta accent mb-3 text-center text-[0.55rem] tracking-[0.4em]">
         — {t.eyebrow.toUpperCase()} —
       </p>
       <div
-        className="relative w-full overflow-hidden"
+        className="pointer-events-auto relative w-full overflow-hidden"
         style={{
           maskImage: "linear-gradient(90deg, transparent, black 10%, black 90%, transparent)",
           WebkitMaskImage: "linear-gradient(90deg, transparent, black 10%, black 90%, transparent)",
         }}
       >
         <motion.div
-          className="flex w-max items-center gap-14"
+          className="flex w-max items-center gap-12"
           animate={{ x: ["0%", "-33.333%"] }}
           transition={{ duration: 40, ease: "linear", repeat: Infinity }}
         >
@@ -96,7 +101,7 @@ function HeroTrustedStrip() {
               key={i}
               src={l.src}
               alt={l.name}
-              className="h-7 w-auto opacity-50 grayscale transition-all duration-300 hover:opacity-90 hover:grayscale-0 sm:h-9"
+              className="h-6 w-auto opacity-50 grayscale transition-all duration-300 hover:opacity-90 hover:grayscale-0 sm:h-7"
             />
           ))}
         </motion.div>
