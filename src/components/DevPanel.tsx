@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import {
   useDesign,
@@ -258,6 +258,10 @@ export function DevPanel() {
     setHeroButtons,
     heroOverride,
     setHeroOverride,
+    sectionHeight,
+    setSectionHeight,
+    imageOverrides,
+    setImageOverride,
   } = useDesign();
   const offer = useOffer();
 
@@ -742,6 +746,41 @@ export function DevPanel() {
             </div>
 
             <div className="hairline" />
+            <p className="meta text-faint text-[0.58rem]">Sections — height (50 / 100 vh)</p>
+            <div className="grid grid-cols-2 gap-1.5">
+              {ALL_SECTIONS.map(({ key, label }) => {
+                const h = sectionHeight[key] ?? 100;
+                return (
+                  <div
+                    key={key}
+                    className="inner-card flex items-center justify-between px-3 py-2"
+                  >
+                    <span className="text-[0.78rem] text-dim">{label}</span>
+                    <div className="flex gap-1">
+                      {([50, 100] as const).map((v) => {
+                        const active = h === v;
+                        return (
+                          <button
+                            key={v}
+                            onClick={() => setSectionHeight(key, v)}
+                            className="rounded px-2 py-0.5 text-[0.65rem] font-semibold transition"
+                            style={{
+                              color: active ? "#1a0f04" : "var(--ink-2)",
+                              background: active ? "var(--accent)" : "rgba(255,255,255,0.05)",
+                            }}
+                            title={`${label}: ${v}vh`}
+                          >
+                            {v}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            <div className="hairline" />
             <p className="meta text-faint text-[0.58rem]">Section layouts — 6 variants each</p>
             {(Object.keys(VARIANT_COUNT) as SectionKey[]).map((key) => (
               <div key={key} className="flex flex-col gap-1.5">
@@ -917,6 +956,13 @@ export function DevPanel() {
                 )}
               </div>
             ))}
+
+            <div className="hairline" />
+            <ImagePickerSection
+              open={open}
+              overrides={imageOverrides}
+              onSet={setImageOverride}
+            />
 
             <button
               onClick={() => {
@@ -1383,5 +1429,131 @@ function CopyOption({
         </span>
       )}
     </button>
+  );
+}
+
+/* ImagePickerSection — Samy 2026-05-27: "im Dev-Panel die Moeglichkeit, jedes
+   Bild auszuwaehlen und es selber ersetzen zu koennen". Scannt die Page nach
+   <img>-Tags, listet pro Bild Thumb + Filename, bietet Replace (FileReader →
+   DataURL) + Reset. Override-Persistenz uebernimmt der MutationObserver in
+   DesignProvider — diese Sektion baut nur das UI dazu. */
+type ScannedImage = { id: string; src: string; alt: string };
+
+function ImagePickerSection({
+  open,
+  overrides,
+  onSet,
+}: {
+  open: boolean;
+  overrides: Record<string, string>;
+  onSet: (id: string, url: string | null) => void;
+}) {
+  const [images, setImages] = useState<ScannedImage[]>([]);
+  const fileRefs = useRef<Record<string, HTMLInputElement | null>>({});
+
+  // Re-scan wenn das Panel geoeffnet wird oder ein Override geaendert wurde.
+  // Zwei Passes (sofort + nach 200ms) decken async-geladene Bilder ab.
+  useEffect(() => {
+    if (!open) return;
+    const scan = () => {
+      const seen = new Set<string>();
+      const next: ScannedImage[] = [];
+      document.querySelectorAll<HTMLImageElement>("img").forEach((img) => {
+        const id = img.dataset.imgId ?? img.dataset.imgOriginal ?? img.getAttribute("src") ?? "";
+        if (!id || seen.has(id)) return;
+        seen.add(id);
+        next.push({
+          id,
+          src: img.currentSrc || img.src,
+          alt: img.alt || id.split("/").pop() || id,
+        });
+      });
+      setImages(next);
+    };
+    scan();
+    const t = window.setTimeout(scan, 200);
+    return () => window.clearTimeout(t);
+  }, [open, overrides]);
+
+  const onFile = (id: string, file: File | undefined) => {
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      if (typeof reader.result === "string") onSet(id, reader.result);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  return (
+    <>
+      <div className="flex items-center justify-between">
+        <p className="meta text-faint text-[0.58rem]">Images — replace by upload</p>
+        <span className="meta text-faint text-[0.55rem]">{images.length} on page</span>
+      </div>
+      {images.length === 0 && (
+        <p className="text-faint text-[0.7rem]">Keine Bilder auf der Seite gefunden.</p>
+      )}
+      <div className="flex flex-col gap-1.5">
+        {images.map((img) => {
+          const overridden = !!overrides[img.id];
+          const name = (img.alt && img.alt.length < 32 ? img.alt : null) ?? img.id.split("/").pop() ?? img.id;
+          return (
+            <div
+              key={img.id}
+              className="inner-card flex items-center gap-2 px-2 py-1.5"
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={img.src}
+                alt=""
+                className="h-9 w-9 shrink-0 rounded object-cover"
+                style={{ background: "rgba(255,255,255,0.04)" }}
+              />
+              <div className="min-w-0 flex-1">
+                <div className="truncate text-[0.72rem]" style={{ color: "var(--ink)" }}>
+                  {name}
+                </div>
+                <div className="meta text-faint truncate text-[0.55rem]">
+                  {overridden ? "overridden" : img.id.split("/").pop()}
+                </div>
+              </div>
+              <button
+                onClick={() => fileRefs.current[img.id]?.click()}
+                className="rounded px-2 py-1 text-[0.62rem] font-semibold"
+                style={{
+                  color: "#1a0f04",
+                  background: "var(--accent)",
+                }}
+                title="Bild ersetzen (Upload)"
+              >
+                Replace
+              </button>
+              {overridden && (
+                <button
+                  onClick={() => onSet(img.id, null)}
+                  className="rounded px-2 py-1 text-[0.62rem]"
+                  style={{
+                    color: "var(--ink-2)",
+                    background: "rgba(255,255,255,0.06)",
+                  }}
+                  title="Original wiederherstellen"
+                >
+                  Reset
+                </button>
+              )}
+              <input
+                ref={(el) => {
+                  fileRefs.current[img.id] = el;
+                }}
+                type="file"
+                accept="image/*"
+                hidden
+                onChange={(e) => onFile(img.id, e.target.files?.[0])}
+              />
+            </div>
+          );
+        })}
+      </div>
+    </>
   );
 }

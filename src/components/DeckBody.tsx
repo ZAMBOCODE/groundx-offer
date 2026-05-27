@@ -29,7 +29,7 @@ const REGISTRY: Record<SectionKey, ComponentType> = {
 
 export function DeckBody() {
   const cfg = useOffer();
-  const { enabledOverride } = useDesign();
+  const { enabledOverride, sectionHeight } = useDesign();
   return (
     <main>
       {cfg.sections
@@ -42,8 +42,12 @@ export function DeckBody() {
         .map((s, i) => {
           const C = REGISTRY[s.key];
           if (!C) return null;
+          // Per-section vh-Override (Samy 2026-05-27): 50 = halbe Hoehe, sodass
+          // zwei Sections auf einen Bildschirm passen. Wrapper traegt das
+          // data-attribute, CSS in globals.css ueberschreibt min-height.
+          const h = sectionHeight[s.key] ?? 100;
           return (
-            <div key={`${s.key}-${i}`}>
+            <div key={`${s.key}-${i}`} data-section-height={h}>
               {i === 1 && <div className="hairline mx-auto max-w-5xl" />}
               <C />
             </div>

@@ -138,6 +138,18 @@ const KEY_ENABLED = "groundx.sectionEnabled";
 const KEY_WORK_PROJECTS = "groundx.workProjects";
 const KEY_HERO_BUTTONS = "groundx.heroButtons";
 const KEY_HERO_OVERRIDE = "groundx.heroOverride";
+const KEY_SECTION_HEIGHT = "groundx.sectionHeight";
+const KEY_IMAGE_OVERRIDES = "groundx.imageOverrides";
+
+/** Per-section min-height override: 50 = halbe Viewport-Hoehe (zwei Sections
+ *  passen uebereinander auf einen Bildschirm), 100 = volle Hoehe (default).
+ *  Samy 2026-05-27: "ich moechte entscheiden koennen, ob 50% VH oder 100% VH". */
+export type SectionHeight = 50 | 100;
+
+/** Image-overrides: keyed by stable image-id (e.g. "work.gulfrescue.0",
+ *  "hero.background"). Value is a data-URL (file upload) ODER eine externe
+ *  URL. Sections lesen ueber useImageSrc(id, fallback). */
+export type ImageOverrides = Record<string, string>;
 
 /** which Hero CTA buttons to render (Samy 2026-05-26: "die Buttons unten
  *  in der Hero Section sollen anwählbar sein, ob man die haben will oder nicht"). */
@@ -166,6 +178,16 @@ type Ctx = {
   setHeroButtons: (patch: Partial<HeroButtons>) => void;
   heroOverride: HeroOverride;
   setHeroOverride: (patch: Partial<HeroOverride>) => void;
+  /** per-section vh-Hoehe (default 100). Wenn 50 gesetzt: section nimmt nur
+   *  halbe Viewport-Hoehe, sodass zwei Sections nebeneinander auf einen
+   *  Bildschirm passen. */
+  sectionHeight: Partial<Record<ConfigSectionKey, SectionHeight>>;
+  setSectionHeight: (k: ConfigSectionKey, vh: SectionHeight) => void;
+  /** image overrides: id → URL (data: oder remote). Sections lesen via
+   *  useImageSrc(id, fallback). DevPanel scannt Page nach data-img-id und
+   *  bietet pro id einen Upload-Picker. */
+  imageOverrides: ImageOverrides;
+  setImageOverride: (id: string, url: string | null) => void;
 };
 
 const DesignCtx = createContext<Ctx>({
@@ -179,6 +201,10 @@ const DesignCtx = createContext<Ctx>({
   setHeroButtons: () => {},
   heroOverride: {},
   setHeroOverride: () => {},
+  sectionHeight: {},
+  setSectionHeight: () => {},
+  imageOverrides: {},
+  setImageOverride: () => {},
 });
 
 export function DesignProvider({ children }: { children: React.ReactNode }) {
@@ -188,6 +214,8 @@ export function DesignProvider({ children }: { children: React.ReactNode }) {
   const [workProjects, setWorkProjectsState] = useState<string[]>([]);
   const [heroButtons, setHeroButtonsState] = useState<HeroButtons>(HERO_BUTTONS_DEFAULT);
   const [heroOverride, setHeroOverrideState] = useState<HeroOverride>({});
+  const [sectionHeight, setSectionHeightState] = useState<Partial<Record<ConfigSectionKey, SectionHeight>>>({});
+  const [imageOverrides, setImageOverridesState] = useState<ImageOverrides>({});
 
   // Seed variants from the offer config (so the pipeline drives layout per
   // client); a saved dev-panel choice in localStorage always wins.
@@ -219,6 +247,14 @@ export function DesignProvider({ children }: { children: React.ReactNode }) {
     try {
       const rawHO = localStorage.getItem(KEY_HERO_OVERRIDE);
       if (rawHO) setHeroOverrideState(JSON.parse(rawHO));
+    } catch {}
+    try {
+      const rawSH = localStorage.getItem(KEY_SECTION_HEIGHT);
+      if (rawSH) setSectionHeightState(JSON.parse(rawSH));
+    } catch {}
+    try {
+      const rawIO = localStorage.getItem(KEY_IMAGE_OVERRIDES);
+      if (rawIO) setImageOverridesState(JSON.parse(rawIO));
     } catch {}
   }, [cfg]);
 
@@ -253,6 +289,69 @@ export function DesignProvider({ children }: { children: React.ReactNode }) {
     });
   }, []);
 
+  const setSectionHeight = useCallback((k: ConfigSectionKey, vh: SectionHeight) => {
+    setSectionHeightState((prev) => {
+      const next = { ...prev, [k]: vh };
+      try { localStorage.setItem(KEY_SECTION_HEIGHT, JSON.stringify(next)); } catch {}
+      return next;
+    });
+  }, []);
+
+  const setImageOverride = useCallback((id: string, url: string | null) => {
+    setImageOverridesState((prev) => {
+      const next = { ...prev };
+      if (url === null || url === "") delete next[id];
+      else next[id] = url;
+      try { localStorage.setItem(KEY_IMAGE_OVERRIDES, JSON.stringify(next)); } catch {}
+      return next;
+    });
+  }, []);
+
+  // Global Image-Override Manager (Samy 2026-05-27): scannt das DOM nach
+  // <img>-Tags, merkt sich das Original-src in data-img-original und ersetzt
+  // src durch das Override aus imageOverrides[originalSrc]. Re-runs bei jedem
+  // DOM-Change (React-Rerender) via MutationObserver, sodass die Overrides
+  // persistieren ohne dass jede Section.tsx-Stelle angefasst werden muss.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    let scheduled = false;
+    const apply = () => {
+      scheduled = false;
+      document.querySelectorAll<HTMLImageElement>("img").forEach((img) => {
+        // capture the original once — getAttribute() avoids the
+        // absolutized form .src returns (e.g. http://localhost/...)
+        if (!img.dataset.imgOriginal) {
+          const attr = img.getAttribute("src");
+          if (attr) img.dataset.imgOriginal = attr;
+        }
+        const original = img.dataset.imgOriginal ?? "";
+        if (!original) return;
+        const id = img.dataset.imgId ?? original;
+        const override = imageOverrides[id];
+        const current = img.getAttribute("src");
+        if (override && current !== override) {
+          img.setAttribute("src", override);
+        } else if (!override && current !== original) {
+          img.setAttribute("src", original);
+        }
+      });
+    };
+    const schedule = () => {
+      if (scheduled) return;
+      scheduled = true;
+      requestAnimationFrame(apply);
+    };
+    apply();
+    const obs = new MutationObserver(schedule);
+    obs.observe(document.body, {
+      subtree: true,
+      childList: true,
+      attributes: true,
+      attributeFilter: ["src", "data-img-id"],
+    });
+    return () => obs.disconnect();
+  }, [imageOverrides]);
+
   const setHeroOverride = useCallback((patch: Partial<HeroOverride>) => {
     setHeroOverrideState((prev) => {
       const next = { ...prev };
@@ -278,6 +377,10 @@ export function DesignProvider({ children }: { children: React.ReactNode }) {
         setHeroButtons,
         heroOverride,
         setHeroOverride,
+        sectionHeight,
+        setSectionHeight,
+        imageOverrides,
+        setImageOverride,
       }}
     >
       {children}
@@ -286,3 +389,9 @@ export function DesignProvider({ children }: { children: React.ReactNode }) {
 }
 
 export const useDesign = () => useContext(DesignCtx);
+
+/** Liest die finale Image-URL: DevPanel-Override gewinnt, sonst fallback. */
+export function useImageSrc(id: string, fallback: string): string {
+  const { imageOverrides } = useDesign();
+  return imageOverrides[id] ?? fallback;
+}

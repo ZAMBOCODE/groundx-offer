@@ -378,6 +378,19 @@ body {
   }
 }
 
+/* Per-section vh-Override (DevPanel, Samy 2026-05-27): wenn der Wrapper-Div
+   in DeckBody data-section-height="50" traegt, schrumpft .section + jeder
+   sticky-Hero auf halbe Viewport-Hoehe. So passen zwei Sections auf einen
+   Bildschirm (vorher zu leer). :where() haelt Spezifitaet 0, !important
+   schlaegt Tailwind-Utilities (min-h-screen) im Hero zuverlaessig. */
+[data-section-height="50"] :where(.section),
+[data-section-height="50"] :where(header[id], section[id]) {
+  min-height: 50vh !important;
+}
+[data-section-height="50"] :where(.section) {
+  padding-block: 2.5rem;
+}
+
 /* dev-panel toggles: scroll-snap to section. PROXIMITY + scroll-snap-
    stop: normal — auf Windows fühlte sich mandatory+always extrem klebrig
    an ("zehn Jahre", Samy 2026-05-27), weil jede Section ein Hard-Stop war
