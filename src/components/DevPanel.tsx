@@ -69,8 +69,10 @@ const DEFAULTS: Settings = {
   bodyFont: "inherit",
   sidePad: 24,
   uiScale: 1,
-  smoothScroll: true,
-  snap: true,
+  // 2026-05-27: smoothScroll + snap default OFF auf Windows. User kann
+  // beides per DevPanel anstellen wenn er das Mac-Verhalten will.
+  smoothScroll: false,
+  snap: false,
   devHud: false,
   cursorFx: "off",
   bubbles: false,

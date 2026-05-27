@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { motion, useScroll, useSpring, useTransform } from "motion/react";
+import { motion, useScroll, useTransform } from "motion/react";
 
 /* Bottom scroll-progress bar.
    Samy 2026-05-25: "ganz unten ein Scroll-Indicator, beim Hovern zeigt er
@@ -31,8 +31,10 @@ export function ScrollProgress() {
   const rafId = useRef<number | null>(null);
 
   const { scrollYProgress } = useScroll();
-  const fill = useSpring(scrollYProgress, { stiffness: 140, damping: 24, mass: 0.4 });
-  const fillPct = useTransform(fill, (v) => `${Math.min(100, Math.max(0, v * 100))}%`);
+  // 2026-05-27: useSpring entfernt — Spring auf scroll-bound values fühlte sich
+  // auf Windows als "delay" an. Direct bind = sofortige Reaktion, identische
+  // visuelle Wirkung weil die Bar dünn ist.
+  const fillPct = useTransform(scrollYProgress, (v) => `${Math.min(100, Math.max(0, v * 100))}%`);
 
   // Recompute tick positions on resize / DOM mutation. Cheap: re-run on
   // window resize + on each scroll-to-end (after layout settles).
