@@ -355,22 +355,30 @@ body {
    negative). */
 .section {
   margin: 0 auto;
-  /* 2026-05-27: top + bottom padding entkoppelt — Content beginnt jetzt
-     IMMER oben (vorher justify-content:center → Content schwebte in der
-     Mitte einer 100vh-Section mit massiv Whitespace oben+unten). Damit
-     wird das Layout konsistent: jede Section faengt direkt unter ihrem
-     vorigen Sibling an, Min-height bleibt 100vh sodass scroll-snap noch
-     section-genau einrastet. */
+  /* 2026-05-27 (Schritt 2): min-height von 100vh auf auto. Vorher war jede
+     Section gezwungen 100vh hoch zu sein, auch wenn der Content nur ~50vh
+     fuellte → massiv Leerraum unten. Sections wachsen jetzt mit ihrem
+     Inhalt, scroll-snap (DevPanel opt-in) bleibt unberuehrt weil snap-
+     align nicht von min-height abhaengt. Wer 100vh erzwingen will: per
+     DevPanel-vh-Toggle (data-section-height="100" → min-height 100vh
+     via [data-section-height] selector unten). */
   padding-block: 4.5rem 3.5rem;
   padding-inline: max(0px, var(--side-pad, 24px));
-  min-height: 100vh;
+  min-height: auto;
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
 }
 /* Opt-in: section vertikal zentriert (FAQ, Contact, etc). */
 .section.section--center {
+  min-height: 100vh;
   justify-content: center;
+}
+/* DevPanel-100vh-toggle erzwingt die volle Viewport-Hoehe (per-section
+   override aus design-context.tsx sectionHeight Map). */
+[data-section-height="100"] :where(.section),
+[data-section-height="100"] :where(header[id], section[id]) {
+  min-height: 100vh;
 }
 /* Sticky-scroll containers (height-driven children) opt out of the flex
    centering — they manage their own vertical rhythm. The data-attribute
@@ -384,8 +392,7 @@ body {
 }
 @media (max-width: 640px) {
   .section {
-    padding-block: 3.5rem;
-    min-height: auto;
+    padding-block: 3rem 2.5rem;
   }
   .display {
     line-height: 1.08;
