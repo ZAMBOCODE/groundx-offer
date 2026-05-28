@@ -861,6 +861,7 @@ export function Capabilities() {
         <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {c.items.map((c, i) => {
             const img = CAPABILITY_IMAGE[c.title];
+            const imgId = `capabilities.${slugify(c.title)}`;
             return (
               <Reveal key={c.title} delay={(i % 3) * 0.07}>
                 <div className="card glow-border flex h-full flex-col overflow-hidden p-0">
@@ -869,6 +870,7 @@ export function Capabilities() {
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
                         src={img}
+                        data-img-id={imgId}
                         alt={c.title}
                         className="absolute inset-0 h-full w-full object-cover object-center"
                       />
@@ -1192,6 +1194,11 @@ function CapabilitiesSplitPane({ items }: { items: Array<{ title: string; blurb:
   const [hover, setHover] = useState(0);
   const active = items[hover] ?? items[0];
   if (!active) return null;
+  // Samy 2026-05-27: "bei was ich liefere fuer jeden einzelnen Step so ein
+  // Bild sein". Bild oben in der rechten Card, data-img-id slug-stabil
+  // damit der DevPanel-ImagePicker das Override pro Step sauber persistiert.
+  const imgSrc = CAPABILITY_IMAGE[active.title] ?? "/assets/gx-web-1.png";
+  const imgId = `capabilities.${slugify(active.title)}`;
   return (
     <Reveal>
       <div className="mt-12 grid gap-6 md:grid-cols-[minmax(220px,300px)_1fr]">
@@ -1222,16 +1229,42 @@ function CapabilitiesSplitPane({ items }: { items: Array<{ title: string; blurb:
             );
           })}
         </ul>
-        <div className="card glow-border flex min-h-[300px] flex-col p-8">
-          <div className="meta accent text-[0.62rem]">
-            {String(hover + 1).padStart(2, "0")} / {String(items.length).padStart(2, "0")}
+        <div className="card glow-border flex min-h-[420px] flex-col overflow-hidden p-0">
+          <div className="relative h-56 w-full overflow-hidden">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              key={imgId}
+              src={imgSrc}
+              data-img-id={imgId}
+              alt={active.title}
+              className="absolute inset-0 h-full w-full object-cover object-center"
+            />
+            <div
+              className="pointer-events-none absolute inset-x-0 bottom-0 h-1/2"
+              style={{ background: "linear-gradient(180deg, transparent, rgba(5,5,7,0.92))" }}
+            />
           </div>
-          <h3 className="display mt-3 text-[1.8rem]">{active.title}</h3>
-          <p className="text-dim mt-4 max-w-xl flex-1 text-[1.02rem] leading-relaxed">{active.blurb}</p>
+          <div className="flex flex-col p-8">
+            <div className="meta accent text-[0.62rem]">
+              {String(hover + 1).padStart(2, "0")} / {String(items.length).padStart(2, "0")}
+            </div>
+            <h3 className="display mt-3 text-[1.8rem]">{active.title}</h3>
+            <p className="text-dim mt-4 max-w-xl flex-1 text-[1.02rem] leading-relaxed">{active.blurb}</p>
+          </div>
         </div>
       </div>
     </Reveal>
   );
+}
+
+/** Stable id-slug from a capability title (for data-img-id). */
+function slugify(s: string): string {
+  return s
+    .toLowerCase()
+    .normalize("NFKD")
+    .replace(/[̀-ͯ]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
 }
 
 /* variant 5 — full-bleed horizontal scroll-snap strip. One feature per viewport.
