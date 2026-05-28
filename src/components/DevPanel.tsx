@@ -266,7 +266,15 @@ export function DevPanel() {
     setSectionHeight,
     imageOverrides,
     setImageOverride,
+    setEditMode,
   } = useDesign();
+
+  // editMode === panel open: aktiviert den globalen click-handler in
+  // design-context der img-Klicks abfaengt und den File-Picker oeffnet.
+  useEffect(() => {
+    setEditMode(open);
+    return () => setEditMode(false);
+  }, [open, setEditMode]);
   const offer = useOffer();
 
   const generateCopyVariants = useCallback(
@@ -439,6 +447,7 @@ export function DevPanel() {
       <AnimatePresence>
         {open && (
           <motion.aside
+            data-devpanel
             initial={{ x: 360, opacity: 0 }}
             animate={{ x: 0, opacity: 1 }}
             exit={{ x: 360, opacity: 0 }}

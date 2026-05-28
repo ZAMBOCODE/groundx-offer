@@ -399,6 +399,22 @@ body {
   }
 }
 
+/* Edit-Mode (Samy 2026-05-27 Run-4): wenn das DevPanel offen ist, faerbt
+   jedes img-Tag im Deck einen sanften Hover-Outline und cursor-pointer
+   damit der User direkt drauf klicken kann um es zu ersetzen. Der globale
+   click-handler in design-context.tsx faengt den Click ab und oeffnet
+   den File-Picker. */
+html.img-edit-mode img:not([data-devpanel] img) {
+  cursor: pointer;
+  outline: 1px dashed rgba(249, 115, 22, 0.45);
+  outline-offset: 2px;
+  transition: outline-color 180ms ease, transform 180ms ease;
+}
+html.img-edit-mode img:not([data-devpanel] img):hover {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
 /* Per-section vh-Override (DevPanel, Samy 2026-05-27): wenn der Wrapper-Div
    in DeckBody data-section-height="50" traegt, schrumpft .section + jeder
    sticky-Hero auf halbe Viewport-Hoehe. So passen zwei Sections auf einen

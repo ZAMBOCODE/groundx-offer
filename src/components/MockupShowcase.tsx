@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { useScroll } from "motion/react";
 import { TiltCard } from "./TiltCard";
 import { useLang } from "./language-context";
 import { Lock, ChevronLeft, ChevronRight, Plus, Share, PanelLeft, RotateCw, Wifi, Signal, Battery } from "lucide-react";
@@ -22,12 +23,35 @@ const TABS = [
   { id: "dashboard", label: "Dashboard", url: "app.groundx.ae", img: "/assets/gx-web-3.png" },
 ];
 
-export function MockupShowcase({ showBusinessCard = true }: { showBusinessCard?: boolean } = {}) {
+export function MockupShowcase({
+  showBusinessCard = true,
+  cycleOnScroll = false,
+}: { showBusinessCard?: boolean; cycleOnScroll?: boolean } = {}) {
   const [tab, setTab] = useState(0);
   const active = TABS[tab]!;
+  const ref = useRef<HTMLDivElement>(null);
+  // Samy 2026-05-27 (Run-4): "Sollten einfach durchcyclen wenn man scrollt.
+  // Es geht bei Webseite los, dann Konfigurator, dann Dashboard, und die
+  // Bilder wechseln sich." Wenn cycleOnScroll=true, mappen wir die
+  // scroll-Position (start-end zur viewport) auf den active Tab.
+  const { scrollYProgress } = useScroll({
+    target: ref,
+    offset: ["start end", "end start"],
+  });
+  useEffect(() => {
+    if (!cycleOnScroll) return;
+    return scrollYProgress.on("change", (v) => {
+      // Map [0.25, 0.75] auf [0, TABS.length-1] → bevor/danach bleibt der
+      // erste/letzte Tab stehen, damit beim Reinscrollen Tab 0 sicher
+      // sichtbar ist und beim Rauscrollen der letzte Tab stabil bleibt.
+      const x = (v - 0.25) / 0.5;
+      const idx = Math.max(0, Math.min(TABS.length - 1, Math.floor(x * TABS.length)));
+      setTab((prev) => (prev === idx ? prev : idx));
+    });
+  }, [cycleOnScroll, scrollYProgress]);
 
   return (
-    <div className="relative mt-14 pb-12">
+    <div ref={ref} className="relative mt-14 pb-12">
       <div className="grid items-center gap-8 lg:grid-cols-[1.7fr_0.7fr]">
         <SafariWindow tabs={TABS} active={tab} onSelect={setTab} screenshot={active.img} url={active.url} />
         <div className="hidden lg:block">

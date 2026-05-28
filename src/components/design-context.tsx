@@ -188,6 +188,12 @@ type Ctx = {
    *  bietet pro id einen Upload-Picker. */
   imageOverrides: ImageOverrides;
   setImageOverride: (id: string, url: string | null) => void;
+  /** edit-mode: wenn aktiv, faerbt jedes img-Tag einen Hover-Outline und
+   *  Click oeffnet den File-Picker (Samy 2026-05-27 Run-4: "direkt
+   *  draufklicken koennen im Angebot selber"). DevPanel toggelt das beim
+   *  Oeffnen automatisch ein, beim Schliessen aus. */
+  editMode: boolean;
+  setEditMode: (on: boolean) => void;
 };
 
 const DesignCtx = createContext<Ctx>({
@@ -205,6 +211,8 @@ const DesignCtx = createContext<Ctx>({
   setSectionHeight: () => {},
   imageOverrides: {},
   setImageOverride: () => {},
+  editMode: false,
+  setEditMode: () => {},
 });
 
 export function DesignProvider({ children }: { children: React.ReactNode }) {
@@ -216,6 +224,7 @@ export function DesignProvider({ children }: { children: React.ReactNode }) {
   const [heroOverride, setHeroOverrideState] = useState<HeroOverride>({});
   const [sectionHeight, setSectionHeightState] = useState<Partial<Record<ConfigSectionKey, SectionHeight>>>({});
   const [imageOverrides, setImageOverridesState] = useState<ImageOverrides>({});
+  const [editMode, setEditMode] = useState(false);
 
   // Seed variants from the offer config (so the pipeline drives layout per
   // client); a saved dev-panel choice in localStorage always wins.
@@ -307,6 +316,75 @@ export function DesignProvider({ children }: { children: React.ReactNode }) {
     });
   }, []);
 
+  // Edit-Mode click-intercept (Samy 2026-05-27 Run-4): wenn editMode an
+  // ist, faengt ein capture-phase click-listener Klicks auf <img>-Tags ab
+  // und oeffnet einen versteckten File-Picker. Override wird mit dem
+  // data-img-id (bzw. dem Original-src als Fallback) gespeichert. Plus:
+  // hover-outline via injected style-tag damit der User die klickbaren
+  // Bilder visuell erkennt.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (!editMode) {
+      document.documentElement.classList.remove("img-edit-mode");
+      return;
+    }
+    document.documentElement.classList.add("img-edit-mode");
+
+    // hidden file input fuer den Upload
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = "image/*";
+    input.style.display = "none";
+    document.body.appendChild(input);
+    let pendingId: string | null = null;
+
+    const onChange = () => {
+      const file = input.files?.[0];
+      if (!file || !pendingId) {
+        input.value = "";
+        return;
+      }
+      const id = pendingId;
+      const reader = new FileReader();
+      reader.onload = () => {
+        if (typeof reader.result === "string") {
+          setImageOverridesState((prev) => {
+            const next = { ...prev, [id]: reader.result as string };
+            try { localStorage.setItem(KEY_IMAGE_OVERRIDES, JSON.stringify(next)); } catch {}
+            return next;
+          });
+        }
+        input.value = "";
+        pendingId = null;
+      };
+      reader.readAsDataURL(file);
+    };
+    input.addEventListener("change", onChange);
+
+    const onClick = (e: MouseEvent) => {
+      const target = e.target as HTMLElement | null;
+      if (!target) return;
+      const img = target.closest<HTMLImageElement>("img");
+      if (!img) return;
+      // ignore the DevPanel-internal thumbnails (the Picker-Sektion selbst).
+      if (img.closest("[data-devpanel]")) return;
+      const id = img.dataset.imgId ?? img.dataset.imgOriginal ?? img.getAttribute("src");
+      if (!id) return;
+      e.preventDefault();
+      e.stopPropagation();
+      pendingId = id;
+      input.click();
+    };
+    document.addEventListener("click", onClick, true);
+
+    return () => {
+      document.documentElement.classList.remove("img-edit-mode");
+      document.removeEventListener("click", onClick, true);
+      input.removeEventListener("change", onChange);
+      input.remove();
+    };
+  }, [editMode]);
+
   // Global Image-Override Manager (Samy 2026-05-27): scannt das DOM nach
   // <img>-Tags, merkt sich das Original-src in data-img-original und ersetzt
   // src durch das Override aus imageOverrides[originalSrc]. Re-runs bei jedem
@@ -381,6 +459,8 @@ export function DesignProvider({ children }: { children: React.ReactNode }) {
         setSectionHeight,
         imageOverrides,
         setImageOverride,
+        editMode,
+        setEditMode,
       }}
     >
       {children}

@@ -1951,7 +1951,6 @@ function BrandScrollThroughStatic({ eyebrow, titleWithLogo, titleAccent, sub }: 
       </div>
       <BrandPaletteWall />
       <MockupShowcase showBusinessCard={false} />
-      <BrandFinalStack />
     </div>
   );
 }
@@ -1981,13 +1980,18 @@ function BrandScrollThroughDynamic({ eyebrow, titleWithLogo, titleAccent, sub }:
       {/* Phase 1 — Palette Wall */}
       <BrandPaletteWall fullscreen={false} />
 
-      {/* Phase 2 — Safari + iPhone mockups */}
+      {/* Phase 2 — Safari + iPhone mockups. Samy 2026-05-27 (Run-4): die
+          Mockup-Tabs (Website / Configurator / Dashboard) cyclen jetzt
+          beim Scrollen automatisch durch. */}
       <div className="w-full">
-        <MockupShowcase showBusinessCard={false} />
+        <MockupShowcase showBusinessCard={false} cycleOnScroll />
       </div>
 
-      {/* Phase 3 — Final stack (3 mockups side by side) */}
-      <BrandFinalStack />
+      {/* Phase 3 (BrandFinalStack) entfernt — Samy Run-4: "wir brauchen es
+         unten gar nicht mehr, weil wir einfach nur Tabs hinzufuegen die
+         durchcyclen wenn man scrollt". Die 3 Mockups (Website /
+         Konfigurator / Dashboard) sind jetzt in MockupShowcase mit
+         scroll-getriebener Tab-Animation. */}
     </div>
   );
 }
@@ -2983,12 +2987,25 @@ export function Process() {
   const v = variants.process ?? 0;
   const p = useOffer().content.process;
   if (!p) return null;
+  // V2 = sticky-pin scroll-driven (Samy 2026-05-27 Run-4: "sticky bis 100%
+  // erreicht"). Variant rendert seinen eigenen Heading INNERHALB des
+  // sticky-frames, damit Heading + Road + Stations zusammen am Top kleben
+  // bis der Road durchgelaufen ist.
+  if (v === 2) {
+    return (
+      <section id="process" className="section" data-scroll-driven>
+        <ProcessStations
+          milestones={p.milestones}
+          eyebrow={p.eyebrow}
+          title={p.title}
+          titleAccent={p.titleAccent}
+          sub={p.sub}
+        />
+      </section>
+    );
+  }
   return (
-    <section
-      id="process"
-      className="section"
-      data-scroll-driven={v === 2 || undefined}
-    >
+    <section id="process" className="section">
       <SectionHead
         eyebrow={p.eyebrow}
         title={
@@ -3000,7 +3017,6 @@ export function Process() {
       />
       {v === 0 && <ProcessTimeline milestones={p.milestones} />}
       {v === 1 && <ProcessStickyReveal milestones={p.milestones} />}
-      {v === 2 && <ProcessStations milestones={p.milestones} />}
     </section>
   );
 }
@@ -3066,57 +3082,91 @@ function ProcessStickyReveal({ milestones }: { milestones: Milestone[] }) {
 }
 
 /* variant 2 — horizontal stations with progress line. Samy 2026-05-27
- * (Revision 2): "Alle sind schon sichtbar, aber man scrollt und die
- * Highlights werden durch das Scrollen bewegt. Auch die Linie durch die
- * Road." Also: sticky-pin Wrapper + scroll-driven Road. Outer-vh klein
- * gehalten (180vh = 80vh extra-Scroll) damit der Pin spuerbar ist ohne
- * den User festzunageln. Alle Steps sind von Anfang an im Viewport
- * angezeigt — der scroll-progress steuert nur die Road-Width + welcher
- * Step gerade "lit" ist. */
-function ProcessStations({ milestones }: { milestones: Milestone[] }) {
+ * (Run-4): "Process soll sticky sein bis 100% erreicht ist. Der Strich
+ * muss akkurater sein. Die Punkte muessen leuchten sobald der Strich
+ * ankommt."
+ *
+ * Implementation: outer = 220vh hoch. Sticky-child h-screen pinnt am
+ * viewport-top und enthaelt Heading + Road + Stations. useScroll mit
+ * offset ["start start", "end start"] gibt einen 0→1 progress der genau
+ * waehrend des Pin-Bereichs durchlaeuft (120vh Scroll-Range bis der
+ * Pin released wird). Road-Width === scroll-progress, also 1:1
+ * akkurat. Die ProcessStation-Dots subscriben dieselbe MotionValue und
+ * leuchten an ihrer Spalten-Threshold. */
+function ProcessStations({
+  milestones,
+  eyebrow,
+  title,
+  titleAccent,
+  sub,
+}: {
+  milestones: Milestone[];
+  eyebrow: string;
+  title: string;
+  titleAccent: string;
+  sub?: string;
+}) {
   const outer = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({
     target: outer,
-    offset: ["start end", "end start"],
+    offset: ["start start", "end start"],
   });
-  // 0 wenn Section gerade in den Viewport scrollt, 1 wenn sie ihn verlaesst.
-  // Mapping: Road wachsen zwischen 25% und 75% des Scroll-Bereichs, davor
-  // 0 und danach 1 — gibt dem Effekt klare Start-/End-Punkte ohne Hard-Edge.
-  const progress = useTransform(scrollYProgress, [0.25, 0.75], [0, 1]);
-  const lineWidth = useTransform(progress, (p) => `${Math.min(100, Math.max(0, p * 100))}%`);
+  const lineWidth = useTransform(scrollYProgress, (p) =>
+    `${Math.min(100, Math.max(0, p * 100))}%`,
+  );
   return (
-    <div ref={outer} className="relative mt-10">
-      <div className="relative w-full">
-        {/* base track */}
-        <div
-          className="absolute left-0 right-0 top-[14px] h-px"
-          style={{ background: "rgba(255,255,255,0.08)" }}
+    <div ref={outer} className="relative" style={{ height: "220vh" }}>
+      {/* Sticky-Pin: Heading + Road + Stations bleiben am Top bis die outer
+          unten den Viewport verlaesst. Background opaque damit nachfolgende
+          Sections nicht durchscheinen. */}
+      <div
+        className="sticky top-0 flex h-screen flex-col justify-center overflow-hidden"
+        style={{
+          background: "#050507",
+          paddingBlock: "4.5rem 3.5rem",
+        }}
+      >
+        <SectionHead
+          eyebrow={eyebrow}
+          title={
+            <>
+              {title} <span className="accent-text">{titleAccent}</span>
+            </>
+          }
+          sub={sub}
         />
-        {/* growing accent line */}
-        <motion.div
-          className="absolute left-0 top-[14px] h-px"
-          style={{
-            background:
-              "linear-gradient(90deg, var(--accent), var(--accent-bright))",
-            width: lineWidth,
-            boxShadow: "0 0 14px rgba(249,115,22,0.5)",
-          }}
-        />
-        <div
-          className="grid gap-6"
-          style={{
-            gridTemplateColumns: `repeat(${milestones.length}, minmax(0, 1fr))`,
-          }}
-        >
-          {milestones.map((m, i) => (
-            <ProcessStation
-              key={m.when + m.title}
-              m={m}
-              index={i}
-              total={milestones.length}
-              progress={progress}
-            />
-          ))}
+        <div className="relative mt-12 w-full">
+          {/* base track */}
+          <div
+            className="absolute left-0 right-0 top-[14px] h-px"
+            style={{ background: "rgba(255,255,255,0.08)" }}
+          />
+          {/* growing accent line — akkurat 1:1 zur scroll-progress */}
+          <motion.div
+            className="absolute left-0 top-[14px] h-px"
+            style={{
+              background:
+                "linear-gradient(90deg, var(--accent), var(--accent-bright))",
+              width: lineWidth,
+              boxShadow: "0 0 14px rgba(249,115,22,0.5)",
+            }}
+          />
+          <div
+            className="grid gap-6"
+            style={{
+              gridTemplateColumns: `repeat(${milestones.length}, minmax(0, 1fr))`,
+            }}
+          >
+            {milestones.map((m, i) => (
+              <ProcessStation
+                key={m.when + m.title}
+                m={m}
+                index={i}
+                total={milestones.length}
+                progress={scrollYProgress}
+              />
+            ))}
+          </div>
         </div>
       </div>
     </div>
@@ -3134,15 +3184,19 @@ function ProcessStation({
   total: number;
   progress: import("motion/react").MotionValue<number>;
 }) {
-  // dot lights up once the growing line has reached its column
-  const denom = Math.max(1, total - 1);
-  const threshold = index / denom;
+  // 2026-05-27 (Run-4): Stations sind in grid-cols repeat(total). Spalte i
+  // beginnt bei i/total · 100% des Tracks. Sobald die wachsende Road dort
+  // ankommt (line-width === scrollYProgress), soll der Dot leuchten.
+  // Threshold = i/total → Station 0 leuchtet ab Start, Station total-1
+  // leuchtet kurz vor 100%, was "der Strich erreicht den Punkt" akkurat
+  // abbildet.
+  const threshold = index / Math.max(1, total);
   const dotOpacity = useTransform(progress, (p) =>
     p >= threshold ? 1 : 0.18,
   );
   const dotGlow = useTransform(progress, (p) =>
     p >= threshold
-      ? "0 0 0 4px rgba(249,115,22,0.18), 0 0 22px rgba(249,115,22,0.45)"
+      ? "0 0 0 4px rgba(249,115,22,0.22), 0 0 28px rgba(249,115,22,0.55)"
       : "none",
   );
   return (
