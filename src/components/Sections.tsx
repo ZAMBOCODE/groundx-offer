@@ -2965,7 +2965,7 @@ export function FAQ() {
   const v = variants.faq ?? 0;
   if (!f || f.items.length === 0) return null;
   return (
-    <section id="faq" className="section items-center">
+    <section id="faq" className="section section--center items-center">
       <SectionHead
         eyebrow={f.eyebrow}
         title={

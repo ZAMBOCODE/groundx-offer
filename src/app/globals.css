@@ -355,11 +355,21 @@ body {
    negative). */
 .section {
   margin: 0 auto;
-  padding-block: 5rem;
+  /* 2026-05-27: top + bottom padding entkoppelt — Content beginnt jetzt
+     IMMER oben (vorher justify-content:center → Content schwebte in der
+     Mitte einer 100vh-Section mit massiv Whitespace oben+unten). Damit
+     wird das Layout konsistent: jede Section faengt direkt unter ihrem
+     vorigen Sibling an, Min-height bleibt 100vh sodass scroll-snap noch
+     section-genau einrastet. */
+  padding-block: 4.5rem 3.5rem;
   padding-inline: max(0px, var(--side-pad, 24px));
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  justify-content: flex-start;
+}
+/* Opt-in: section vertikal zentriert (FAQ, Contact, etc). */
+.section.section--center {
   justify-content: center;
 }
 /* Sticky-scroll containers (height-driven children) opt out of the flex
