@@ -1450,7 +1450,7 @@ function CopyOption({
    <img>-Tags, listet pro Bild Thumb + Filename, bietet Replace (FileReader →
    DataURL) + Reset. Override-Persistenz uebernimmt der MutationObserver in
    DesignProvider — diese Sektion baut nur das UI dazu. */
-type ScannedImage = { id: string; src: string; alt: string };
+type ScannedImage = { id: string; src: string; alt: string; section: string };
 
 function ImagePickerSection({
   open,
@@ -1475,10 +1475,16 @@ function ImagePickerSection({
         const id = img.dataset.imgId ?? img.dataset.imgOriginal ?? img.getAttribute("src") ?? "";
         if (!id || seen.has(id)) return;
         seen.add(id);
+        // Samy 2026-05-27: Section-Hint pro Bild — finde naechsten Eltern
+        // mit id-Attribut (section[id], header[id]). Damit weiss Samy
+        // welcher Bereich gemeint ist, ohne erst draufklicken zu muessen.
+        const sectionEl = img.closest<HTMLElement>("[id]");
+        const section = sectionEl?.id ?? "—";
         next.push({
           id,
           src: img.currentSrc || img.src,
           alt: img.alt || id.split("/").pop() || id,
+          section,
         });
       });
       setImages(next);
@@ -1487,6 +1493,26 @@ function ImagePickerSection({
     const t = window.setTimeout(scan, 200);
     return () => window.clearTimeout(t);
   }, [open, overrides]);
+
+  // Samy 2026-05-27 (Run-3): Klick auf das Thumb scrollt zur Section damit
+  // klar ist welches Bild gemeint ist. Highlight-Outline blinkt kurz, damit
+  // man das Bild im Layout direkt findet.
+  const scrollToImage = (img: ScannedImage) => {
+    // Bevorzuge das Live-Element via data-img-id; sonst das Original-src.
+    const live =
+      document.querySelector<HTMLImageElement>(`img[data-img-id="${cssEscape(img.id)}"]`) ??
+      document.querySelector<HTMLImageElement>(`img[data-img-original="${cssEscape(img.id)}"]`);
+    if (!live) return;
+    live.scrollIntoView({ behavior: "smooth", block: "center" });
+    const prevOutline = live.style.outline;
+    const prevOffset = live.style.outlineOffset;
+    live.style.outline = "3px solid var(--accent)";
+    live.style.outlineOffset = "4px";
+    window.setTimeout(() => {
+      live.style.outline = prevOutline;
+      live.style.outlineOffset = prevOffset;
+    }, 1400);
+  };
 
   const onFile = (id: string, file: File | undefined) => {
     if (!file) return;
@@ -1515,21 +1541,34 @@ function ImagePickerSection({
               key={img.id}
               className="inner-card flex items-center gap-2 px-2 py-1.5"
             >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={img.src}
-                alt=""
-                className="h-9 w-9 shrink-0 rounded object-cover"
+              <button
+                type="button"
+                onClick={() => scrollToImage(img)}
+                className="h-9 w-9 shrink-0 overflow-hidden rounded transition-transform hover:scale-105"
                 style={{ background: "rgba(255,255,255,0.04)" }}
-              />
-              <div className="min-w-0 flex-1">
+                title={`Zur Sektion "${img.section}" scrollen`}
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={img.src}
+                  alt=""
+                  className="h-full w-full object-cover"
+                />
+              </button>
+              <button
+                type="button"
+                onClick={() => scrollToImage(img)}
+                className="min-w-0 flex-1 text-left"
+                title={`Zur Sektion "${img.section}" scrollen`}
+              >
                 <div className="truncate text-[0.72rem]" style={{ color: "var(--ink)" }}>
                   {name}
                 </div>
                 <div className="meta text-faint truncate text-[0.55rem]">
-                  {overridden ? "overridden" : img.id.split("/").pop()}
+                  <span style={{ color: "var(--accent-bright)" }}>{img.section}</span>
+                  {overridden ? " · overridden" : ""}
                 </div>
-              </div>
+              </button>
               <button
                 onClick={() => fileRefs.current[img.id]?.click()}
                 className="rounded px-2 py-1 text-[0.62rem] font-semibold"
@@ -1569,4 +1608,13 @@ function ImagePickerSection({
       </div>
     </>
   );
+}
+
+/** CSS.escape Polyfill — escaped Bindestriche / Punkte / Slashes in
+ *  Attribut-Selektoren (image-ids enthalten alle drei). */
+function cssEscape(s: string): string {
+  if (typeof window !== "undefined" && typeof window.CSS?.escape === "function") {
+    return window.CSS.escape(s);
+  }
+  return s.replace(/(["\\/.])/g, "\\$1");
 }

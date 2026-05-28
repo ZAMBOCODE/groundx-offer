@@ -242,9 +242,9 @@ function IPhoneFrame({ screenshot, label }: { screenshot: string; label: string 
         </div>
       </div>
 
-      <span className="meta text-faint mt-3 block text-center text-[0.55rem] tracking-[0.3em]">
-        IPHONE — {label.toUpperCase()}
-      </span>
+      {/* Samy 2026-05-27 (Run-3): "Unter Mobile steht immer noch iPhone
+          Website, das moechte ich auch nicht haben" — Label entfernt,
+          das Mockup selbst zeigt schon was es ist. */}
     </div>
   );
 }

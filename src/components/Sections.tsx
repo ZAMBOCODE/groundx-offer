@@ -219,7 +219,7 @@ function ServicesMarquee() {
       <motion.div
         className="flex w-max gap-3 py-1"
         animate={{ x: ["0%", "-50%"] }}
-        transition={{ duration: 42, ease: "linear", repeat: Infinity }}
+        transition={{ duration: 80, ease: "linear", repeat: Infinity }}
       >
         {track.map(({ icon: Icon, label }, i) => (
           <div
@@ -1740,33 +1740,23 @@ function BrandPaletteWall({ fullscreen = false }: { fullscreen?: boolean } = {})
           ))}
         </div>
 
-        {/* center overlay: wordmark + LOGO IMAGE + tagline.
-            Samy 2026-05-27: "bei der Markenwelt ist das, weil das Logo von
-            Ground X ja gar nicht drin ist" — echtes /assets/groundx-logo.png
-            ueber das Text-Wordmark legen damit das Brand-Asset erkennbar ist. */}
+        {/* center overlay: Marken-Welt eyebrow + Logo-Image + tagline.
+            Samy 2026-05-27 (Run-3): "da steht zweimal Ground X, das moechte
+            ich nicht haben" — Text-Wordmark "ground x" entfernt, nur das
+            echte Logo-Image bleibt als zentrales Brand-Asset. */}
         <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center text-center">
-          <span className="meta text-faint mb-3 text-[0.6rem] tracking-[0.5em]" style={{ color: "rgba(255,255,255,0.55)" }}>
+          <span className="meta text-faint mb-4 text-[0.6rem] tracking-[0.5em]" style={{ color: "rgba(255,255,255,0.55)" }}>
             {t("BRAND WORLD", "MARKEN-WELT")}
           </span>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src="/assets/groundx-logo.png"
             alt="Ground X"
-            className="mb-4 h-16 w-auto sm:h-24"
-            style={{ filter: "drop-shadow(0 4px 24px rgba(0,0,0,0.75))" }}
+            className="h-24 w-auto sm:h-36"
+            style={{ filter: "drop-shadow(0 6px 28px rgba(0,0,0,0.8))" }}
           />
-          <h3
-            className="display text-[clamp(2.6rem,7.5vw,5.5rem)] leading-none text-white"
-            style={{
-              fontFamily: "var(--highlight-font, inherit)",
-              textShadow:
-                "0 4px 32px rgba(0,0,0,0.85), 0 0 80px rgba(0,0,0,0.55)",
-            }}
-          >
-            ground <span className="italic" style={{ color: "var(--gx-gold-hi, #e8b563)" }}>x</span>
-          </h3>
           <p
-            className="meta accent mt-5 text-[0.7rem] tracking-[0.45em]"
+            className="meta accent mt-6 text-[0.7rem] tracking-[0.45em]"
             style={{ textShadow: "0 2px 16px rgba(0,0,0,0.7)" }}
           >
             {t("DISCREET · MODULAR · UNCOMPROMISING", "DISKRET · MODULAR · KOMPROMISSLOS")}
@@ -1967,135 +1957,38 @@ function BrandScrollThroughStatic({ eyebrow, titleWithLogo, titleAccent, sub }: 
 }
 
 function BrandScrollThroughDynamic({ eyebrow, titleWithLogo, titleAccent, sub }: BrandScrollHeadProps) {
-  const outer = useRef<HTMLDivElement>(null);
-  const { scrollYProgress } = useScroll({
-    target: outer,
-    offset: ["start start", "end end"],
-  });
-
-  // Non-overlapping fades + opaque bg per phase (Samy 2026-05-26
-  // screenshot 15.21.41: vorherige Phasen leuchteten hinten durch).
-  const p1 = useTransform(scrollYProgress, [0, 0.30, 0.34], [1, 1, 0]);
-  const p2 = useTransform(scrollYProgress, [0.30, 0.34, 0.62, 0.66], [0, 1, 1, 0]);
-  const p3 = useTransform(scrollYProgress, [0.62, 0.66, 1], [0, 1, 1]);
-
+  // Samy 2026-05-27 (Run-3): "Offer wird einfach verschluckt von den
+  // Sektionen". Ursache war der 300vh sticky-pin mit z-10, der nach Ende
+  // des outer-Bereichs zu lang oben klebte und die Offer-Section visuell
+  // ueberdeckte. Loesung: kein Sticky-Pin, kein cross-fade, kein outer-
+  // Stretch. Die drei Phasen (Palette / Mockups / Final-Stack) sind
+  // jetzt als normale flex-col Children unter dem SectionHead stacked.
+  // Erleichtert auch die Lesbarkeit — alle drei Phasen ohne overlap.
   return (
-    <div ref={outer} className="relative" style={{ height: "300vh" }}>
-      {/* Sticky frame: head at top, phase pinned below in flex-1.
-         marginBottom: -100vh pulls the snap-rails up to start AT
-         outer.top so rails span exactly outer's vertical range. */}
-      <div
-        className="sticky top-0 z-10 flex h-screen flex-col overflow-hidden"
-        style={{ background: "#050507", marginBottom: "-100vh" }}
-      >
-        <div className="px-4 pt-12 sm:px-12 sm:pt-16">
-          <p className="eyebrow mb-3">{eyebrow}</p>
-          <h2 className="display max-w-3xl text-[1.8rem] leading-[1.05] sm:text-[2.4rem]">
-            {titleWithLogo} <span className="accent-text">{titleAccent}</span>
-          </h2>
-          {sub && (
-            <p className="text-dim mt-3 max-w-xl text-[0.92rem] leading-relaxed">
-              {sub}
-            </p>
-          )}
-        </div>
-
-        <div className="relative flex-1">
-          {/* opaque base layer for the snap moment between phases */}
-          <div
-            className="absolute inset-0"
-            style={{ background: "#050507" }}
-          />
-
-          {/* Phase 1 — Palette Wall */}
-          <motion.div
-            className="absolute inset-0 flex items-center justify-center"
-            style={{ opacity: p1, background: "#050507" }}
-          >
-            <div className="h-full w-full">
-              <BrandPaletteWall fullscreen />
-            </div>
-          </motion.div>
-
-          {/* Phase 2 — Safari + iPhone mockups */}
-          <motion.div
-            className="absolute inset-0 flex items-center justify-center px-6"
-            style={{ opacity: p2, background: "#050507" }}
-          >
-            <div className="w-full max-w-[1400px]">
-              <MockupShowcase showBusinessCard={false} />
-            </div>
-          </motion.div>
-
-          {/* Phase 3 — Final fanned trio */}
-          <motion.div
-            className="absolute inset-0 flex items-center justify-center"
-            style={{ opacity: p3, background: "#050507" }}
-          >
-            <div className="w-full">
-              <BrandFinalStack />
-            </div>
-          </motion.div>
-        </div>
-
-        {/* Samy 2026-05-27: "da kommt einfach so eine Bar hoch geflogen" —
-            ScrollThroughDots-Indicator raus, der wirkte als ungewollter UI-Lift. */}
+    <div className="relative flex flex-col gap-16 sm:gap-24">
+      <div className="px-4 sm:px-12">
+        <p className="eyebrow mb-3">{eyebrow}</p>
+        <h2 className="display max-w-3xl text-[2rem] leading-[1.05] sm:text-[2.8rem]">
+          {titleWithLogo} <span className="accent-text">{titleAccent}</span>
+        </h2>
+        {sub && (
+          <p className="text-dim mt-4 max-w-xl text-[1.05rem] leading-relaxed">
+            {sub}
+          </p>
+        )}
       </div>
 
-      {/* Per-phase snap rails: 3 × 100vh inline blocks, scroll-snap-align
-         start so the browser lands cleanly on Palette / Mockup / Stack. */}
-      {[0, 1, 2].map((i) => (
-        <div
-          key={i}
-          aria-hidden
-          className="pointer-events-none"
-          style={{ height: "100vh", scrollSnapAlign: "start" }}
-        />
-      ))}
-    </div>
-  );
-}
+      {/* Phase 1 — Palette Wall */}
+      <BrandPaletteWall fullscreen={false} />
 
-function ScrollThroughDots({
-  progress,
-}: {
-  progress: import("motion/react").MotionValue<number>;
-}) {
-  const t = useT();
-  const labels = [t("Palette", "Palette"), t("Mockups", "Mockups"), t("3D Stack", "3D-Stack")];
-  return (
-    <div
-      data-pdf-hide
-      className="meta absolute bottom-6 left-1/2 z-30 flex -translate-x-1/2 items-center gap-3 text-[0.55rem] tracking-[0.35em]"
-      style={{ color: "var(--ink-3)" }}
-    >
-      {labels.map((l, i) => (
-        <ScrollThroughDot key={l} label={l} index={i} total={labels.length} progress={progress} />
-      ))}
-    </div>
-  );
-}
+      {/* Phase 2 — Safari + iPhone mockups */}
+      <div className="w-full">
+        <MockupShowcase showBusinessCard={false} />
+      </div>
 
-function ScrollThroughDot({
-  label,
-  index,
-  total,
-  progress,
-}: {
-  label: string;
-  index: number;
-  total: number;
-  progress: import("motion/react").MotionValue<number>;
-}) {
-  const start = index / total;
-  const peak = (index + 0.5) / total;
-  const end = (index + 1) / total;
-  const opacity = useTransform(progress, [start, peak, end], [0.35, 1, 0.35]);
-  return (
-    <motion.div className="flex items-center gap-1.5" style={{ opacity }}>
-      <span className="h-1.5 w-1.5 rounded-full" style={{ background: "var(--accent)" }} />
-      <span>{label.toUpperCase()}</span>
-    </motion.div>
+      {/* Phase 3 — Final stack (3 mockups side by side) */}
+      <BrandFinalStack />
+    </div>
   );
 }
 
@@ -2126,36 +2019,27 @@ function BrandFinalStack() {
     },
   ];
   return (
-    // Samy 2026-05-27: "alle drei Bilder nebeneinander, auch auf Mobile" —
-    // weg vom absolute-positioned Fanned-Trio, hin zu einer 3-spaltigen
-    // Flex-Reihe die auf jeder Breite nebeneinander steht. Kein Overlap,
-    // jedes Mockup eigenstaendig lesbar.
-    <div className="mx-auto w-full max-w-[1280px]">
-      <div className="flex w-full items-end gap-3 sm:gap-5">
+    // Samy 2026-05-27 (Run-3): "die letzten drei Bilder viel viel groesser"
+    // + "die sollen aneinander schoen anliegen". Tilt + Lift weg, gap 0
+    // (Cards stossen direkt aneinander), max-width raus (volle Section-
+    // Breite ueber den Container), Image-Aspect 16/11 fuer mehr Vertikal-
+    // Praesenz. Browser-Chrome-Header bleibt fuer Desktop drin (zeigt
+    // groundx.ae / configure / app.groundx.ae als Mini-URLs).
+    <div className="mx-auto w-full">
+      <div className="flex w-full items-stretch">
         {slides.map((s, i) => {
-          const offset = i - 1;
-          const tilt = offset * 4; // leichter Fan-Tilt
-          const isCenter = offset === 0;
-          const lift = isCenter ? 0 : 18;
+          const isCenter = i === 1;
           return (
-            <div
-              key={s.img}
-              className="w-1/3 shrink-0"
-              style={{
-                transform: `translateY(${lift}px) rotate(${tilt}deg)`,
-                transformOrigin: "center center",
-                transition: "transform 0.7s var(--ease)",
-              }}
-            >
+            <div key={s.img} className="w-1/3 shrink-0">
               <div
-                className="relative overflow-hidden rounded-[10px] border bg-black sm:rounded-[14px]"
+                className="relative h-full overflow-hidden border bg-black"
                 style={{
                   borderColor: isCenter
                     ? "rgba(232,181,99,0.22)"
                     : "var(--stroke-card)",
                   boxShadow: isCenter
-                    ? "0 40px 80px rgba(0,0,0,0.7), 0 0 0 1px rgba(232,181,99,0.12), 0 0 50px rgba(249,115,22,0.10)"
-                    : "0 24px 60px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.04)",
+                    ? "0 30px 80px rgba(0,0,0,0.7), 0 0 0 1px rgba(232,181,99,0.12), 0 0 60px rgba(249,115,22,0.08)"
+                    : "0 20px 60px rgba(0,0,0,0.55)",
                 }}
               >
                 <div className="hidden items-center gap-2 border-b border-[var(--stroke-card)] bg-[#0a0907] px-3 py-2 sm:flex">
@@ -2180,18 +2064,11 @@ function BrandFinalStack() {
                     {String(i + 1).padStart(2, "0")} · {s.label.toUpperCase()}
                   </span>
                 </div>
-                <div className="aspect-[16/10] w-full overflow-hidden">
+                <div className="aspect-[16/11] w-full overflow-hidden">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={s.img} alt={s.label} className="h-full w-full object-cover object-top" />
                 </div>
               </div>
-              {/* Mobile-Label unter der Card (auf Desktop sitzt es in der Browser-Bar oben). */}
-              <p
-                className="meta mt-2 truncate text-center text-[0.5rem] tracking-[0.3em] sm:hidden"
-                style={{ color: "var(--gx-gold-hi)" }}
-              >
-                {String(i + 1).padStart(2, "0")} · {s.label.toUpperCase()}
-              </p>
             </div>
           );
         })}
@@ -2831,7 +2708,7 @@ function LogoMarquee({ logos }: { logos: { name: string; src: string }[] }) {
       <motion.div
         className="flex w-max items-center gap-16"
         animate={{ x: ["0%", "-33.333%"] }}
-        transition={{ duration: 40, ease: "linear", repeat: Infinity }}
+        transition={{ duration: 80, ease: "linear", repeat: Infinity }}
       >
         {track.map((l, i) => (
           // eslint-disable-next-line @next/next/no-img-element
@@ -2904,7 +2781,7 @@ function TestimonialCards({ items }: { items: Testimonial[] }) {
       <motion.div
         className="flex w-max gap-4"
         animate={{ x: ["0%", "-50%"] }}
-        transition={{ duration: 55, ease: "linear", repeat: Infinity }}
+        transition={{ duration: 110, ease: "linear", repeat: Infinity }}
       >
         {track.map((t, i) => (
           <div key={i} className="w-[320px] shrink-0 sm:w-[340px]">
@@ -2947,7 +2824,7 @@ function TestimonialMarquee({ items }: { items: Testimonial[] }) {
       <motion.div
         className="flex w-max gap-5"
         animate={{ x: ["0%", "-50%"] }}
-        transition={{ duration: 60, ease: "linear", repeat: Infinity }}
+        transition={{ duration: 120, ease: "linear", repeat: Infinity }}
       >
         {track.map((t, i) => (
           <div key={i} className="w-[460px] shrink-0">

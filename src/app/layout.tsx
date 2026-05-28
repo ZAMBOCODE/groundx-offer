@@ -83,6 +83,14 @@ export const metadata: Metadata = {
   title: "Ground X — Visual & Marketing Partnership",
   description:
     "A proposal by ZamboDezigns: brand, AI visuals, web and content systems for Ground X.",
+  // Samy 2026-05-27: Favicon = ZamboDezigns-Logo (Sender, nicht der Kunde).
+  icons: {
+    icon: [
+      { url: "/assets/zambo-logo.png", type: "image/png" },
+    ],
+    shortcut: "/assets/zambo-logo.png",
+    apple: "/assets/zambo-logo.png",
+  },
 };
 
 export default function RootLayout({
