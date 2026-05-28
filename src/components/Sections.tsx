@@ -1197,12 +1197,25 @@ function StickyStackCard({
 function CapabilitiesSplitPane({ items }: { items: Array<{ title: string; blurb: string; proof: string }> }) {
   const [hover, setHover] = useState(0);
   const active = items[hover] ?? items[0];
+  // Samy 2026-05-28: "bei What I Can Do das durchcyceln. Da sollen drei
+  // Bilder durchcyceln. Die moechte ich jetzt gerne auswaehlen koennen
+  // damit ich mehr zeigen kann." → 3 Image-Slots pro Step, auto-cycle
+  // alle 3.6s, Crossfade ueber opacity. IDs slug-stabil sodass der
+  // DevPanel-ImagePicker fuer jeden Slot ein eigenes Override haelt.
+  const [cycle, setCycle] = useState(0);
+  useEffect(() => {
+    const iv = window.setInterval(() => setCycle((c) => (c + 1) % 3), 3600);
+    return () => window.clearInterval(iv);
+  }, []);
+  // Beim Tab-Wechsel den Cycle auf 0 zuruecksetzen, sodass der User
+  // sofort das erste Bild des neuen Steps sieht.
+  useEffect(() => {
+    setCycle(0);
+  }, [hover]);
   if (!active) return null;
-  // Samy 2026-05-27: "bei was ich liefere fuer jeden einzelnen Step so ein
-  // Bild sein". Bild oben in der rechten Card, data-img-id slug-stabil
-  // damit der DevPanel-ImagePicker das Override pro Step sauber persistiert.
-  const imgSrc = CAPABILITY_IMAGE[active.title] ?? "/assets/gx-web-1.png";
-  const imgId = `capabilities.${slugify(active.title)}`;
+  const slug = slugify(active.title);
+  const defaultImg = CAPABILITY_IMAGE[active.title] ?? "/assets/gx-web-1.png";
+  const slotIds = [0, 1, 2].map((n) => `capabilities.${slug}.${n}`);
   return (
     <Reveal>
       <div className="mt-12 grid gap-6 md:grid-cols-[minmax(220px,300px)_1fr]">
@@ -1235,18 +1248,34 @@ function CapabilitiesSplitPane({ items }: { items: Array<{ title: string; blurb:
         </ul>
         <div className="card glow-border flex min-h-[420px] flex-col overflow-hidden p-0">
           <div className="relative h-56 w-full overflow-hidden">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              key={imgId}
-              src={imgSrc}
-              data-img-id={imgId}
-              alt={active.title}
-              className="absolute inset-0 h-full w-full object-cover object-center"
-            />
+            {slotIds.map((id, i) => (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                key={id}
+                src={defaultImg}
+                data-img-id={id}
+                alt={active.title}
+                className="absolute inset-0 h-full w-full object-cover object-center transition-opacity duration-700"
+                style={{ opacity: cycle === i ? 1 : 0 }}
+              />
+            ))}
             <div
               className="pointer-events-none absolute inset-x-0 bottom-0 h-1/2"
               style={{ background: "linear-gradient(180deg, transparent, rgba(5,5,7,0.92))" }}
             />
+            {/* dezente cycle-indicator-dots unten rechts */}
+            <div className="pointer-events-none absolute bottom-3 right-3 flex gap-1.5">
+              {slotIds.map((id, i) => (
+                <span
+                  key={id}
+                  className="h-1.5 w-1.5 rounded-full transition-all"
+                  style={{
+                    background: cycle === i ? "var(--accent)" : "rgba(255,255,255,0.3)",
+                    width: cycle === i ? 14 : 6,
+                  }}
+                />
+              ))}
+            </div>
           </div>
           <div className="flex flex-col p-8">
             <div className="meta accent text-[0.62rem]">
