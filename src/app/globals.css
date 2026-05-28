@@ -55,7 +55,11 @@
   box-sizing: border-box;
 }
 html {
-  scroll-behavior: smooth;
+  /* 2026-05-27: scroll-behavior: smooth aus dem default raus. Auf Windows
+     fuehlte sich das "manchmal scrollt nichts" an, weil smooth + scroll-snap
+     + viele scroll-driven useScroll-Hooks zusammen rangelten. DevPanel kann
+     smooth-scroll explizit anstellen, programmatic scroll-into-view setzt
+     "behavior: smooth" trotzdem inline pro Klick. */
   /* Global text-scale knob (DevPanel "Text size"). Scales every rem-based
      size together — viewport units (vh/vw) stay untouched, so sections
      and layouts keep their geometry while typography grows or shrinks. */

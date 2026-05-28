@@ -105,6 +105,10 @@ const BUTTON_STYLES = [
 ];
 
 const KEY = "groundx.devpanel";
+/** One-shot migration: alte localStorage-Settings mit smoothScroll:true +
+ *  snap:true einmalig auf false zwingen. 2026-05-27 — der Mac-Default
+ *  fuehlte sich auf Windows zaeh an, deshalb neuer Default + Migration. */
+const KEY_MIGRATION = "groundx.devpanel.migration.scroll-off-v1";
 
 const ACCENT_PRESETS = [
   "#f97316", // orange (brand)
@@ -306,7 +310,14 @@ export function DevPanel() {
   useEffect(() => {
     try {
       const raw = localStorage.getItem(KEY);
-      const loaded = raw ? { ...DEFAULTS, ...JSON.parse(raw) } : DEFAULTS;
+      let loaded = raw ? { ...DEFAULTS, ...JSON.parse(raw) } : DEFAULTS;
+      // One-shot migration: alte stale Settings (smoothScroll+snap true)
+      // einmalig auf false patchen, dann persist + flag setzen.
+      if (raw && !localStorage.getItem(KEY_MIGRATION)) {
+        loaded = { ...loaded, smoothScroll: false, snap: false };
+        localStorage.setItem(KEY, JSON.stringify(loaded));
+        localStorage.setItem(KEY_MIGRATION, "1");
+      }
       setS(loaded);
       apply(loaded);
     } catch {

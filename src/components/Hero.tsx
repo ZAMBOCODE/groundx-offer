@@ -83,11 +83,15 @@ function HeroTrustedStrip() {
       <p className="meta accent mb-3 text-center text-[0.55rem] tracking-[0.4em]">
         — {t.eyebrow.toUpperCase()} —
       </p>
+      {/* Samy 2026-05-27: breiterer Mask-Fade (0→18% statt 0→10%), damit die
+          Logos weicher am Rand auslaufen statt hart abzuschneiden. */}
       <div
         className="pointer-events-auto relative w-full overflow-hidden"
         style={{
-          maskImage: "linear-gradient(90deg, transparent, black 10%, black 90%, transparent)",
-          WebkitMaskImage: "linear-gradient(90deg, transparent, black 10%, black 90%, transparent)",
+          maskImage:
+            "linear-gradient(90deg, transparent 0%, black 18%, black 82%, transparent 100%)",
+          WebkitMaskImage:
+            "linear-gradient(90deg, transparent 0%, black 18%, black 82%, transparent 100%)",
         }}
       >
         <motion.div

@@ -48,16 +48,31 @@ function SectionHead({
   eyebrow,
   title,
   sub,
+  centered,
 }: {
   eyebrow: string;
   title: React.ReactNode;
   sub?: string;
+  /** Samy 2026-05-27: FAQ + ggf. weitere Sections mittig zentriert. */
+  centered?: boolean;
 }) {
   return (
     <Reveal>
-      <p className="eyebrow mb-4">{eyebrow}</p>
-      <h2 className="display max-w-3xl text-[2.4rem] sm:text-[3.3rem]">{title}</h2>
-      {sub && <p className="text-dim mt-5 max-w-2xl text-[1.12rem] leading-relaxed">{sub}</p>}
+      <div className={centered ? "mx-auto text-center" : undefined}>
+        <p className="eyebrow mb-4">{eyebrow}</p>
+        <h2
+          className={`display text-[2.4rem] sm:text-[3.3rem] ${centered ? "mx-auto max-w-3xl" : "max-w-3xl"}`}
+        >
+          {title}
+        </h2>
+        {sub && (
+          <p
+            className={`text-dim mt-5 text-[1.12rem] leading-relaxed ${centered ? "mx-auto max-w-2xl" : "max-w-2xl"}`}
+          >
+            {sub}
+          </p>
+        )}
+      </div>
     </Reveal>
   );
 }
@@ -2945,7 +2960,7 @@ export function FAQ() {
   const v = variants.faq ?? 0;
   if (!f || f.items.length === 0) return null;
   return (
-    <section id="faq" className="section">
+    <section id="faq" className="section items-center">
       <SectionHead
         eyebrow={f.eyebrow}
         title={
@@ -2954,6 +2969,7 @@ export function FAQ() {
           </>
         }
         sub={f.sub}
+        centered
       />
       {v === 0 ? <FAQAccordion items={f.items} /> : <FAQColumns items={f.items} />}
     </section>
