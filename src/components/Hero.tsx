@@ -27,17 +27,10 @@ export function Hero() {
   else if (v === 5) inner = <HeroStackedFrame h={h} />;
   else inner = <HeroCentered h={h} />;
 
-  // Samy 2026-05-26: Trusted-Strip darf nicht UNTER den Hero rausragen
-  // (Screenshot 15.18.38 — unten abgeschnitten). Wrapper ist relative,
-  // Strip absolute am Bottom pinned. Hero-Variants haben min-h-screen,
-  // also bleibt der Container 100vh hoch und der Strip sitzt sauber
-  // INNERHALB des Viewports am unteren Rand.
-  return (
-    <div className="relative">
-      {inner}
-      <HeroTrustedStrip />
-    </div>
-  );
+  // Samy 2026-05-27: Trusted-Strip im Hero raus. Die TrustedBy-Section
+  // existiert weiterhin als eigene Section, die kann ueber das DevPanel
+  // ein/aus geschaltet werden.
+  return <div className="relative">{inner}</div>;
 }
 
 /* DevPanel-toggleable CTA buttons. Samy 2026-05-26: each button can be

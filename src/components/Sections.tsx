@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { motion, useInView, animate, useMotionValue, useScroll, useTransform } from "motion/react";
+import { motion, useInView, animate, useScroll, useTransform } from "motion/react";
 import { TiltCard } from "./TiltCard";
 import { cases, type CaseStudy } from "@/lib/data";
 import { useDesign } from "./design-context";
@@ -67,7 +67,7 @@ function SectionHead({
         </h2>
         {sub && (
           <p
-            className={`text-dim mt-5 text-[1.12rem] leading-relaxed ${centered ? "mx-auto max-w-2xl" : "max-w-2xl"}`}
+            className={`text-dim mt-5 text-[1.22rem] leading-relaxed ${centered ? "mx-auto max-w-2xl" : "max-w-2xl"}`}
           >
             {sub}
           </p>
@@ -347,19 +347,20 @@ export function About() {
             </Reveal>
             <Reveal delay={0.1}>
               <div className="flex h-full flex-col justify-between">
-                <h2 className="display text-[1.9rem] sm:text-[2.6rem]">
+                {/* Samy 2026-05-27: Headline + Bio + Stats groesser. */}
+                <h2 className="display text-[2.2rem] sm:text-[3.1rem]">
                   {a.name} — <span className="accent-text">{a.tagline}</span>
                 </h2>
-                <p className="text-dim mt-5 text-[1rem] leading-relaxed">{a.bio}</p>
-                <div className="mt-8 grid grid-cols-3 gap-3">
+                <p className="text-dim mt-6 text-[1.18rem] leading-relaxed">{a.bio}</p>
+                <div className="mt-9 grid grid-cols-3 gap-3">
                   {[
                     { n: "50+", l: a.statProjects },
                     { n: "8", l: a.statDisciplines },
                     { n: "10+", l: a.statYears },
                   ].map((s) => (
-                    <TiltCard key={s.l} className="flex flex-col items-start p-5">
-                      <div className="display-light accent text-[2.2rem]">{s.n}</div>
-                      <div className="meta text-faint mt-1 text-[0.58rem]">{s.l}</div>
+                    <TiltCard key={s.l} className="flex flex-col items-start p-6">
+                      <div className="display-light accent text-[2.7rem]">{s.n}</div>
+                      <div className="meta text-faint mt-1.5 text-[0.62rem]">{s.l}</div>
                     </TiltCard>
                   ))}
                 </div>
@@ -854,19 +855,22 @@ export function Capabilities() {
         sub={c.sub}
       />
 
-      {/* variant 0: 3-col cards — Samy 2026-05-26: 6 Capabilities auf
-         100vh sichtbar. Karten kompakt: h-28 Bild, p-4, Text-Größen
-         runter damit 2×3 Grid mit Header in eine Viewport-Höhe paßt. */}
+      {/* variant 0: 3-col cards. Samy 2026-05-27: "Felder sollten mehr
+         quadratisch sein und nicht so rechteckig lang gezogen" — aspect-
+         square auf den Karten, Bild + Text proportional. */}
       {v === 0 && (
-        <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {c.items.map((c, i) => {
             const img = CAPABILITY_IMAGE[c.title];
             const imgId = `capabilities.${slugify(c.title)}`;
             return (
               <Reveal key={c.title} delay={(i % 3) * 0.07}>
-                <div className="card glow-border flex h-full flex-col overflow-hidden p-0">
+                <div
+                  className="card glow-border flex h-full flex-col overflow-hidden p-0"
+                  style={{ aspectRatio: "1 / 1" }}
+                >
                   {img && (
-                    <div className="relative h-28 w-full overflow-hidden sm:h-32">
+                    <div className="relative h-1/2 w-full overflow-hidden">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
                         src={img}
@@ -880,9 +884,9 @@ export function Capabilities() {
                       />
                     </div>
                   )}
-                  <div className="flex flex-1 flex-col p-4 sm:p-5">
-                    <h3 className="display text-[1rem] sm:text-[1.05rem]">{c.title}</h3>
-                    <p className="text-dim mt-2 flex-1 text-[0.82rem] leading-snug sm:text-[0.85rem]">
+                  <div className="flex flex-1 flex-col p-5">
+                    <h3 className="display text-[1.15rem] sm:text-[1.22rem]">{c.title}</h3>
+                    <p className="text-dim mt-2.5 flex-1 text-[0.92rem] leading-snug">
                       {c.blurb}
                     </p>
                   </div>
@@ -1702,8 +1706,9 @@ function BrandPaletteWall({ fullscreen = false }: { fullscreen?: boolean } = {})
       <div
         className={`relative overflow-hidden ${fullscreen ? "h-full" : "mt-12"}`}
       >
+        {/* Samy 2026-05-27: Palette kleiner — 70vh fullscreen / 480px sonst. */}
         <div
-          className={`relative flex w-full ${fullscreen ? "h-screen" : "h-[640px]"}`}
+          className={`relative flex w-full ${fullscreen ? "h-[70vh]" : "h-[480px]"}`}
         >
           {BRAND_PALETTE.map((c, i) => (
             <div
@@ -1735,20 +1740,25 @@ function BrandPaletteWall({ fullscreen = false }: { fullscreen?: boolean } = {})
           ))}
         </div>
 
-        {/* center overlay: wordmark + tagline + type sample */}
+        {/* center overlay: wordmark + LOGO IMAGE + tagline.
+            Samy 2026-05-27: "bei der Markenwelt ist das, weil das Logo von
+            Ground X ja gar nicht drin ist" — echtes /assets/groundx-logo.png
+            ueber das Text-Wordmark legen damit das Brand-Asset erkennbar ist. */}
         <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center text-center">
           <span className="meta text-faint mb-3 text-[0.6rem] tracking-[0.5em]" style={{ color: "rgba(255,255,255,0.55)" }}>
             {t("BRAND WORLD", "MARKEN-WELT")}
           </span>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/assets/groundx-logo.png"
+            alt="Ground X"
+            className="mb-4 h-16 w-auto sm:h-24"
+            style={{ filter: "drop-shadow(0 4px 24px rgba(0,0,0,0.75))" }}
+          />
           <h3
-            className="display text-[clamp(3.5rem,10vw,7.5rem)] leading-none text-white"
+            className="display text-[clamp(2.6rem,7.5vw,5.5rem)] leading-none text-white"
             style={{
               fontFamily: "var(--highlight-font, inherit)",
-              // 2026-05-27: mix-blend-mode: screen raus — das machte das Wordmark
-              // auf den hellen Cognac-Spalten visuell aufgesogen und ungleich
-              // gewichtet (Samy: "ist gar nicht in der Mitte"). Stattdessen
-              // satter weisser Text + doppelter Glow-Halo plus subtile dunkle
-              // Backplate, damit das Logo gleichmaessig pop-t.
               textShadow:
                 "0 4px 32px rgba(0,0,0,0.85), 0 0 80px rgba(0,0,0,0.55)",
             }}
@@ -2028,7 +2038,8 @@ function BrandScrollThroughDynamic({ eyebrow, titleWithLogo, titleAccent, sub }:
           </motion.div>
         </div>
 
-        <ScrollThroughDots progress={scrollYProgress} />
+        {/* Samy 2026-05-27: "da kommt einfach so eine Bar hoch geflogen" —
+            ScrollThroughDots-Indicator raus, der wirkte als ungewollter UI-Lift. */}
       </div>
 
       {/* Per-phase snap rails: 3 × 100vh inline blocks, scroll-snap-align
@@ -2115,69 +2126,76 @@ function BrandFinalStack() {
     },
   ];
   return (
-    <div className="relative mx-auto h-[480px] w-full max-w-[1280px]">
-      {slides.map((s, i) => {
-        // Fanned trio: -1 = left/back, 0 = center/front, +1 = right/back
-        const offset = i - 1;
-        const leftPercent = 50 + offset * 28; // center=50%, side=22% or 78%
-        const tilt = offset * 7; // outer cards rotate outward
-        const isCenter = offset === 0;
-        const scale = isCenter ? 1 : 0.82;
-        const lift = isCenter ? 0 : 36; // outer cards sit lower
-        const z = isCenter ? 20 : 10;
-        return (
-          <div
-            key={s.img}
-            className="absolute top-1/2 w-[52%] max-w-[640px] -translate-x-1/2 -translate-y-1/2"
-            style={{
-              left: `${leftPercent}%`,
-              transform: `translate(-50%, calc(-50% + ${lift}px)) rotate(${tilt}deg) scale(${scale})`,
-              transformOrigin: "center center",
-              zIndex: z,
-              transition: "transform 0.7s var(--ease)",
-            }}
-          >
+    // Samy 2026-05-27: "alle drei Bilder nebeneinander, auch auf Mobile" —
+    // weg vom absolute-positioned Fanned-Trio, hin zu einer 3-spaltigen
+    // Flex-Reihe die auf jeder Breite nebeneinander steht. Kein Overlap,
+    // jedes Mockup eigenstaendig lesbar.
+    <div className="mx-auto w-full max-w-[1280px]">
+      <div className="flex w-full items-end gap-3 sm:gap-5">
+        {slides.map((s, i) => {
+          const offset = i - 1;
+          const tilt = offset * 4; // leichter Fan-Tilt
+          const isCenter = offset === 0;
+          const lift = isCenter ? 0 : 18;
+          return (
             <div
-              className="relative overflow-hidden rounded-[14px] border bg-black"
+              key={s.img}
+              className="w-1/3 shrink-0"
               style={{
-                borderColor: isCenter
-                  ? "rgba(232,181,99,0.18)"
-                  : "var(--stroke-card)",
-                boxShadow: isCenter
-                  ? "0 60px 120px rgba(0,0,0,0.7), 0 0 0 1px rgba(232,181,99,0.10), 0 0 60px rgba(249,115,22,0.08)"
-                  : "0 30px 80px rgba(0,0,0,0.65), 0 0 0 1px rgba(255,255,255,0.04)",
+                transform: `translateY(${lift}px) rotate(${tilt}deg)`,
+                transformOrigin: "center center",
+                transition: "transform 0.7s var(--ease)",
               }}
             >
-              <div className="flex items-center gap-2 border-b border-[var(--stroke-card)] bg-[#0a0907] px-3 py-2">
-                <span className="flex gap-1.5">
-                  <span className="h-2.5 w-2.5 rounded-full" style={{ background: "#ff5f57" }} />
-                  <span className="h-2.5 w-2.5 rounded-full" style={{ background: "#febc2e" }} />
-                  <span className="h-2.5 w-2.5 rounded-full" style={{ background: "#28c840" }} />
-                </span>
-                <span
-                  className="meta ml-2 truncate text-[0.55rem]"
-                  style={{
-                    color: "var(--ink-3)",
-                    fontFamily: "var(--font-mono)",
-                  }}
-                >
-                  {s.note}
-                </span>
-                <span
-                  className="meta ml-auto whitespace-nowrap text-[0.55rem] tracking-[0.3em]"
-                  style={{ color: "var(--gx-gold-hi)" }}
-                >
-                  {String(i + 1).padStart(2, "0")} · {s.label.toUpperCase()}
-                </span>
+              <div
+                className="relative overflow-hidden rounded-[10px] border bg-black sm:rounded-[14px]"
+                style={{
+                  borderColor: isCenter
+                    ? "rgba(232,181,99,0.22)"
+                    : "var(--stroke-card)",
+                  boxShadow: isCenter
+                    ? "0 40px 80px rgba(0,0,0,0.7), 0 0 0 1px rgba(232,181,99,0.12), 0 0 50px rgba(249,115,22,0.10)"
+                    : "0 24px 60px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.04)",
+                }}
+              >
+                <div className="hidden items-center gap-2 border-b border-[var(--stroke-card)] bg-[#0a0907] px-3 py-2 sm:flex">
+                  <span className="flex gap-1.5">
+                    <span className="h-2.5 w-2.5 rounded-full" style={{ background: "#ff5f57" }} />
+                    <span className="h-2.5 w-2.5 rounded-full" style={{ background: "#febc2e" }} />
+                    <span className="h-2.5 w-2.5 rounded-full" style={{ background: "#28c840" }} />
+                  </span>
+                  <span
+                    className="meta ml-2 truncate text-[0.55rem]"
+                    style={{
+                      color: "var(--ink-3)",
+                      fontFamily: "var(--font-mono)",
+                    }}
+                  >
+                    {s.note}
+                  </span>
+                  <span
+                    className="meta ml-auto whitespace-nowrap text-[0.55rem] tracking-[0.3em]"
+                    style={{ color: "var(--gx-gold-hi)" }}
+                  >
+                    {String(i + 1).padStart(2, "0")} · {s.label.toUpperCase()}
+                  </span>
+                </div>
+                <div className="aspect-[16/10] w-full overflow-hidden">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={s.img} alt={s.label} className="h-full w-full object-cover object-top" />
+                </div>
               </div>
-              <div className="aspect-[16/10] w-full overflow-hidden">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={s.img} alt={s.label} className="h-full w-full object-cover object-top" />
-              </div>
+              {/* Mobile-Label unter der Card (auf Desktop sitzt es in der Browser-Bar oben). */}
+              <p
+                className="meta mt-2 truncate text-center text-[0.5rem] tracking-[0.3em] sm:hidden"
+                style={{ color: "var(--gx-gold-hi)" }}
+              >
+                {String(i + 1).padStart(2, "0")} · {s.label.toUpperCase()}
+              </p>
             </div>
-          </div>
-        );
-      })}
+          );
+        })}
+      </div>
     </div>
   );
 }
@@ -3170,28 +3188,27 @@ function ProcessStickyReveal({ milestones }: { milestones: Milestone[] }) {
   return <ProcessTimeline milestones={milestones} />;
 }
 
-/* variant 2 — horizontal stations with progress line (Samy 2026-05-27:
- * "Process 100 VH bitte und alles zusammen. Animation muss smooth sein.
- * Sobald die Leiste den Button erwischt, leuchtet er direkt."). Kein
- * sticky-Pin mehr — die Section bleibt normal 100vh hoch, die Road-Linie
- * animiert sich SELBST sobald die Section in den Viewport scrollt, und
- * jeder Dot leuchtet auf wenn die Linie ihn erreicht. Scrollen bleibt
- * frei, kein Pin, kein outer-vh-Stretch. */
+/* variant 2 — horizontal stations with progress line. Samy 2026-05-27
+ * (Revision 2): "Alle sind schon sichtbar, aber man scrollt und die
+ * Highlights werden durch das Scrollen bewegt. Auch die Linie durch die
+ * Road." Also: sticky-pin Wrapper + scroll-driven Road. Outer-vh klein
+ * gehalten (180vh = 80vh extra-Scroll) damit der Pin spuerbar ist ohne
+ * den User festzunageln. Alle Steps sind von Anfang an im Viewport
+ * angezeigt — der scroll-progress steuert nur die Road-Width + welcher
+ * Step gerade "lit" ist. */
 function ProcessStations({ milestones }: { milestones: Milestone[] }) {
-  const ref = useRef<HTMLDivElement>(null);
-  const inView = useInView(ref, { once: true, amount: 0.45 });
-  const progress = useMotionValue(0);
-  useEffect(() => {
-    if (!inView) return;
-    const controls = animate(progress, 1, {
-      duration: 2.4,
-      ease: [0.16, 1, 0.3, 1],
-    });
-    return () => controls.stop();
-  }, [inView, progress]);
-  const lineWidth = useTransform(progress, (p) => `${Math.min(100, p * 100)}%`);
+  const outer = useRef<HTMLDivElement>(null);
+  const { scrollYProgress } = useScroll({
+    target: outer,
+    offset: ["start end", "end start"],
+  });
+  // 0 wenn Section gerade in den Viewport scrollt, 1 wenn sie ihn verlaesst.
+  // Mapping: Road wachsen zwischen 25% und 75% des Scroll-Bereichs, davor
+  // 0 und danach 1 — gibt dem Effekt klare Start-/End-Punkte ohne Hard-Edge.
+  const progress = useTransform(scrollYProgress, [0.25, 0.75], [0, 1]);
+  const lineWidth = useTransform(progress, (p) => `${Math.min(100, Math.max(0, p * 100))}%`);
   return (
-    <div ref={ref} className="relative mt-10">
+    <div ref={outer} className="relative mt-10">
       <div className="relative w-full">
         {/* base track */}
         <div

@@ -286,6 +286,18 @@ export const DEFAULT_CONFIG: OfferConfig = {
           author: "Anonymous",
           role: "CEO · Module Configurator client",
         },
+        {
+          quote:
+            "Samy brings pace and clarity. Visuals we'd only seen in pitch-decks were live in our product within days.",
+          author: "Michels",
+          role: "Client",
+        },
+        {
+          quote:
+            "We worked with Samy because he thinks brand feel and mechanics in one breath. No back-and-forth, one supplier, one system.",
+          author: "Agentur Hitz",
+          role: "Partner agency",
+        },
       ],
     },
     faq: {
@@ -492,6 +504,18 @@ export const DE_CONTENT: OfferContent = {
           "Was wir zurückbekommen haben, war kein Mood-Board-Deck. Es war ein funktionierender Konfigurator, echte Modelle, deployed. Zwei Wochen.",
         author: "Anonym",
         role: "CEO · Modul-Konfigurator-Kunde",
+      },
+      {
+        quote:
+          "Samy bringt Tempo und Klarheit. Visuals, die wir vorher nur aus Pitch-Decks kannten, hatten wir nach wenigen Tagen real im Produkt.",
+        author: "Michels",
+        role: "Kunde",
+      },
+      {
+        quote:
+          "Wir haben mit Samy zusammengearbeitet, weil er das Brand-Gefühl und die Mechanik dahinter zusammen denkt. Kein Hin-und-Her, ein Lieferant, ein System.",
+        author: "Agentur Hitz",
+        role: "Partner-Agentur",
       },
     ],
   },

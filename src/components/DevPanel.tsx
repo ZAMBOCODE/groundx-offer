@@ -637,12 +637,14 @@ export function DevPanel() {
               )}
             </Field>
 
-            {/* side padding — 0 = edge-to-edge, N = clear px from viewport edges */}
+            {/* side padding — 0 = edge-to-edge, N = clear px from viewport edges.
+                Samy 2026-05-27: bis 600px hoch, damit man Content schmaler ziehen
+                kann ohne Section-max-width zu refactoren. */}
             <Field label={`Side padding — ${Math.max(0, s.sidePad)}px`}>
               <input
                 type="range"
                 min={0}
-                max={200}
+                max={600}
                 value={Math.max(0, s.sidePad)}
                 onChange={(e) => update({ sidePad: Number(e.target.value) })}
                 className="w-full accent-[var(--accent)]"
