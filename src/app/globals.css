@@ -363,11 +363,22 @@ body {
      DevPanel-vh-Toggle (data-section-height="100" → min-height 100vh
      via [data-section-height] selector unten). */
   padding-block: 4.5rem 3.5rem;
-  padding-inline: max(0px, var(--side-pad, 24px));
+  /* Samy 2026-05-27 (Run-5): "auf dem Handy dieses Sidepadding sollte
+     gar nicht erst moeglich sein". Mobile clampt das DevPanel-Side-Pad
+     auf max 16% der Viewport-Breite, sodass selbst ein hoher slider-Wert
+     auf einem Phone nie das ganze Layout aushebelt. Desktop bleibt
+     unbeschraenkt. */
+  padding-inline: min(16vw, max(0px, var(--side-pad, 24px)));
   min-height: auto;
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
+}
+@media (min-width: 768px) {
+  .section {
+    /* Desktop: kein Mobile-Clamp, der volle Slider-Range greift. */
+    padding-inline: max(0px, var(--side-pad, 24px));
+  }
 }
 /* Opt-in: section vertikal zentriert (FAQ, Contact, etc). */
 .section.section--center {
