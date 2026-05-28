@@ -1711,8 +1711,13 @@ function BrandPaletteWall({ fullscreen = false }: { fullscreen?: boolean } = {})
             className="display text-[clamp(3.5rem,10vw,7.5rem)] leading-none text-white"
             style={{
               fontFamily: "var(--highlight-font, inherit)",
-              textShadow: "0 4px 30px rgba(0,0,0,0.8)",
-              mixBlendMode: "screen",
+              // 2026-05-27: mix-blend-mode: screen raus — das machte das Wordmark
+              // auf den hellen Cognac-Spalten visuell aufgesogen und ungleich
+              // gewichtet (Samy: "ist gar nicht in der Mitte"). Stattdessen
+              // satter weisser Text + doppelter Glow-Halo plus subtile dunkle
+              // Backplate, damit das Logo gleichmaessig pop-t.
+              textShadow:
+                "0 4px 32px rgba(0,0,0,0.85), 0 0 80px rgba(0,0,0,0.55)",
             }}
           >
             ground <span className="italic" style={{ color: "var(--gx-gold-hi, #e8b563)" }}>x</span>

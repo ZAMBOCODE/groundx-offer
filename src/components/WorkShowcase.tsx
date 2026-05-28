@@ -89,10 +89,11 @@ function WorkShowcaseDynamic({
     offset: ["start start", "end end"],
   });
   const total = list.length;
-  // outer = total * 100vh. Each project gets exactly one viewport of
-  // scroll, so the inline snap-rails (one per project, 100vh each)
-  // align with scroll-progress idx 0, 1, 2, … total-1.
-  const outerVh = Math.max(total, 1) * 100;
+  // outer = total * 65vh (Samy 2026-05-27: vorher 100vh/Case → 5 Cases = 500vh
+  // Pin-Scroll, fuehlte sich an wie "scrollen tut nichts"). 65vh/Case haelt
+  // den Carousel-Pin spuerbar aber kompakt, plus 35vh exit tail damit das
+  // letzte Case noch kurz steht bevor die naechste Section snappt.
+  const outerVh = Math.max(total, 1) * 65 + 35;
 
   return (
     <div ref={outer} className="relative" style={{ height: `${outerVh}vh` }}>
@@ -121,14 +122,14 @@ function WorkShowcaseDynamic({
         </div>
       </div>
 
-      {/* Snap-rails: invisible inline 100vh blocks. Browser snap-align
-         lands the page on each project's slot when html.snap is on. */}
+      {/* Snap-rails: invisible inline blocks, je 65vh um zur reduzierten
+         outerVh-Math zu passen (vorher 100vh/Case → outer ueberlief). */}
       {list.map((c) => (
         <div
           key={`rail-${c.name}`}
           aria-hidden
           className="pointer-events-none"
-          style={{ height: "100vh", scrollSnapAlign: "start" }}
+          style={{ height: "65vh", scrollSnapAlign: "start" }}
         />
       ))}
     </div>
