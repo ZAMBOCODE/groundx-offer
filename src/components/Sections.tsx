@@ -1286,6 +1286,30 @@ function CapabilitiesSplitPane({ items }: { items: Array<{ title: string; blurb:
           </div>
         </div>
       </div>
+      {/* Samy 2026-05-28: alle anderen Steps mit ihren 3 Slots als hidden
+         img-Tags rendern, sodass der DevPanel-ImagePicker sie scannt und
+         pro Step die 3 Slots als override anbietet — ohne dass der User
+         erst durch alle Tabs hovern muss. visibility:hidden statt
+         display:none, sodass MutationObserver + scan sie sicher findet. */}
+      <div
+        aria-hidden
+        style={{ position: "absolute", width: 0, height: 0, overflow: "hidden", visibility: "hidden" }}
+      >
+        {items.map((it, stepIdx) => {
+          if (stepIdx === hover) return null;
+          const otherSlug = slugify(it.title);
+          const otherDefault = CAPABILITY_IMAGE[it.title] ?? "/assets/gx-web-1.png";
+          return [0, 1, 2].map((slot) => (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              key={`${otherSlug}.${slot}`}
+              src={otherDefault}
+              data-img-id={`capabilities.${otherSlug}.${slot}`}
+              alt={it.title}
+            />
+          ));
+        })}
+      </div>
     </Reveal>
   );
 }

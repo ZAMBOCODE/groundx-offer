@@ -1532,17 +1532,92 @@ function ImagePickerSection({
     reader.readAsDataURL(file);
   };
 
+  // Samy 2026-05-28: Items mit Endung .0/.1/.2 (cycle-slots) zu einer
+  // Step-Group zusammenfassen statt 18 line items untereinander zu listen.
+  // Single items (kein .N suffix) bleiben als eigene Cards.
+  const { groups, singles } = groupImages(images);
+
   return (
     <>
       <div className="flex items-center justify-between">
         <p className="meta text-faint text-[0.58rem]">Images — replace by upload</p>
-        <span className="meta text-faint text-[0.55rem]">{images.length} on page</span>
+        <span className="meta text-faint text-[0.55rem]">
+          {groups.length + singles.length} on page
+        </span>
       </div>
       {images.length === 0 && (
         <p className="text-faint text-[0.7rem]">Keine Bilder auf der Seite gefunden.</p>
       )}
       <div className="flex flex-col gap-1.5">
-        {images.map((img) => {
+        {/* Step-Groups (cycle-slots: capabilities.X.0/1/2, work.X.0/1) */}
+        {groups.map((g) => (
+          <div key={g.baseId} className="inner-card flex flex-col gap-2 px-3 py-2.5">
+            <div className="flex items-center justify-between gap-2">
+              <button
+                type="button"
+                onClick={() => scrollToImage(g.slots[0]!)}
+                className="min-w-0 flex-1 truncate text-left text-[0.72rem]"
+                style={{ color: "var(--ink)" }}
+                title={`Zur Sektion "${g.section}" scrollen`}
+              >
+                {prettyGroupLabel(g.baseId)}
+              </button>
+              <span className="meta text-faint text-[0.55rem]" style={{ color: "var(--accent-bright)" }}>
+                {g.section}
+              </span>
+            </div>
+            <div className="grid grid-cols-3 gap-1.5">
+              {g.slots.map((slot) => {
+                const overridden = !!overrides[slot.id];
+                const slotNum = (slot.slotIdx ?? 0) + 1;
+                return (
+                  <div key={slot.id} className="flex flex-col items-stretch gap-1">
+                    <button
+                      type="button"
+                      onClick={() => fileRefs.current[slot.id]?.click()}
+                      className="relative aspect-square w-full overflow-hidden rounded transition-transform hover:scale-[1.04]"
+                      style={{
+                        background: "rgba(255,255,255,0.04)",
+                        outline: overridden ? "1.5px solid var(--accent)" : "1px solid rgba(255,255,255,0.06)",
+                      }}
+                      title={`Slot ${slotNum} — Upload`}
+                    >
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={slot.src} alt="" className="h-full w-full object-cover" />
+                      <span
+                        className="meta absolute bottom-0.5 right-1 text-[0.5rem] font-semibold"
+                        style={{ color: overridden ? "var(--accent-bright)" : "rgba(255,255,255,0.7)" }}
+                      >
+                        {slotNum}
+                      </span>
+                    </button>
+                    {overridden && (
+                      <button
+                        type="button"
+                        onClick={() => onSet(slot.id, null)}
+                        className="text-[0.55rem]"
+                        style={{ color: "var(--ink-3)" }}
+                        title="Original wiederherstellen"
+                      >
+                        Reset
+                      </button>
+                    )}
+                    <input
+                      ref={(el) => { fileRefs.current[slot.id] = el; }}
+                      type="file"
+                      accept="image/*"
+                      hidden
+                      onChange={(e) => onFile(slot.id, e.target.files?.[0])}
+                    />
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        ))}
+
+        {/* Single items (kein .N suffix) — wie bisher als eine Zeile */}
+        {singles.map((img) => {
           const overridden = !!overrides[img.id];
           const name = (img.alt && img.alt.length < 32 ? img.alt : null) ?? img.id.split("/").pop() ?? img.id;
           return (
@@ -1558,11 +1633,7 @@ function ImagePickerSection({
                 title={`Zur Sektion "${img.section}" scrollen`}
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={img.src}
-                  alt=""
-                  className="h-full w-full object-cover"
-                />
+                <img src={img.src} alt="" className="h-full w-full object-cover" />
               </button>
               <button
                 type="button"
@@ -1603,9 +1674,7 @@ function ImagePickerSection({
                 </button>
               )}
               <input
-                ref={(el) => {
-                  fileRefs.current[img.id] = el;
-                }}
+                ref={(el) => { fileRefs.current[img.id] = el; }}
                 type="file"
                 accept="image/*"
                 hidden
@@ -1617,6 +1686,45 @@ function ImagePickerSection({
       </div>
     </>
   );
+}
+
+/** Group ScannedImages whose IDs end in .0/.1/.2/... — those are cycle
+ *  slots that belong to one logical step. Singles bleiben separat. */
+type SlotImage = ScannedImage & { slotIdx: number | null; baseId: string };
+type ImageGroup = { baseId: string; section: string; slots: SlotImage[] };
+
+function groupImages(items: ScannedImage[]): { groups: ImageGroup[]; singles: SlotImage[] } {
+  const groupMap = new Map<string, ImageGroup>();
+  const singles: SlotImage[] = [];
+  for (const img of items) {
+    const m = /^(.+)\.(\d+)$/.exec(img.id);
+    if (m) {
+      const base = m[1]!;
+      const slotIdx = Number(m[2]);
+      let g = groupMap.get(base);
+      if (!g) {
+        g = { baseId: base, section: img.section, slots: [] };
+        groupMap.set(base, g);
+      }
+      g.slots.push({ ...img, slotIdx, baseId: base });
+    } else {
+      singles.push({ ...img, slotIdx: null, baseId: img.id });
+    }
+  }
+  for (const g of groupMap.values()) {
+    g.slots.sort((a, b) => (a.slotIdx ?? 0) - (b.slotIdx ?? 0));
+  }
+  return { groups: Array.from(groupMap.values()), singles };
+}
+
+/** "capabilities.websites-design-entwicklung" → "Websites Design Entwicklung". */
+function prettyGroupLabel(baseId: string): string {
+  const parts = baseId.split(".");
+  const stepSlug = parts.slice(1).join(".") || baseId;
+  return stepSlug
+    .split("-")
+    .map((w) => (w ? w[0]!.toUpperCase() + w.slice(1) : ""))
+    .join(" ");
 }
 
 /** CSS.escape Polyfill — escaped Bindestriche / Punkte / Slashes in
