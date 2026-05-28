@@ -166,34 +166,35 @@ export const DEFAULT_CONFIG: OfferConfig = {
       titleAccent: "work together.",
       sub: "For context: Dubai agencies charge $3,000–8,000/mo for this scope, and Ground X sells from $50,000 a module.",
       tabs: [
-        // Samy 2026-05-25: order = [One-time builds, Partnership, À la carte]
-        // so Partnership sits in the middle as the default selection.
+        // Samy 2026-05-28: pricing pass — projects ~15% down, monthly retainer
+        // from €1,200, test month €999, à-la-carte add-ons more accessible,
+        // SEO mentioned across web/shopify/landing.
         {
           label: "One-time builds",
           note: "Standalone projects, paid once. No retainer required.",
           cards: [
-            { tag: "Web", name: "Informative website", price: "€2,000–3,000", items: ["EN + DE, responsive", "Lead-capture / consultation", "Deployed on Vercel", "Privacy-first analytics"] },
-            { tag: "Shop", name: "Shopify rebuild", price: "€1,500–2,500", items: ["Premium theme", "Product pages per module", "AI renderings integrated", "Checkout optimization"] },
-            { tag: "3D", name: "Module configurator", price: "€2,000–4,000", items: ["Build-your-module in 3D", "Real GLB models", "Browser-based", "Three.js / R3F"] },
-            { tag: "Deck", name: "Investor pitch deck", price: "€1,500–3,500", items: ["Narrative + structure", "Real numbers, no fluff", "10–15 slides, custom-designed", "Optional Loom voice-over"] },
+            { tag: "Web", name: "Informative website", price: "€1,700–2,500", items: ["EN + DE, responsive", "SEO-optimized (meta, schema, sitemap)", "Lead-capture / consultation", "Deployed on Vercel", "Privacy-first analytics"] },
+            { tag: "Shop", name: "Shopify rebuild", price: "€1,300–2,000", items: ["Premium theme", "Product pages per module", "AI renderings integrated", "Checkout optimization", "SEO + structured data"] },
+            { tag: "3D", name: "Module configurator", price: "€1,700–3,300", items: ["Build-your-module in 3D", "Real GLB models", "Browser-based", "Three.js / R3F"] },
+            { tag: "Deck", name: "Investor pitch deck", price: "€1,300–3,000", items: ["Narrative + structure", "Real numbers, no fluff", "10–15 slides, custom-designed", "Optional Loom voice-over"] },
           ],
         },
         {
           label: "Partnership",
           note: "Setup once, then a system that runs every month.",
           cards: [
-            { tag: "Setup", name: "Setup & foundation", price: "from €3,500", items: ["Brand guidelines finalized", "10–15 photoreal AI renderings", "Landing page, deployed", "2–3 marketing videos", "Social template set", "Drive + content calendar"] },
-            { tag: "Monthly", name: "Ongoing partnership", price: "from €1,500 / mo", items: ["15–20 social posts", "4–6 AI videos", "3–5 new renderings", "Content calendar & scheduling", "Paid-ads management", "Monthly analytics & optimization"] },
-            { tag: "Soft start", name: "Test month", price: "€1,500 flat", items: ["One month, full output", "No long commitment", "Rolls into the retainer", "De-risks the decision"] },
+            { tag: "Setup", name: "Setup & foundation", price: "from €3,500", items: ["Brand guidelines finalized", "10–15 photoreal AI renderings", "Landing page, deployed (SEO included)", "2–3 marketing videos", "Social template set", "Drive + content calendar"] },
+            { tag: "Monthly", name: "Ongoing partnership", price: "from €1,200 / mo", items: ["15–20 social posts", "4–6 AI videos", "3–5 new renderings", "Content calendar & scheduling", "Paid-ads management", "SEO monitoring + optimization", "Monthly analytics"] },
+            { tag: "Soft start", name: "Test month", price: "€999 flat", items: ["One month, full output", "No long commitment", "Rolls into the retainer", "De-risks the decision"] },
           ],
         },
         {
           label: "À la carte",
           note: "Single deliverables, priced per item. Mix as you need.",
           cards: [
-            { tag: "Visual", name: "Per deliverable", price: "from €120", items: ["AI rendering — from €120", "AI video / reel — from €250", "Logo animation — from €300", "Pitch-deck slide — from €90"] },
-            { tag: "Web add-ons", name: "Web & content", price: "from €500", items: ["Landing page — from €900", "Arabic + RTL — €500–1,000", "Analytics dashboard — €1–2k", "Brand guidelines — from €700"] },
-            { tag: "Ongoing", name: "Social & ads", price: "from €40 / post", items: ["Social post — from €40", "ManyChat DM funnel — from €400", "Ad campaign setup — from €350", "Monthly report — from €150"] },
+            { tag: "Visual", name: "Per deliverable", price: "from €80", items: ["AI rendering — from €80", "AI video / reel — from €250", "Logo animation — from €300", "Pitch-deck slide — from €90"] },
+            { tag: "Web add-ons", name: "Web & content", price: "from €250", items: ["Landing page — from €900", "Extra language (e.g. Arabic + RTL) — €250 flat", "Analytics dashboard — €1–2k", "Brand guidelines — from €450", "SEO audit + fix — from €350"] },
+            { tag: "Ongoing", name: "Social & ads", price: "from €25 / post", items: ["Social post — from €25", "ManyChat DM funnel — from €400", "Ad campaign setup — from €350", "Monthly report — from €150"] },
           ],
         },
       ],
@@ -211,15 +212,17 @@ export const DEFAULT_CONFIG: OfferConfig = {
             "30-min Calendly slot, no homework needed",
             "I share my checklist of what I need from you (assets, references, logins)",
             "Drive folder created, you get edit access",
+            "Goals + KPI alignment so every milestone is measurable",
           ],
         },
         {
           when: "Week 1",
           title: "First samples",
           deliverables: [
-            "3 photoreal AI renderings (your preferred angle)",
+            "5-7 photoreal AI renderings (your preferred angles)",
             "First brand-direction frame (palette + type)",
             "Site wireframe in Figma if part of the scope",
+            "SEO keyword + competitor scan delivered",
           ],
         },
         {
@@ -227,24 +230,27 @@ export const DEFAULT_CONFIG: OfferConfig = {
           title: "Approval round",
           deliverables: [
             "Locked brand direction (palette, type, tone)",
-            "5-7 final renderings, ready for use",
+            "10-15 final photoreal renderings, ready for use",
             "Site mockup at high fidelity",
+            "On-page SEO blueprint (meta, schema, sitemap)",
           ],
         },
         {
           when: "Week 4",
           title: "Launch",
           deliverables: [
-            "Site deployed on Vercel, EN+DE",
-            "First 2 marketing videos delivered",
+            "Site deployed on Vercel, EN+DE, SEO live",
+            "First 2-3 marketing videos delivered",
             "Social calendar staged for month 2",
+            "Analytics + Search Console wired",
           ],
         },
         {
           when: "Month 2+",
           title: "System running",
           deliverables: [
-            "Monthly cadence locked: posts, reels, renderings, ads",
+            "Monthly cadence locked: 15-20 posts, 4-6 reels, 3-5 renderings, ads",
+            "SEO monitoring + content optimization every month",
             "Monthly report with what landed + what moved",
             "Quarterly review to recalibrate direction",
           ],
@@ -397,28 +403,28 @@ export const DE_CONTENT: OfferContent = {
         label: "Einmal-Aufträge",
         note: "Eigenständige Projekte, einmal bezahlt. Keine Retainer-Bindung.",
         cards: [
-          { tag: "Web", name: "Informative Website", price: "2.000–3.000 €", items: ["EN + DE, responsive", "Lead-Capture / Beratung", "Deployed auf Vercel", "Privacy-first Analytics"] },
-          { tag: "Shop", name: "Shopify-Rebuild", price: "1.500–2.500 €", items: ["Premium-Theme", "Produktseiten pro Modul", "KI-Renderings integriert", "Checkout-Optimierung"] },
-          { tag: "3D", name: "Modul-Konfigurator", price: "2.000–4.000 €", items: ["Modul selbst zusammenstellen in 3D", "Echte GLB-Modelle", "Im Browser", "Three.js / R3F"] },
-          { tag: "Deck", name: "Investor-Pitch-Deck", price: "1.500–3.500 €", items: ["Narrative + Struktur", "Echte Zahlen, kein Füllstoff", "10–15 Folien, Custom-Design", "Optional Loom-Voiceover"] },
+          { tag: "Web", name: "Informative Website", price: "1.700–2.500 €", items: ["EN + DE, responsive", "SEO-optimiert (Meta, Schema, Sitemap)", "Lead-Capture / Beratung", "Deployed auf Vercel", "Privacy-first Analytics"] },
+          { tag: "Shop", name: "Shopify-Rebuild", price: "1.300–2.000 €", items: ["Premium-Theme", "Produktseiten pro Modul", "KI-Renderings integriert", "Checkout-Optimierung", "SEO + structured data"] },
+          { tag: "3D", name: "Modul-Konfigurator", price: "1.700–3.300 €", items: ["Modul selbst zusammenstellen in 3D", "Echte GLB-Modelle", "Im Browser", "Three.js / R3F"] },
+          { tag: "Deck", name: "Investor-Pitch-Deck", price: "1.300–3.000 €", items: ["Narrative + Struktur", "Echte Zahlen, kein Füllstoff", "10–15 Folien, Custom-Design", "Optional Loom-Voiceover"] },
         ],
       },
       {
         label: "Partnerschaft",
         note: "Einmal aufgesetzt, dann ein System, das jeden Monat läuft.",
         cards: [
-          { tag: "Setup", name: "Setup & Fundament", price: "ab 3.500 €", items: ["Brand-Guidelines final", "10–15 fotorealistische KI-Renderings", "Landingpage, deployed", "2–3 Marketing-Videos", "Social-Template-Set", "Drive + Content-Kalender"] },
-          { tag: "Monatlich", name: "Laufende Partnerschaft", price: "ab 1.500 € / Monat", items: ["15–20 Social-Posts", "4–6 KI-Videos", "3–5 neue Renderings", "Content-Kalender & Scheduling", "Paid-Ads-Management", "Monatliche Analytics & Optimierung"] },
-          { tag: "Soft Start", name: "Testmonat", price: "1.500 € flat", items: ["Ein Monat, voller Output", "Keine lange Bindung", "Geht in den Retainer über", "Entkoppelt die Entscheidung"] },
+          { tag: "Setup", name: "Setup & Fundament", price: "ab 3.500 €", items: ["Brand-Guidelines final", "10–15 fotorealistische KI-Renderings", "Landingpage, deployed (SEO inklusive)", "2–3 Marketing-Videos", "Social-Template-Set", "Drive + Content-Kalender"] },
+          { tag: "Monatlich", name: "Laufende Partnerschaft", price: "ab 1.200 € / Monat", items: ["15–20 Social-Posts", "4–6 KI-Videos", "3–5 neue Renderings", "Content-Kalender & Scheduling", "Paid-Ads-Management", "SEO-Monitoring + Optimierung", "Monatliche Analytics"] },
+          { tag: "Soft Start", name: "Testmonat", price: "999 € flat", items: ["Ein Monat, voller Output", "Keine lange Bindung", "Geht in den Retainer über", "Entkoppelt die Entscheidung"] },
         ],
       },
       {
         label: "À la carte",
         note: "Einzelne Deliverables, pro Stück bepreist. Beliebig kombinierbar.",
         cards: [
-          { tag: "Visual", name: "Pro Deliverable", price: "ab 120 €", items: ["KI-Rendering — ab 120 €", "KI-Video / Reel — ab 250 €", "Logo-Animation — ab 300 €", "Pitch-Deck-Folie — ab 90 €"] },
-          { tag: "Web Add-ons", name: "Web & Content", price: "ab 500 €", items: ["Landingpage — ab 900 €", "Arabisch + RTL — 500–1.000 €", "Analytics-Dashboard — 1–2k €", "Brand-Guidelines — ab 700 €"] },
-          { tag: "Laufend", name: "Social & Ads", price: "ab 40 € / Post", items: ["Social-Post — ab 40 €", "ManyChat-DM-Funnel — ab 400 €", "Ad-Kampagne Setup — ab 350 €", "Monats-Report — ab 150 €"] },
+          { tag: "Visual", name: "Pro Deliverable", price: "ab 80 €", items: ["KI-Rendering — ab 80 €", "KI-Video / Reel — ab 250 €", "Logo-Animation — ab 300 €", "Pitch-Deck-Folie — ab 90 €"] },
+          { tag: "Web Add-ons", name: "Web & Content", price: "ab 250 €", items: ["Landingpage — ab 900 €", "Mehrsprachig (z.B. Arabisch + RTL) — 250 € flat", "Analytics-Dashboard — 1–2k €", "Brand-Guidelines — ab 450 €", "SEO-Audit + Fix — ab 350 €"] },
+          { tag: "Laufend", name: "Social & Ads", price: "ab 25 € / Post", items: ["Social-Post — ab 25 €", "ManyChat-DM-Funnel — ab 400 €", "Ad-Kampagne Setup — ab 350 €", "Monats-Report — ab 150 €"] },
         ],
       },
     ],
@@ -436,15 +442,17 @@ export const DE_CONTENT: OfferContent = {
           "30-Min Calendly-Slot, keine Vorbereitung nötig",
           "Ich teile meine Checkliste: was ich von euch brauche (Assets, Referenzen, Logins)",
           "Drive-Ordner angelegt, ihr bekommt Edit-Rechte",
+          "Ziele + KPIs aligned, jeder Meilenstein wird messbar",
         ],
       },
       {
         when: "Woche 1",
         title: "Erste Samples",
         deliverables: [
-          "3 fotorealistische KI-Renderings (gewünschter Winkel)",
+          "5–7 fotorealistische KI-Renderings (gewünschte Winkel)",
           "Erstes Brand-Direction-Frame (Palette + Typografie)",
           "Site-Wireframe in Figma falls Teil des Umfangs",
+          "SEO-Keyword- + Wettbewerber-Scan geliefert",
         ],
       },
       {
@@ -452,24 +460,27 @@ export const DE_CONTENT: OfferContent = {
         title: "Approval-Runde",
         deliverables: [
           "Brand-Richtung gelockt (Palette, Typo, Tonalität)",
-          "5–7 finale Renderings, einsatzbereit",
+          "10–15 finale fotorealistische Renderings, einsatzbereit",
           "Site-Mockup in hoher Fidelity",
+          "On-Page-SEO-Blueprint (Meta, Schema, Sitemap)",
         ],
       },
       {
         when: "Woche 4",
         title: "Launch",
         deliverables: [
-          "Site live auf Vercel, EN+DE",
-          "Erste 2 Marketing-Videos ausgeliefert",
+          "Site live auf Vercel, EN+DE, SEO live",
+          "Erste 2–3 Marketing-Videos ausgeliefert",
           "Social-Kalender für Monat 2 vorbereitet",
+          "Analytics + Search Console verbunden",
         ],
       },
       {
         when: "Monat 2+",
         title: "System läuft",
         deliverables: [
-          "Monatliche Frequenz gelockt: Posts, Reels, Renderings, Ads",
+          "Monatliche Frequenz gelockt: 15–20 Posts, 4–6 Reels, 3–5 Renderings, Ads",
+          "SEO-Monitoring + Content-Optimierung jeden Monat",
           "Monatlicher Report: was gelandet ist, was bewegt hat",
           "Quartals-Review zur Richtung-Justierung",
         ],

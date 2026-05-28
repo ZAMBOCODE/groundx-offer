@@ -1246,8 +1246,12 @@ function CapabilitiesSplitPane({ items }: { items: Array<{ title: string; blurb:
             );
           })}
         </ul>
-        <div className="card glow-border flex min-h-[420px] flex-col overflow-hidden p-0">
-          <div className="relative h-56 w-full overflow-hidden">
+        <div className="card glow-border flex min-h-[520px] flex-col overflow-hidden p-0">
+          {/* Samy 2026-05-28: Bild groesser + weniger rechteckig. Aspect 4/3
+              statt schmaler h-56-Streifen. Bei side-pad 500 wird die Card
+              schmaler → das Bild bekommt mehr vertikalen Anteil und wirkt
+              ausgewogener. */}
+          <div className="relative aspect-[4/3] w-full overflow-hidden">
             {slotIds.map((id, i) => (
               // eslint-disable-next-line @next/next/no-img-element
               <img
