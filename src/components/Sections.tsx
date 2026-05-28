@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { motion, useInView, animate, useScroll, useTransform } from "motion/react";
+import { motion, useInView, animate, useMotionValue, useScroll, useTransform } from "motion/react";
 import { TiltCard } from "./TiltCard";
 import { cases, type CaseStudy } from "@/lib/data";
 import { useDesign } from "./design-context";
@@ -3132,61 +3132,59 @@ function ProcessStickyReveal({ milestones }: { milestones: Milestone[] }) {
   return <ProcessTimeline milestones={milestones} />;
 }
 
-/* variant 2 — horizontal stations with scroll-driven progress line
- * (Samy 2026-05-26): "die Scroll-Animation muss bis zum letzten Punkt
- * angekommen sein, erst dann kann man weiterscrollen." Wrapped in a
- * sticky-scroll outer of ~ (stations × 70vh) so the line completes
- * fully BEFORE the section releases and the next section snaps in. */
+/* variant 2 — horizontal stations with progress line (Samy 2026-05-27:
+ * "Process 100 VH bitte und alles zusammen. Animation muss smooth sein.
+ * Sobald die Leiste den Button erwischt, leuchtet er direkt."). Kein
+ * sticky-Pin mehr — die Section bleibt normal 100vh hoch, die Road-Linie
+ * animiert sich SELBST sobald die Section in den Viewport scrollt, und
+ * jeder Dot leuchtet auf wenn die Linie ihn erreicht. Scrollen bleibt
+ * frei, kein Pin, kein outer-vh-Stretch. */
 function ProcessStations({ milestones }: { milestones: Milestone[] }) {
-  const outer = useRef<HTMLDivElement>(null);
-  const { scrollYProgress } = useScroll({
-    target: outer,
-    offset: ["start start", "end end"],
-  });
-  // 70vh per station beyond the first viewport gives enough scroll room
-  // for the line to grow visibly between dots. Plus a 20vh exit tail so
-  // the user briefly sees the fully-filled line before leaving.
-  const total = Math.max(milestones.length, 2);
-  const outerVh = total * 70 + 20;
-  // Line reaches 100% at progress 0.85, then holds for the last 15% so
-  // the completed state is readable before the next section snaps in.
-  const lineScaleX = useTransform(scrollYProgress, [0, 0.85, 1], [0, 1, 1]);
+  const ref = useRef<HTMLDivElement>(null);
+  const inView = useInView(ref, { once: true, amount: 0.45 });
+  const progress = useMotionValue(0);
+  useEffect(() => {
+    if (!inView) return;
+    const controls = animate(progress, 1, {
+      duration: 2.4,
+      ease: [0.16, 1, 0.3, 1],
+    });
+    return () => controls.stop();
+  }, [inView, progress]);
+  const lineWidth = useTransform(progress, (p) => `${Math.min(100, p * 100)}%`);
   return (
-    <div ref={outer} className="relative mt-10" style={{ height: `${outerVh}vh` }}>
-      <div className="sticky top-0 flex h-screen items-center">
-        <div className="relative w-full">
-          {/* base track */}
-          <div
-            className="absolute left-0 right-0 top-[14px] h-px"
-            style={{ background: "rgba(255,255,255,0.08)" }}
-          />
-          {/* growing accent line */}
-          <motion.div
-            className="absolute left-0 top-[14px] h-px origin-left"
-            style={{
-              background:
-                "linear-gradient(90deg, var(--accent), var(--accent-bright))",
-              scaleX: lineScaleX,
-              width: "100%",
-              boxShadow: "0 0 14px rgba(249,115,22,0.5)",
-            }}
-          />
-          <div
-            className="grid gap-6"
-            style={{
-              gridTemplateColumns: `repeat(${milestones.length}, minmax(0, 1fr))`,
-            }}
-          >
-            {milestones.map((m, i) => (
-              <ProcessStation
-                key={m.when + m.title}
-                m={m}
-                index={i}
-                total={milestones.length}
-                progress={lineScaleX}
-              />
-            ))}
-          </div>
+    <div ref={ref} className="relative mt-10">
+      <div className="relative w-full">
+        {/* base track */}
+        <div
+          className="absolute left-0 right-0 top-[14px] h-px"
+          style={{ background: "rgba(255,255,255,0.08)" }}
+        />
+        {/* growing accent line */}
+        <motion.div
+          className="absolute left-0 top-[14px] h-px"
+          style={{
+            background:
+              "linear-gradient(90deg, var(--accent), var(--accent-bright))",
+            width: lineWidth,
+            boxShadow: "0 0 14px rgba(249,115,22,0.5)",
+          }}
+        />
+        <div
+          className="grid gap-6"
+          style={{
+            gridTemplateColumns: `repeat(${milestones.length}, minmax(0, 1fr))`,
+          }}
+        >
+          {milestones.map((m, i) => (
+            <ProcessStation
+              key={m.when + m.title}
+              m={m}
+              index={i}
+              total={milestones.length}
+              progress={progress}
+            />
+          ))}
         </div>
       </div>
     </div>
