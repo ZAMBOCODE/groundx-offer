@@ -210,10 +210,16 @@ function ProjectCard({
   const shots = c.shots ?? (c.image ? [c.image] : []);
   const primary = shots[0];
   const secondary = shots[1];
-  const [hover, setHover] = useState(false);
-  const showingSecondary = hover && !!secondary;
   // Samy 2026-05-25: max 4 tags shown
   const tags = c.tags?.slice(0, 4);
+  // Samy 2026-05-27: "vielleicht machen wir doch zwei Bilder hin". Wenn ein
+  // secondary shot vorhanden ist, zeigen wir beide gleichzeitig als
+  // overlapping stack (kein hover-toggle mehr). Beide Bilder bekommen
+  // stabile data-img-ids damit der DevPanel-ImagePicker pro Position
+  // tauschen + persistieren kann.
+  const slug = slugifyName(c.name);
+  const primaryId = `work.${slug}.0`;
+  const secondaryId = `work.${slug}.1`;
 
   return (
     <div className="grid items-center gap-10 md:grid-cols-[0.9fr_1.1fr]">
@@ -248,15 +254,13 @@ function ProjectCard({
         )}
       </div>
 
-      {/* RIGHT — ONE prominent 3D-tilted card; hover crossfades to shot 2.
-         Click opens the lightbox with the currently-shown shot pre-active
-         so the user can cycle prev/next there. */}
+      {/* RIGHT — primary 3D-tilted card. Secondary shot (falls vorhanden)
+         haengt darunter rechts heraus als zweiter tilted Frame — beide
+         Bilder gleichzeitig sichtbar, beide via DevPanel ersetzbar. */}
       <div className="relative">
         <button
           type="button"
-          onClick={() => onOpen(c, showingSecondary ? 1 : 0)}
-          onMouseEnter={() => setHover(true)}
-          onMouseLeave={() => setHover(false)}
+          onClick={() => onOpen(c, 0)}
           className="shot-card group relative block w-full overflow-hidden"
           style={
             {
@@ -275,51 +279,44 @@ function ProjectCard({
             // eslint-disable-next-line @next/next/no-img-element
             <img
               src={primary}
+              data-img-id={primaryId}
               alt={c.name}
-              className="absolute inset-0 h-full w-full object-cover object-top transition-opacity duration-500 ease-out"
-              style={{ opacity: showingSecondary ? 0 : 1 }}
+              className="absolute inset-0 h-full w-full object-cover object-top"
             />
-          )}
-          {secondary && (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={secondary}
-              alt={`${c.name} alternate view`}
-              className="absolute inset-0 h-full w-full object-cover object-top transition-opacity duration-500 ease-out"
-              style={{ opacity: showingSecondary ? 1 : 0 }}
-            />
-          )}
-
-          {/* counter dots — only shown when there's a second shot */}
-          {secondary && (
-            <div
-              className="pointer-events-none absolute right-3 top-3 flex gap-1.5"
-              aria-hidden
-            >
-              <span
-                className="h-1.5 w-3 rounded-full transition-all"
-                style={{
-                  background: !showingSecondary
-                    ? "var(--accent)"
-                    : "rgba(255,255,255,0.35)",
-                  width: !showingSecondary ? "20px" : "8px",
-                }}
-              />
-              <span
-                className="h-1.5 w-3 rounded-full transition-all"
-                style={{
-                  background: showingSecondary
-                    ? "var(--accent)"
-                    : "rgba(255,255,255,0.35)",
-                  width: showingSecondary ? "20px" : "8px",
-                }}
-              />
-            </div>
           )}
 
           {/* fullscreen indicator on hover */}
           <FullscreenBadge />
         </button>
+
+        {/* Secondary shot: kleinere getiltete Card, unten rechts ueberlappend.
+           Eigener Lightbox-Anker (idx 1) damit beide Bilder einzeln aufrufbar. */}
+        {secondary && (
+          <button
+            type="button"
+            onClick={() => onOpen(c, 1)}
+            className="shot-card group absolute -bottom-10 right-4 block w-[55%] overflow-hidden sm:-bottom-12 sm:right-8"
+            style={
+              {
+                "--r": "3deg",
+                aspectRatio: "16 / 10",
+                transform:
+                  "perspective(1300px) rotateY(-4deg) rotateX(2deg) rotate(3deg)",
+                transformStyle: "preserve-3d",
+                zIndex: 2,
+              } as CSSProperties
+            }
+            aria-label={`${c.name} alternate view — click for fullscreen`}
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={secondary}
+              data-img-id={secondaryId}
+              alt={`${c.name} alternate view`}
+              className="absolute inset-0 h-full w-full object-cover object-top"
+            />
+          </button>
+        )}
 
         {/* faded favicon-style logo behind/below the card */}
         {c.logo && (
@@ -510,4 +507,14 @@ function FullscreenBadge() {
       {lang === "de" ? "VOLLBILD" : "FULLSCREEN"}
     </span>
   );
+}
+
+/** Stable slug from a case-study name (for data-img-id pairing with overrides). */
+function slugifyName(s: string): string {
+  return s
+    .toLowerCase()
+    .normalize("NFKD")
+    .replace(/[̀-ͯ]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
 }
