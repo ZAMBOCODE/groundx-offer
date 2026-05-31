@@ -236,6 +236,10 @@ function apply(s: Settings) {
 }
 
 export function DevPanel() {
+  // Gate: the design panel (FAB + "D" shortcut) only renders when the URL
+  // has ?dev=1. Keeps the client-facing link clean. Samy tunes locally with
+  // ?dev=1, the Kundin-link without it shows zero dev UI.
+  const [devMode, setDevMode] = useState(false);
   const [open, setOpen] = useState(false);
   const [s, setS] = useState<Settings>(DEFAULTS);
   const [customFonts, setCustomFonts] = useState<CustomFont[]>([]);
@@ -361,6 +365,14 @@ export function DevPanel() {
     return acc;
   }, {});
 
+  // detect ?dev=1 (also accept #dev for easy bookmarking)
+  useEffect(() => {
+    try {
+      const sp = new URLSearchParams(window.location.search);
+      setDevMode(sp.get("dev") === "1" || window.location.hash === "#dev");
+    } catch {}
+  }, []);
+
   // keyboard toggle
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -398,6 +410,9 @@ export function DevPanel() {
       /* cancelled */
     }
   }, [update]);
+
+  // Client-facing link: no dev UI at all. (All hooks above already ran.)
+  if (!devMode) return null;
 
   return (
     <>
