@@ -1,20 +1,6 @@
-import { OfferProvider } from "@/components/OfferProvider";
-import { DesignProvider } from "@/components/design-context";
-import { LanguageProvider } from "@/components/language-context";
-import { HeaderActions } from "@/components/HeaderActions";
-import { WhatsAppFloat } from "@/components/WhatsAppFloat";
-import { DeckBody } from "@/components/DeckBody";
+import { Deck } from "@/components/Deck";
 
+// Root: the Ground X template (DEFAULT_CONFIG). Per-client decks live at /:slug.
 export default function Page() {
-  return (
-    <LanguageProvider>
-      <OfferProvider>
-        <DesignProvider>
-          <HeaderActions />
-          <DeckBody />
-          <WhatsAppFloat />
-        </DesignProvider>
-      </OfferProvider>
-    </LanguageProvider>
-  );
+  return <Deck />;
 }

@@ -23,6 +23,7 @@ import {
   type CopyVariantSelections,
   type SectionCopyKey,
 } from "@/lib/copyVariants";
+import { saveLookToBackend } from "@/lib/look";
 
 const ALL_SECTIONS: { key: ConfigSectionKey; label: string }[] = [
   { key: "hero", label: "Hero" },
@@ -1166,8 +1167,56 @@ function PresetIO({
     }
   }, [buildSnapshot]);
 
+  // "Für diesen Kunden speichern": persist the full look to the backend for
+  // the client whose deck this is (the /:slug in the URL). After this, the
+  // client's link shows exactly this look. Empty slug = root template, no slug
+  // to save against.
+  const [clientSlug, setClientSlug] = useState<string>("");
+  const [savedClient, setSavedClient] = useState<string | null>(null);
+  useEffect(() => {
+    try {
+      const seg = window.location.pathname.split("/").filter(Boolean)[0] ?? "";
+      setClientSlug(decodeURIComponent(seg));
+    } catch {}
+  }, []);
+  const saveForClient = useCallback(async () => {
+    if (!clientSlug) {
+      alert("Kein Kunde im Link (du bist auf der Root-Seite). Öffne /<kunde> um für einen Kunden zu speichern.");
+      return;
+    }
+    const r = await saveLookToBackend(clientSlug);
+    if (!r.ok) {
+      alert(`Speichern für "${clientSlug}" fehlgeschlagen: ${r.error}`);
+      return;
+    }
+    const stamp = new Date().toLocaleTimeString();
+    setSavedClient(stamp);
+    window.setTimeout(() => setSavedClient(null), 2600);
+  }, [clientSlug]);
+
   return (
-    <div className="flex flex-col items-end gap-0.5">
+    <div className="flex flex-col items-end gap-1">
+      {/* Primary multi-tenant action: save the full look for THIS client. */}
+      <button
+        onClick={saveForClient}
+        className="meta w-full rounded-[var(--r-mini)] border px-2 py-1 text-[0.6rem] font-semibold tracking-[0.18em]"
+        style={{
+          color: savedClient ? "#1a0f04" : "var(--accent-bright)",
+          background: savedClient ? "var(--accent)" : "rgba(249,115,22,0.08)",
+          borderColor: "var(--accent)",
+        }}
+        title={
+          clientSlug
+            ? `Speichert den kompletten Look (Akzent, Fonts, Varianten, Bilder-Auswahl, Texte, Sprache) für Kunde "${clientSlug}". Der Kunden-Link zeigt danach genau das.`
+            : "Du bist auf der Root-Seite. Öffne /<kunde> um für einen Kunden zu speichern."
+        }
+      >
+        {savedClient
+          ? `✓ GESPEICHERT · ${savedClient}`
+          : clientSlug
+            ? `💾 FÜR "${clientSlug.toUpperCase()}" SPEICHERN`
+            : "💾 KUNDE: (root — kein slug)"}
+      </button>
       <div className="flex gap-1">
         <button
           onClick={saveToDisk}
