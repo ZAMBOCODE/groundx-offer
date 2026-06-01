@@ -1,23 +1,8 @@
-import { OfferProvider } from "@/components/OfferProvider";
-import { DesignProvider } from "@/components/design-context";
-import { LanguageProvider } from "@/components/language-context";
-import { HeaderActions } from "@/components/HeaderActions";
-import { WhatsAppFloat } from "@/components/WhatsAppFloat";
-import { DeckBody } from "@/components/DeckBody";
+import { Deck } from "@/components/Deck";
 
-// Samy 2026-05-27 (Run-5): WhatsAppFloat doch wieder rein. "WhatsApp soll
-// trotzdem da sein". Der Calendly-Termin-Button im Header bleibt der
-// primaere CTA, die WA-Float ist der schnelle alternative Kanal.
+// Root: the Ground X template (DEFAULT_CONFIG). Per-client decks live at /:slug.
+// WhatsAppFloat bleibt drin (Samy 2026-05-27, Run-5): WA als schneller
+// Alt-Kanal neben dem Calendly-CTA im Header. Beide gerendert im Deck.
 export default function Page() {
-  return (
-    <LanguageProvider>
-      <OfferProvider>
-        <DesignProvider>
-          <HeaderActions />
-          <DeckBody />
-          <WhatsAppFloat />
-        </DesignProvider>
-      </OfferProvider>
-    </LanguageProvider>
-  );
+  return <Deck />;
 }

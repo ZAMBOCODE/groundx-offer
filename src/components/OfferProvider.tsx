@@ -42,16 +42,25 @@ function applyAccent(hex: string) {
   root.style.setProperty("--accent-dim", rgba(hex, 0.18));
 }
 
-export function OfferProvider({ children }: { children: React.ReactNode }) {
+export function OfferProvider({
+  children,
+  offerId,
+}: {
+  children: React.ReactNode;
+  /** client slug/id from the /:slug route; falls back to ?offer= query. */
+  offerId?: string;
+}) {
   const [cfg, setCfg] = useState<OfferConfig>(DEFAULT_CONFIG);
   const [copyVariants, setCopyVariants] = useState<CopyVariantSelections>({});
 
   useEffect(() => {
     applyAccent(DEFAULT_CONFIG.brand.accent);
-    let id: string | null = null;
-    try {
-      id = new URLSearchParams(window.location.search).get("offer");
-    } catch {}
+    let id: string | null = offerId ?? null;
+    if (!id) {
+      try {
+        id = new URLSearchParams(window.location.search).get("offer");
+      } catch {}
+    }
     if (id) {
       fetch(`${API}/offers/${encodeURIComponent(id)}`)
         .then((r) => (r.ok ? r.json() : null))
@@ -74,7 +83,7 @@ export function OfferProvider({ children }: { children: React.ReactNode }) {
       window.removeEventListener(VARIANTS_CHANGE_EVENT, onChange);
       window.removeEventListener("storage", onChange);
     };
-  }, []);
+  }, [offerId]);
 
   // Merge active copy-variant patches over the section content, then
   // swap to the German translation if the active language is 'de'.
