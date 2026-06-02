@@ -33,6 +33,9 @@ export type CopyVariant = {
   label: string;
   vibe: string;
   patch: CopyPatch;
+  /** German translation of the patch. If absent, DE keeps its default
+   *  translation (we never leak the English patch into the German deck). */
+  patchDe?: CopyPatch;
 };
 
 /** Map of section → 3 variants. "default" is implicit (no patch). */
@@ -69,6 +72,12 @@ export const COPY_VARIANTS: Record<SectionCopyKey, CopyVariant[]> = {
         headline: "One operator.",
         headlineAccent: "Full marketing stack.",
         sub: "Brand. Renderings. Site. Reels. Configurator. Dashboards. Ads. All from one head, all already shipped for clients like yours.",
+      },
+      patchDe: {
+        eyebrow: "Für Ground X",
+        headline: "Eine Person.",
+        headlineAccent: "Voller Marketing-Stack.",
+        sub: "Marke. Renderings. Website. Reels. Konfigurator. Dashboards. Ads. Alles aus einer Hand, alles schon für Kunden wie euch ausgeliefert.",
       },
     },
   ],
@@ -410,6 +419,7 @@ export function saveCopyVariantSelections(next: CopyVariantSelections) {
 export function applyCopyVariants(
   content: OfferContent,
   selections: CopyVariantSelections,
+  lang: "en" | "de" = "en",
 ): OfferContent {
   const next = { ...content };
   for (const [sectionRaw, variantId] of Object.entries(selections)) {
@@ -417,13 +427,17 @@ export function applyCopyVariants(
     if (!variantId) continue;
     const v = COPY_VARIANTS[section]?.find((x) => x.id === variantId);
     if (!v) continue;
+    // DE: only apply if the variant has a German patch; otherwise keep the
+    // proper German default (never leak English copy into the German deck).
+    const patch = lang === "de" ? v.patchDe : v.patch;
+    if (!patch) continue;
     const base = next[section];
     if (!base) continue;
     // shallow merge — patch overrides only the fields it touches; nested
     // arrays (points, items, tabs) are untouched. Cast through unknown
     // because TypeScript can't narrow the union of patch shapes across
     // the section key index.
-    (next[section] as unknown) = { ...base, ...v.patch };
+    (next[section] as unknown) = { ...base, ...patch };
   }
   return next;
 }

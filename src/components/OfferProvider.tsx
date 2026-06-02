@@ -90,11 +90,15 @@ export function OfferProvider({
   // Memoized so identity stays stable across no-op re-renders.
   const { lang } = useLang();
   const merged = useMemo<OfferConfig>(() => {
-    const withCopy =
+    // Pick the language base FIRST, then layer the copy-variant patches over it
+    // language-aware. So DE = the same selected version, just translated (and
+    // never the English copy when no German patch exists).
+    const base = pickContent(lang, cfg.content);
+    const content =
       Object.keys(copyVariants).length === 0
-        ? cfg
-        : { ...cfg, content: applyCopyVariants(cfg.content, copyVariants) };
-    return { ...withCopy, content: pickContent(lang, withCopy.content) };
+        ? base
+        : applyCopyVariants(base, copyVariants, lang);
+    return { ...cfg, content };
   }, [cfg, copyVariants, lang]);
 
   return <Ctx.Provider value={merged}>{children}</Ctx.Provider>;
