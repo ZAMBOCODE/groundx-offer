@@ -21,11 +21,15 @@ export const LOOK_KEYS = [
   "groundx.devpanel", // accent, radius, fonts, cursorFx, shader, buttonStyle, uiScale, ...
   "groundx.variants", // per-section layout variant index
   "groundx.sectionEnabled", // per-section on/off
-  "groundx.workProjects", // which cases/images are shown ("die Bilder die ich ausgewählt habe")
+  "groundx.sectionHeight", // per-section vh-override
+  "groundx.workProjects", // which cases are shown
+  "groundx.imageOverrides", // uploaded/replaced images (base64 data-URIs) — "die Bilder die ich eingefügt habe"
   "groundx.heroButtons", // which hero CTA buttons render
   "groundx.heroOverride", // edited hero copy
   "groundx.customFonts", // runtime-added Google fonts
   "groundx.copyVariants", // per-section copy-variant selection
+  "groundx.brandPalette", // brand surface-tabs palette (silver/graphite/noir)
+  "groundx.brandPaletteWall", // palette-wall choice (gold/silber/noir)
   "groundx.lang", // en / de
 ] as const;
 

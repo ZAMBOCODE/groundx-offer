@@ -24,6 +24,7 @@ import {
   type SectionCopyKey,
 } from "@/lib/copyVariants";
 import { saveLookToBackend } from "@/lib/look";
+import { fileToCompressedDataUrl } from "@/lib/imageCompress";
 
 const ALL_SECTIONS: { key: ConfigSectionKey; label: string }[] = [
   { key: "hero", label: "Hero" },
@@ -468,14 +469,14 @@ export function DevPanel() {
             animate={{ x: 0, opacity: 1 }}
             exit={{ x: 360, opacity: 0 }}
             transition={{ duration: 0.35, ease: [0.2, 0.8, 0.2, 1] }}
-            className="card glow-border flex flex-col gap-5 overflow-y-auto p-6"
+            className="card glow-border flex flex-col gap-5 overflow-y-auto overflow-x-hidden p-6"
             style={{
               borderRadius: "var(--r-card)",
               position: "fixed",
               top: "1rem",
               right: "1rem",
               bottom: "4.5rem",
-              width: "min(340px, calc(100vw - 2rem))",
+              width: "min(420px, calc(100vw - 2rem))",
               background: "rgba(12, 11, 9, 0.94)",
               backdropFilter: "blur(16px)",
               WebkitBackdropFilter: "blur(16px)",
@@ -597,18 +598,27 @@ export function DevPanel() {
                   value={s[key]}
                   onChange={(e) => update({ [key]: e.target.value } as Partial<Settings>)}
                   className="inner-card w-full px-2.5 py-2 text-[0.82rem]"
-                  style={{ color: "var(--ink)" }}
+                  style={{ color: "var(--ink)", fontFamily: s[key] }}
                 >
                   {Object.entries(fontGroups).map(([group, list]) => (
                     <optgroup key={group} label={group} style={{ background: "#111" }}>
                       {list.map((f) => (
-                        <option key={f.value} value={f.value} style={{ background: "#111" }}>
+                        <option key={f.value} value={f.value} style={{ background: "#111", fontFamily: f.value }}>
                           {f.label}
                         </option>
                       ))}
                     </optgroup>
                   ))}
                 </select>
+                {/* live preview so the chosen face is always visible, even when
+                    the OS renders native <option>s in a system font */}
+                <div
+                  className="mt-1.5 truncate text-[1.05rem] leading-tight"
+                  style={{ fontFamily: s[key], color: "var(--ink-2)" }}
+                  aria-hidden
+                >
+                  Ground X — Aa Bb 0123
+                </div>
               </Field>
             ))}
 
@@ -1555,7 +1565,9 @@ function ImagePickerSection({
         const section = sectionEl?.id ?? "—";
         next.push({
           id,
-          src: img.currentSrc || img.src,
+          // prefer the active override so the thumb always shows the CHANGED
+          // image (a hidden/zero-size scan element may have no currentSrc)
+          src: overrides[id] || img.currentSrc || img.src,
           alt: img.alt || id.split("/").pop() || id,
           section,
         });
@@ -1589,11 +1601,8 @@ function ImagePickerSection({
 
   const onFile = (id: string, file: File | undefined) => {
     if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => {
-      if (typeof reader.result === "string") onSet(id, reader.result);
-    };
-    reader.readAsDataURL(file);
+    // downscale + compress so we stay under the localStorage quota
+    void fileToCompressedDataUrl(file).then((dataUrl) => onSet(id, dataUrl));
   };
 
   // Samy 2026-05-28: Items mit Endung .0/.1/.2 (cycle-slots) zu einer

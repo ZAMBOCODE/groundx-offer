@@ -6,9 +6,11 @@ import {
   useEffect,
   useState,
   useCallback,
+  useRef,
 } from "react";
 import { useOffer } from "./OfferProvider";
 import type { SectionKey as ConfigSectionKey } from "@/lib/config";
+import { fileToCompressedDataUrl, downscaleDataUrl, dataUrlBytes } from "@/lib/imageCompress";
 
 /* Per-section layout variants, shared between the dev-panel (which picks them)
    and the sections (which render them). Persisted to localStorage.
@@ -28,7 +30,7 @@ const DEFAULTS: Variants = {
 /** how many variants each section offers (for the dev-panel selector) */
 export const VARIANT_COUNT: Record<SectionKey, number> = {
   hero: 6, trustedBy: 2, about: 6, angle: 6, capabilities: 6, work: 6,
-  testimonials: 3, brand: 6, offer: 6, process: 3, faq: 2, contact: 6,
+  testimonials: 3, brand: 7, offer: 6, process: 3, faq: 2, contact: 6,
 };
 
 export const SECTION_LABEL: Record<SectionKey, string> = {
@@ -96,6 +98,7 @@ export const VARIANT_NOTES: Record<SectionKey, string[]> = {
     "Mockup · device frames",
     "Mockup · magazine spread",
     "Mockup · isometric scroll stack",
+    "Mockup · surface tabs (tilted)",
   ],
   offer: [
     "Tabs · 3-card grid",
@@ -267,6 +270,36 @@ export function DesignProvider({ children }: { children: React.ReactNode }) {
     } catch {}
   }, [cfg]);
 
+  // One-time migration (Samy 2026-06-02): the earlier raw uploads pushed the
+  // saved look to ~5MB, hitting the localStorage quota so new images couldn't
+  // save. Re-compress any oversized override once on load to free space.
+  const migratedRef = useRef(false);
+  useEffect(() => {
+    if (migratedRef.current) return;
+    const big = Object.entries(imageOverrides).filter(
+      ([, v]) => typeof v === "string" && dataUrlBytes(v) > 250_000,
+    );
+    if (big.length === 0) return;
+    migratedRef.current = true;
+    void (async () => {
+      const updates: Record<string, string> = {};
+      for (const [id, v] of big) {
+        const small = await downscaleDataUrl(v);
+        if (small.length < v.length) updates[id] = small;
+      }
+      if (Object.keys(updates).length === 0) return;
+      setImageOverridesState((prev) => {
+        const next = { ...prev, ...updates };
+        try {
+          localStorage.setItem(KEY_IMAGE_OVERRIDES, JSON.stringify(next));
+        } catch (e) {
+          console.warn("imageOverrides migration: localStorage still full", e);
+        }
+        return next;
+      });
+    })();
+  }, [imageOverrides]);
+
   const setVariant = useCallback((k: SectionKey, idx: number) => {
     setVariants((prev) => {
       const next = { ...prev, [k]: idx };
@@ -345,19 +378,21 @@ export function DesignProvider({ children }: { children: React.ReactNode }) {
         return;
       }
       const id = pendingId;
-      const reader = new FileReader();
-      reader.onload = () => {
-        if (typeof reader.result === "string") {
-          setImageOverridesState((prev) => {
-            const next = { ...prev, [id]: reader.result as string };
-            try { localStorage.setItem(KEY_IMAGE_OVERRIDES, JSON.stringify(next)); } catch {}
-            return next;
-          });
-        }
+      // Downscale + compress before storing so we stay under the localStorage
+      // quota (Samy 2026-06-02 — raw uploads blew the ~5MB limit, saves failed).
+      void fileToCompressedDataUrl(file).then((dataUrl) => {
+        setImageOverridesState((prev) => {
+          const next = { ...prev, [id]: dataUrl };
+          try {
+            localStorage.setItem(KEY_IMAGE_OVERRIDES, JSON.stringify(next));
+          } catch (e) {
+            console.warn("imageOverrides: localStorage full — image kept in-session only", e);
+          }
+          return next;
+        });
         input.value = "";
         pendingId = null;
-      };
-      reader.readAsDataURL(file);
+      });
     };
     input.addEventListener("change", onChange);
 

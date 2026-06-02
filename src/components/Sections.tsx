@@ -12,6 +12,8 @@ import { WorkShowcase } from "./WorkShowcase";
 import { MockupShowcase } from "./MockupShowcase";
 import { MagazineSpread } from "./MagazineSpread";
 import { IsometricScrollStack } from "./IsometricScrollStack";
+import { BrandSurfaceTabs } from "./BrandSurfaceTabs";
+import { BrandSurfaceScroll } from "./BrandSurfaceScroll";
 import { usePdfMode } from "@/lib/pdfMode";
 import {
   PenLine, Film, Tag, Code2, Monitor, LayoutTemplate, Palette,
@@ -1246,12 +1248,13 @@ function CapabilitiesSplitPane({ items }: { items: Array<{ title: string; blurb:
             );
           })}
         </ul>
-        <div className="card glow-border flex min-h-[520px] flex-col overflow-hidden p-0">
-          {/* Samy 2026-05-28: Bild groesser + weniger rechteckig. Aspect 4/3
-              statt schmaler h-56-Streifen. Bei side-pad 500 wird die Card
-              schmaler → das Bild bekommt mehr vertikalen Anteil und wirkt
-              ausgewogener. */}
-          <div className="relative aspect-[4/3] w-full overflow-hidden">
+        <div className="card glow-border flex flex-col overflow-hidden p-0">
+          {/* Samy 2026-06-02: Bild-Hoehe gedeckelt (clamp 200..30vh..340) statt
+              aspect-4/3 + min-h-520. Vorher sprengte das Bild den Viewport und
+              drueckte Tabs + Titel/Blurb raus → "man kann auf einen Blick nichts
+              lesen". Jetzt bleibt die Card ~1 Screen, Bild + Text gleichzeitig
+              sichtbar. */}
+          <div className="relative h-[clamp(240px,38vh,440px)] w-full overflow-hidden">
             {slotIds.map((id, i) => (
               // eslint-disable-next-line @next/next/no-img-element
               <img
@@ -1591,6 +1594,17 @@ function useBrandMoods(): string[] {
 }
 const BRAND_PALETTE = ["#0a0907", "#1a1714", "#8a5a1c", "#c8862e", "#e8b563"];
 
+/* Samy 2026-06-02: the palette wall is now choosable (and client-changeable) —
+   Gold / Silber / Noir. darkLeading = how many leading slabs are dark (so the
+   per-slab label flips to light text). Persisted under groundx.brandPaletteWall. */
+type WallPalette = { key: string; label: string; colors: string[]; swatch: string[]; darkLeading: number };
+const WALL_PALETTES: WallPalette[] = [
+  { key: "gold", label: "Gold", colors: BRAND_PALETTE, swatch: ["Onyx", "Walnut", "Cognac", "Brushed Gold", "Sunlit Sand"], darkLeading: 2 },
+  { key: "silver", label: "Silber", colors: ["#0c0d0f", "#2a2d33", "#6b7078", "#aab0b8", "#e6e9ee"], swatch: ["Graphite", "Steel", "Silver", "Platinum", "Mist"], darkLeading: 2 },
+  { key: "noir", label: "Noir", colors: ["#050506", "#15161a", "#3a3d44", "#8b9099", "#f2f3f5"], swatch: ["Ink", "Charcoal", "Slate", "Ash", "Snow"], darkLeading: 3 },
+];
+const WALL_PALETTE_KEY = "groundx.brandPaletteWall";
+
 export function BrandTeaser() {
   const { variants } = useDesign();
   const cb = useOffer().content.brand;
@@ -1649,6 +1663,10 @@ export function BrandTeaser() {
 
       {/* v5: Isometric Scroll Stack — sticky scroll, 3D layered mockups */}
       {v === 5 && <IsometricScrollStack />}
+
+      {/* v6: Surface Tabs — tabs (Website/Configurator/Dashboard) + tilted
+         auto-cycling 4-image stack + phone, grayscale palette switch */}
+      {v === 6 && <BrandSurfaceTabs />}
     </section>
   );
 }
@@ -1751,50 +1769,86 @@ function BrandEditorialCodex() {
 function BrandPaletteWall({ fullscreen = false }: { fullscreen?: boolean } = {}) {
   const t = useT();
   const moods = useBrandMoods();
-  const PALETTE_LABELS = [
-    t("Onyx", "Onyx"),
-    t("Walnut", "Walnuss"),
-    t("Cognac", "Cognac"),
-    t("Brushed Gold", "Brushed Gold"),
-    t("Sunlit Sand", "Sonnen-Sand"),
-  ];
+
+  const [palKey, setPalKey] = useState<string>("silver"); // Samy 2026-06-02: Silber Default
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(WALL_PALETTE_KEY);
+      if (saved && WALL_PALETTES.some((p) => p.key === saved)) setPalKey(saved);
+    } catch {}
+  }, []);
+  const pal = WALL_PALETTES.find((p) => p.key === palKey) ?? WALL_PALETTES[0]!;
+  const choosePalette = (k: string) => {
+    setPalKey(k);
+    try {
+      localStorage.setItem(WALL_PALETTE_KEY, k);
+    } catch {}
+  };
+
   return (
     <Reveal delay={0.1}>
-      <div
-        className={`relative overflow-hidden ${fullscreen ? "h-full" : "mt-12"}`}
-      >
-        {/* Samy 2026-05-27: Palette kleiner — 70vh fullscreen / 480px sonst. */}
-        <div
-          className={`relative flex w-full ${fullscreen ? "h-[70vh]" : "h-[480px]"}`}
-        >
-          {BRAND_PALETTE.map((c, i) => (
-            <div
-              key={c}
-              className="group relative flex-1 transition-[flex] duration-700 hover:flex-[1.8]"
-              style={{ background: c }}
-            >
-              {/* vertical mood word, drifting up on hover */}
-              <span
-                className="meta absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 whitespace-nowrap text-[0.7rem] tracking-[0.4em] transition-all duration-700 group-hover:-translate-y-[120%] group-hover:opacity-100"
+      <div className={`relative overflow-hidden ${fullscreen ? "h-full" : "mt-12"}`}>
+        {/* palette chooser — clickable tabs, also available to the client */}
+        <div className="mb-4 flex flex-wrap items-center gap-1.5">
+          {WALL_PALETTES.map((wp) => {
+            const on = wp.key === pal.key;
+            const light = wp.colors[wp.colors.length - 1]!;
+            return (
+              <button
+                key={wp.key}
+                onClick={() => choosePalette(wp.key)}
+                className="meta flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[0.58rem] tracking-[0.2em] transition-colors"
                 style={{
-                  writingMode: "vertical-rl",
-                  transform: "translate(-50%, -50%) rotate(180deg)",
-                  color: i < 2 ? "rgba(232,181,99,0.7)" : "rgba(10,9,7,0.7)",
-                  opacity: 0.55,
+                  color: on ? "#0a0a0b" : "var(--ink-2)",
+                  background: on ? light : "transparent",
+                  border: `1px solid ${on ? light : "var(--stroke-card)"}`,
                 }}
               >
-                {moods[i] ?? PALETTE_LABELS[i]}
-              </span>
-              {/* swatch label corner */}
+                <span className="flex overflow-hidden rounded-full">
+                  {wp.colors.map((c) => (
+                    <span key={c} className="h-2.5 w-2" style={{ background: c }} />
+                  ))}
+                </span>
+                {wp.label.toUpperCase()}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Samy 2026-05-27: Palette kleiner — 70vh fullscreen / 480px sonst. */}
+        <div className={`relative flex w-full ${fullscreen ? "h-[70vh]" : "h-[480px]"}`}>
+          {pal.colors.map((c, i) => {
+            const labelColor = i < pal.darkLeading ? "rgba(238,238,243,0.72)" : "rgba(8,8,10,0.74)";
+            const word = (pal.key === "gold" ? moods[i] : pal.swatch[i]) ?? pal.swatch[i];
+            return (
               <div
-                className="absolute bottom-4 left-4 transition-opacity duration-500 group-hover:opacity-100"
-                style={{ color: i < 2 ? "rgba(232,181,99,0.8)" : "rgba(10,9,7,0.85)", opacity: 0.6 }}
+                key={c}
+                className="group relative flex-1 transition-[flex] duration-700 hover:flex-[1.8]"
+                style={{ background: c }}
               >
-                <div className="meta text-[0.55rem] tracking-[0.3em]">{PALETTE_LABELS[i]}</div>
-                <div className="meta font-mono mt-1 text-[0.6rem]">{c.toUpperCase()}</div>
+                {/* vertical mood word, drifting up on hover */}
+                <span
+                  className="meta absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 whitespace-nowrap text-[0.7rem] tracking-[0.4em] transition-all duration-700 group-hover:-translate-y-[120%] group-hover:opacity-100"
+                  style={{
+                    writingMode: "vertical-rl",
+                    transform: "translate(-50%, -50%) rotate(180deg)",
+                    color: labelColor,
+                    opacity: 0.6,
+                  }}
+                >
+                  {word}
+                </span>
+                {/* swatch label corner */}
+                <div
+                  className="absolute bottom-4 left-4 transition-opacity duration-500 group-hover:opacity-100"
+                  style={{ color: labelColor, opacity: 0.7 }}
+                >
+                  <div className="meta text-[0.55rem] tracking-[0.3em]">{pal.swatch[i]}</div>
+                  <div className="meta font-mono mt-1 text-[0.6rem]">{c.toUpperCase()}</div>
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
 
         {/* center overlay: Marken-Welt eyebrow + Logo-Image + tagline.
@@ -2007,7 +2061,7 @@ function BrandScrollThroughStatic({ eyebrow, titleWithLogo, titleAccent, sub }: 
         {sub && <p className="text-dim mt-5 max-w-2xl text-[1.12rem] leading-relaxed">{sub}</p>}
       </div>
       <BrandPaletteWall />
-      <MockupShowcase showBusinessCard={false} />
+      <BrandSurfaceScroll />
     </div>
   );
 }
@@ -2037,11 +2091,11 @@ function BrandScrollThroughDynamic({ eyebrow, titleWithLogo, titleAccent, sub }:
       {/* Phase 1 — Palette Wall */}
       <BrandPaletteWall fullscreen={false} />
 
-      {/* Phase 2 — Safari + iPhone mockups. Samy 2026-05-27 (Run-4): die
-          Mockup-Tabs (Website / Configurator / Dashboard) cyclen jetzt
-          beim Scrollen automatisch durch. */}
+      {/* Phase 2 — Surfaces, sticky-scroll (Samy 2026-06-02): Website (Bild
+          1→2→3) + größeres Phone, dann Konfigurator + Dashboard fast vollbild
+          zentriert. Eigene data-img-id-Slots für den DevPanel-Picker. */}
       <div className="w-full">
-        <MockupShowcase showBusinessCard={false} cycleOnScroll />
+        <BrandSurfaceScroll />
       </div>
 
       {/* Phase 3 (BrandFinalStack) entfernt — Samy Run-4: "wir brauchen es
@@ -2719,6 +2773,15 @@ function OfferMinimalList({ co }: { co: OfferShape }) {
 
 const SAMY_EMAIL = "sheymig98@gmail.com";
 
+/* Samy 2026-06-02: "Book a call" / consultation CTAs go to WhatsApp now.
+   Prefers the WA number; falls back to Calendly, then mail. */
+function bookingHref(brand: { whatsapp?: string; whatsappMessage?: string; calendly?: string }): string {
+  if (brand.whatsapp) {
+    return `https://wa.me/${brand.whatsapp}${brand.whatsappMessage ? `?text=${encodeURIComponent(brand.whatsappMessage)}` : ""}`;
+  }
+  return brand.calendly ?? `mailto:${SAMY_EMAIL}`;
+}
+
 function useContactChannels() {
   const { brand } = useOffer();
   const { lang } = useLang();
@@ -2726,11 +2789,11 @@ function useContactChannels() {
     { label: "Mail", value: SAMY_EMAIL, href: `mailto:${SAMY_EMAIL}` },
     { label: "Web", value: "zambodezigns.com", href: "https://zambodezigns.com" },
     {
-      label: "Calendly",
+      label: "WhatsApp",
       value: lang === "de"
-        ? "Privates Beratungsgespräch · 30 Min"
-        : "private consultation · 30 min",
-      href: brand.calendly ?? `mailto:${SAMY_EMAIL}`,
+        ? "Direkt schreiben · Antwort meist < 1 Std"
+        : "Message me · usually replies < 1 hr",
+      href: bookingHref(brand),
     },
   ];
 }
@@ -3096,12 +3159,14 @@ function ProcessTimeline({ milestones }: { milestones: Milestone[] }) {
       {milestones.map((m, i) => (
         <Reveal key={m.when + m.title} delay={i * 0.07}>
           <div className="relative pb-12 last:pb-0">
+            {/* hollow ring, not a filled/glowing dot — a rollout plan is
+               upcoming, not "abgehakt"/done (Samy 2026-06-02) */}
             <span
               className="absolute -left-[31px] top-1.5 h-3.5 w-3.5 rounded-full md:-left-[55px]"
               style={{
-                background: "var(--accent)",
-                boxShadow:
-                  "0 0 0 6px rgba(249,115,22,0.18), 0 0 22px rgba(249,115,22,0.45)",
+                background: "transparent",
+                border: "2px solid var(--accent)",
+                boxShadow: "0 0 0 4px rgba(249,115,22,0.08)",
               }}
             />
             <div className="flex flex-col gap-1 md:flex-row md:items-baseline md:gap-8">
@@ -3251,10 +3316,10 @@ function ProcessStation({
   const dotOpacity = useTransform(progress, (p) =>
     p >= threshold ? 1 : 0.18,
   );
+  // hollow ring that gains a subtle outer ring once the road reaches it —
+  // reads as "upcoming station", not a filled/checked dot (Samy 2026-06-02)
   const dotGlow = useTransform(progress, (p) =>
-    p >= threshold
-      ? "0 0 0 4px rgba(249,115,22,0.22), 0 0 28px rgba(249,115,22,0.55)"
-      : "none",
+    p >= threshold ? "0 0 0 4px rgba(249,115,22,0.12)" : "none",
   );
   return (
     <Reveal delay={index * 0.06}>
@@ -3262,8 +3327,8 @@ function ProcessStation({
         <motion.span
           className="relative -ml-1 h-7 w-7 rounded-full border-2"
           style={{
-            background: "var(--accent)",
-            borderColor: "#050507",
+            background: "transparent",
+            borderColor: "var(--accent)",
             opacity: dotOpacity,
             boxShadow: dotGlow,
           }}
@@ -3309,11 +3374,11 @@ function ConsultationButton({
   const { brand } = useOffer();
   const { lang } = useLang();
   const defaultLabel = lang === "de" ? "Privates Beratungsgespräch buchen" : "Book a private consultation";
-  const href = brand.calendly ?? `mailto:${SAMY_EMAIL}`;
+  const href = bookingHref(brand);
   return (
     <a
       href={href}
-      target={brand.calendly ? "_blank" : undefined}
+      target="_blank"
       rel="noreferrer noopener"
       className={className}
     >
@@ -3397,8 +3462,8 @@ function ContactSplit({ cx }: { cx: CxContent }) {
             <p className="text-dim mt-5 text-[1rem] leading-relaxed">{cx.sub}</p>
           </div>
           <a
-            href={brand.calendly ?? `mailto:${SAMY_EMAIL}`}
-            target={brand.calendly ? "_blank" : undefined}
+            href={bookingHref(brand)}
+            target="_blank"
             rel="noreferrer noopener"
             className="btn btn-primary mt-8 self-start"
           >
@@ -3451,7 +3516,7 @@ function ContactCinematic({ cx }: { cx: CxContent }) {
    brand.calendly. */
 function ContactCardRow({ cx }: { cx: CxContent }) {
   const { brand } = useOffer();
-  const cal = brand.calendly ?? `mailto:${SAMY_EMAIL}`;
+  const cal = bookingHref(brand);
   const t = useT();
   return (
     <>
@@ -3468,7 +3533,7 @@ function ContactCardRow({ cx }: { cx: CxContent }) {
           <div className="flex flex-col items-start gap-2 md:items-end">
             <a
               href={cal}
-              target={brand.calendly ? "_blank" : undefined}
+              target="_blank"
               rel="noreferrer noopener"
               className="btn btn-primary"
             >
@@ -3514,7 +3579,7 @@ function ContactCardRow({ cx }: { cx: CxContent }) {
         <Reveal delay={0.07}>
           <a
             href={cal}
-            target={brand.calendly ? "_blank" : undefined}
+            target="_blank"
             rel="noreferrer noopener"
             className="block h-full"
             aria-label={t("Book on Calendly", "Auf Calendly buchen")}

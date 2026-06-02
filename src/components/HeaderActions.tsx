@@ -12,14 +12,20 @@ export function HeaderActions() {
   const { lang, setLang } = useLang();
   const { brand } = useOffer();
 
+  // Prefer WhatsApp for "Book a call"; fall back to Calendly if no WA number.
+  const bookHref = brand.whatsapp
+    ? `https://wa.me/${brand.whatsapp}${brand.whatsappMessage ? `?text=${encodeURIComponent(brand.whatsappMessage)}` : ""}`
+    : brand.calendly;
+
   return (
     <div
       data-pdf-hide
       className="fixed top-5 right-5 z-40 flex items-center gap-2"
     >
-      {brand.calendly && (
+      {/* Samy 2026-06-02: "Book a call" geht jetzt auf WhatsApp statt Calendly. */}
+      {bookHref && (
         <a
-          href={brand.calendly}
+          href={bookHref}
           target="_blank"
           rel="noreferrer noopener"
           className="inline-flex items-center gap-2 rounded-full px-3.5 py-2 text-[0.68rem] font-semibold uppercase tracking-[0.16em] transition"
@@ -29,7 +35,7 @@ export function HeaderActions() {
             fontFamily: "var(--font-mono)",
             boxShadow: "0 6px 18px rgba(249,115,22,0.32), inset 0 1px 0 rgba(255,255,255,0.2)",
           }}
-          title={lang === "de" ? "30-Min-Call via Calendly buchen" : "Book a 30-min call via Calendly"}
+          title={lang === "de" ? "Per WhatsApp einen Call vereinbaren" : "Book a call via WhatsApp"}
         >
           <CalIcon size={11} />
           <span>{lang === "de" ? "Termin buchen" : "Book a call"}</span>
