@@ -404,6 +404,9 @@ body {
 @media (max-width: 640px) {
   .section {
     padding-block: 3rem 2.5rem;
+    /* Samy 2026-06-02: Mobile nutzte zu wenig Breite. Side-Padding klein
+       halten, damit der Content die volle Viewport-Breite ausnutzt. */
+    padding-inline: 14px !important;
   }
   .display {
     line-height: 1.08;

@@ -2,6 +2,7 @@
 
 import { useLang } from "./language-context";
 import { useOffer } from "./OfferProvider";
+import { useHideOnScroll } from "@/lib/useHideOnScroll";
 
 /* Fixed top-right action bar: [Book a call (Calendly)] [EN/DE].
    Samy 2026-05-24: "calendly hinzufügen als book a call oben im header".
@@ -11,6 +12,7 @@ import { useOffer } from "./OfferProvider";
 export function HeaderActions() {
   const { lang, setLang } = useLang();
   const { brand } = useOffer();
+  const hidden = useHideOnScroll();
 
   // Prefer WhatsApp for "Book a call"; fall back to Calendly if no WA number.
   const bookHref = brand.whatsapp
@@ -21,6 +23,12 @@ export function HeaderActions() {
     <div
       data-pdf-hide
       className="fixed top-5 right-5 z-40 flex items-center gap-2"
+      style={{
+        transform: hidden ? "translateY(-130%)" : "translateY(0)",
+        opacity: hidden ? 0 : 1,
+        transition: "transform 0.35s ease, opacity 0.35s ease",
+        pointerEvents: hidden ? "none" : "auto",
+      }}
     >
       {/* Samy 2026-06-02: "Book a call" geht jetzt auf WhatsApp statt Calendly. */}
       {bookHref && (

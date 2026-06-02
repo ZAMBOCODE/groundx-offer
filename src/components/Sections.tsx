@@ -1787,9 +1787,11 @@ function BrandPaletteWall({ fullscreen = false }: { fullscreen?: boolean } = {})
 
   return (
     <Reveal delay={0.1}>
-      <div className={`relative overflow-hidden ${fullscreen ? "h-full" : "mt-12"}`}>
+      {/* Samy 2026-06-02: full-bleed (100vw) statt in die Laenge gestretcht;
+         nutzt die volle Breite auf Mobile + Desktop. */}
+      <div className={`relative left-1/2 w-screen -translate-x-1/2 overflow-hidden ${fullscreen ? "h-full" : "mt-12"}`}>
         {/* palette chooser — clickable tabs, also available to the client */}
-        <div className="mb-4 flex flex-wrap items-center gap-1.5">
+        <div className="mb-4 flex flex-wrap items-center gap-1.5 px-4 sm:px-12">
           {WALL_PALETTES.map((wp) => {
             const on = wp.key === pal.key;
             const light = wp.colors[wp.colors.length - 1]!;
@@ -1815,8 +1817,8 @@ function BrandPaletteWall({ fullscreen = false }: { fullscreen?: boolean } = {})
           })}
         </div>
 
-        {/* Samy 2026-05-27: Palette kleiner — 70vh fullscreen / 480px sonst. */}
-        <div className={`relative flex w-full ${fullscreen ? "h-[70vh]" : "h-[480px]"}`}>
+        {/* Höhe responsiv, damit die Slabs nicht zu schmal/gestretcht wirken. */}
+        <div className={`relative flex w-full ${fullscreen ? "h-[70vh]" : "h-[clamp(360px,46vh,520px)]"}`}>
           {pal.colors.map((c, i) => {
             const labelColor = i < pal.darkLeading ? "rgba(238,238,243,0.72)" : "rgba(8,8,10,0.74)";
             const word = (pal.key === "gold" ? moods[i] : pal.swatch[i]) ?? pal.swatch[i];
