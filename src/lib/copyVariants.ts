@@ -211,7 +211,7 @@ export const COPY_VARIANTS: Record<SectionCopyKey, CopyVariant[]> = {
         eyebrow: "The offer",
         title: "Pick how you want to",
         titleAccent: "work together.",
-        sub: "For context: Dubai agencies charge $3,000–8,000/mo for this scope, and Ground X sells from $50,000 a module.",
+        sub: "",
       },
     },
     {
@@ -233,7 +233,7 @@ export const COPY_VARIANTS: Record<SectionCopyKey, CopyVariant[]> = {
         eyebrow: "Pricing",
         title: "From €120 a render",
         titleAccent: "to €1,500/mo all-in.",
-        sub: "Compare: Dubai agencies €3–8K/mo for the same scope. Ground X modules sell from €50K.",
+        sub: "",
       },
     },
   ],

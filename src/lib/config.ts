@@ -164,7 +164,7 @@ export const DEFAULT_CONFIG: OfferConfig = {
       eyebrow: "The offer",
       title: "Pick how you want to",
       titleAccent: "work together.",
-      sub: "For context: Dubai agencies charge $3,000–8,000/mo for this scope, and Ground X sells from $50,000 a module.",
+      sub: "",
       tabs: [
         // Samy 2026-05-28: pricing pass — projects ~15% down, monthly retainer
         // from €1,200, test month €999, à-la-carte add-ons more accessible,
@@ -397,7 +397,7 @@ export const DE_CONTENT: OfferContent = {
     eyebrow: "Das Angebot",
     title: "Such dir aus, wie wir",
     titleAccent: "zusammen arbeiten.",
-    sub: "Zum Vergleich: Agenturen in Dubai berechnen 3.000–8.000 $/Monat für diesen Umfang, und Ground X verkauft ab 50.000 $ pro Modul.",
+    sub: "",
     tabs: [
       {
         label: "Einmal-Aufträge",
