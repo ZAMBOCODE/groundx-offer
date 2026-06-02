@@ -50,25 +50,27 @@ export function collectLook(): Look {
 /** Write a saved look into localStorage. Per-key, only when the key is absent,
  *  so Samy's in-progress edits (?dev=1) are never clobbered — a fresh visitor
  *  (the client) has none set, so they get the full saved look. */
-export function seedLookIfEmpty(look: Look | null | undefined): void {
+export function seedLookIfEmpty(look: Look | null | undefined, force = false): void {
   if (!look || typeof look !== "object") return;
   for (const k of LOOK_KEYS) {
     const v = look[k];
     if (typeof v !== "string") continue;
     try {
-      if (localStorage.getItem(k) === null) localStorage.setItem(k, v);
+      // force = client view: always reflect the latest saved look (overwrite),
+      // so selections/sections/images are never stale. Dev mode keeps in-progress edits.
+      if (force || localStorage.getItem(k) === null) localStorage.setItem(k, v);
     } catch {}
   }
 }
 
 /** Fetch an offer by slug/id and seed its saved look into localStorage.
  *  Resolves whether or not a look exists; never throws. */
-export async function seedLookFromBackend(offerId: string): Promise<void> {
+export async function seedLookFromBackend(offerId: string, force = false): Promise<void> {
   try {
     const r = await fetch(`${API}/offers/${encodeURIComponent(offerId)}`);
     if (!r.ok) return;
     const row = (await r.json()) as { config?: { look?: Look } } | null;
-    seedLookIfEmpty(row?.config?.look);
+    seedLookIfEmpty(row?.config?.look, force);
   } catch {}
 }
 

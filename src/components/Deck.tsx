@@ -27,7 +27,14 @@ export function Deck({ offerId }: { offerId?: string }) {
     const done = () => {
       if (alive) setReady(true);
     };
-    if (offerId) seedLookFromBackend(offerId).finally(done);
+    // Client view (no ?dev=1) always loads the latest saved look (overwrite),
+    // so selections / sections / images are never stale on a returning device.
+    // Dev mode preserves Samy's in-progress local edits.
+    const devMode =
+      typeof window !== "undefined" &&
+      (new URLSearchParams(window.location.search).get("dev") === "1" ||
+        window.location.hash === "#dev");
+    if (offerId) seedLookFromBackend(offerId, !devMode).finally(done);
     else done();
     return () => {
       alive = false;
