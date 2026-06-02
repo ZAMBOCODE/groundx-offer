@@ -80,9 +80,26 @@ const outfit = Outfit({ subsets: ["latin"], variable: "--font-outfit", display: 
 const plexMono = IBM_Plex_Mono({ subsets: ["latin"], weight: ["400", "500", "600"], variable: "--font-plex-mono", display: "swap" });
 
 export const metadata: Metadata = {
+  // Absolute base so the OG image URL resolves for link previews (WhatsApp etc).
+  metadataBase: new URL("https://groundx.178.104.134.120.sslip.io"),
   title: "Ground X — Visual & Marketing Partnership",
   description:
     "A proposal by ZamboDezigns: brand, AI visuals, web and content systems for Ground X.",
+  // OG/Twitter card. The dark share image is provided by app/opengraph-image.tsx
+  // (auto-detected by Next) — replaces the old white-on-white logo preview.
+  openGraph: {
+    title: "Ground X — Visual & Marketing Partnership",
+    description:
+      "A proposal by ZamboDezigns: brand, AI visuals, web and content as one system.",
+    type: "website",
+    url: "https://groundx.178.104.134.120.sslip.io",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Ground X — Visual & Marketing Partnership",
+    description:
+      "A proposal by ZamboDezigns: brand, AI visuals, web and content as one system.",
+  },
   // Samy 2026-05-27: Favicon = ZamboDezigns-Logo (Sender, nicht der Kunde).
   icons: {
     icon: [
