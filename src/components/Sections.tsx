@@ -403,7 +403,7 @@ function SamyPhoto({ transparent = false }: { transparent?: boolean } = {}) {
     // black background with a soft radial edge-fade so the silhouette blends.
     return (
       <div
-        className="relative mx-auto w-full max-w-[420px]"
+        className="relative mx-auto w-full max-w-[230px] md:max-w-[420px]"
         style={{ aspectRatio: "4 / 5" }}
       >
         {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -1787,9 +1787,9 @@ function BrandPaletteWall({ fullscreen = false }: { fullscreen?: boolean } = {})
 
   return (
     <Reveal delay={0.1}>
-      {/* Samy 2026-06-02: full-bleed (100vw) statt in die Laenge gestretcht;
-         nutzt die volle Breite auf Mobile + Desktop. */}
-      <div className={`relative left-1/2 w-screen -translate-x-1/2 overflow-hidden ${fullscreen ? "h-full" : "mt-12"}`}>
+      {/* Samy 2026-06-02: full-bleed (100vw) NUR auf Mobile; Desktop bleibt
+         exakt wie vorher (md: stellt left-0/w-full/kein-translate wieder her). */}
+      <div className={`relative left-1/2 w-screen -translate-x-1/2 overflow-hidden md:left-0 md:w-full md:translate-x-0 ${fullscreen ? "h-full" : "mt-12"}`}>
         {/* palette chooser — Gold/Silber/Noir nebeneinander in EINER Reihe
             (Samy 2026-06-02), kompakt sodass auch mobil alle 3 passen */}
         <div className="mb-4 flex flex-nowrap items-center justify-center gap-1.5 px-3 sm:justify-start sm:px-12">
@@ -1818,8 +1818,8 @@ function BrandPaletteWall({ fullscreen = false }: { fullscreen?: boolean } = {})
           })}
         </div>
 
-        {/* Höhe responsiv + flacher (Farben weniger dominant, Samy 2026-06-02). */}
-        <div className={`relative flex w-full ${fullscreen ? "h-[70vh]" : "h-[clamp(300px,40vh,460px)]"}`}>
+        {/* Höhe nur mobil flacher; Desktop wieder original 480px. */}
+        <div className={`relative flex w-full ${fullscreen ? "h-[70vh]" : "h-[clamp(300px,40vh,460px)] md:h-[480px]"}`}>
           {pal.colors.map((c, i) => {
             const labelColor = i < pal.darkLeading ? "rgba(238,238,243,0.72)" : "rgba(8,8,10,0.74)";
             const word = (pal.key === "gold" ? moods[i] : pal.swatch[i]) ?? pal.swatch[i];
@@ -1868,7 +1868,7 @@ function BrandPaletteWall({ fullscreen = false }: { fullscreen?: boolean } = {})
           <img
             src="/assets/groundx-logo.png"
             alt="Ground X"
-            className="h-20 w-auto max-w-[78%] object-contain sm:h-28"
+            className="h-20 w-auto max-w-[78%] object-contain sm:h-36 sm:max-w-none"
             style={{ filter: "drop-shadow(0 6px 28px rgba(0,0,0,0.8))" }}
           />
         </div>
@@ -3108,13 +3108,30 @@ export function Process() {
   if (v === 2) {
     return (
       <section id="process" className="section" data-scroll-driven>
-        <ProcessStations
-          milestones={p.milestones}
-          eyebrow={p.eyebrow}
-          title={p.title}
-          titleAccent={p.titleAccent}
-          sub={p.sub}
-        />
+        {/* Mobile: einfache vertikale Timeline. Die sticky horizontalen
+           Stationen quetschen sich + der schwarze Kasten läuft über (Samy
+           2026-06-02). Desktop bleibt unverändert. */}
+        <div className="md:hidden">
+          <SectionHead
+            eyebrow={p.eyebrow}
+            title={
+              <>
+                {p.title} <span className="accent-text">{p.titleAccent}</span>
+              </>
+            }
+            sub={p.sub}
+          />
+          <ProcessTimeline milestones={p.milestones} />
+        </div>
+        <div className="hidden md:block">
+          <ProcessStations
+            milestones={p.milestones}
+            eyebrow={p.eyebrow}
+            title={p.title}
+            titleAccent={p.titleAccent}
+            sub={p.sub}
+          />
+        </div>
       </section>
     );
   }
