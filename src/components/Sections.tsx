@@ -1790,8 +1790,9 @@ function BrandPaletteWall({ fullscreen = false }: { fullscreen?: boolean } = {})
       {/* Samy 2026-06-02: full-bleed (100vw) statt in die Laenge gestretcht;
          nutzt die volle Breite auf Mobile + Desktop. */}
       <div className={`relative left-1/2 w-screen -translate-x-1/2 overflow-hidden ${fullscreen ? "h-full" : "mt-12"}`}>
-        {/* palette chooser — clickable tabs, also available to the client */}
-        <div className="mb-4 flex flex-wrap items-center gap-1.5 px-4 sm:px-12">
+        {/* palette chooser — Gold/Silber/Noir nebeneinander in EINER Reihe
+            (Samy 2026-06-02), kompakt sodass auch mobil alle 3 passen */}
+        <div className="mb-4 flex flex-nowrap items-center justify-center gap-1.5 px-3 sm:justify-start sm:px-12">
           {WALL_PALETTES.map((wp) => {
             const on = wp.key === pal.key;
             const light = wp.colors[wp.colors.length - 1]!;
@@ -1799,16 +1800,16 @@ function BrandPaletteWall({ fullscreen = false }: { fullscreen?: boolean } = {})
               <button
                 key={wp.key}
                 onClick={() => choosePalette(wp.key)}
-                className="meta flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[0.58rem] tracking-[0.2em] transition-colors"
+                className="meta flex shrink items-center gap-1.5 rounded-full px-2.5 py-1.5 text-[0.55rem] tracking-[0.14em] transition-colors"
                 style={{
                   color: on ? "#0a0a0b" : "var(--ink-2)",
                   background: on ? light : "transparent",
                   border: `1px solid ${on ? light : "var(--stroke-card)"}`,
                 }}
               >
-                <span className="flex overflow-hidden rounded-full">
+                <span className="flex shrink-0 overflow-hidden rounded-full">
                   {wp.colors.map((c) => (
-                    <span key={c} className="h-2.5 w-2" style={{ background: c }} />
+                    <span key={c} className="h-2 w-1.5" style={{ background: c }} />
                   ))}
                 </span>
                 {wp.label.toUpperCase()}
@@ -1817,8 +1818,8 @@ function BrandPaletteWall({ fullscreen = false }: { fullscreen?: boolean } = {})
           })}
         </div>
 
-        {/* Höhe responsiv, damit die Slabs nicht zu schmal/gestretcht wirken. */}
-        <div className={`relative flex w-full ${fullscreen ? "h-[70vh]" : "h-[clamp(360px,46vh,520px)]"}`}>
+        {/* Höhe responsiv + flacher (Farben weniger dominant, Samy 2026-06-02). */}
+        <div className={`relative flex w-full ${fullscreen ? "h-[70vh]" : "h-[clamp(300px,40vh,460px)]"}`}>
           {pal.colors.map((c, i) => {
             const labelColor = i < pal.darkLeading ? "rgba(238,238,243,0.72)" : "rgba(8,8,10,0.74)";
             const word = (pal.key === "gold" ? moods[i] : pal.swatch[i]) ?? pal.swatch[i];
@@ -1861,25 +1862,16 @@ function BrandPaletteWall({ fullscreen = false }: { fullscreen?: boolean } = {})
           <span className="meta text-faint mb-4 text-[0.6rem] tracking-[0.5em]" style={{ color: "rgba(255,255,255,0.55)" }}>
             {t("BRAND WORLD", "MARKEN-WELT")}
           </span>
+          {/* Logo: nie gestreckt (object-contain + w-auto), etwas kleiner.
+              Tagline + Hover-Hint entfernt (Samy 2026-06-02). */}
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src="/assets/groundx-logo.png"
             alt="Ground X"
-            className="h-24 w-auto sm:h-36"
+            className="h-20 w-auto max-w-[78%] object-contain sm:h-28"
             style={{ filter: "drop-shadow(0 6px 28px rgba(0,0,0,0.8))" }}
           />
-          <p
-            className="meta accent mt-6 text-[0.7rem] tracking-[0.45em]"
-            style={{ textShadow: "0 2px 16px rgba(0,0,0,0.7)" }}
-          >
-            {t("DISCREET · MODULAR · UNCOMPROMISING", "DISKRET · MODULAR · KOMPROMISSLOS")}
-          </p>
         </div>
-
-        {/* corner hint */}
-        <span className="meta absolute right-4 top-4 text-[0.55rem] tracking-[0.4em]" style={{ color: "rgba(255,255,255,0.5)" }}>
-          {t("HOVER — A PALETTE BREATHES", "HOVER — DIE PALETTE ATMET")}
-        </span>
       </div>
     </Reveal>
   );
