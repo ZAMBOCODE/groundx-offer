@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { motion, useInView, animate, useScroll, useTransform } from "motion/react";
 import { TiltCard } from "./TiltCard";
 import { cases, type CaseStudy } from "@/lib/data";
@@ -1196,7 +1197,190 @@ function StickyStackCard({
 }
 
 /* variant 4 — split pane: title-list left, preview pane right (Vercel/Linear). */
+/* Lightbox — click a capability image to view it full-size, then page through
+   the rest with the on-screen arrows, the ◀ ▶ keys, or a swipe. Closeable via
+   the X button, a backdrop click, or Escape. Locks body scroll while open and
+   is fully responsive (object-contain within the viewport, safe-area aware). */
+function Lightbox({
+  images,
+  start,
+  alt,
+  onClose,
+}: {
+  images: string[];
+  start: number;
+  alt: string;
+  onClose: () => void;
+}) {
+  const [i, setI] = useState(start);
+  const many = images.length > 1;
+  const go = (d: number) => setI((p) => (p + d + images.length) % images.length);
+  const touchX = useRef<number | null>(null);
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+      else if (e.key === "ArrowRight") setI((p) => (p + 1) % images.length);
+      else if (e.key === "ArrowLeft") setI((p) => (p - 1 + images.length) % images.length);
+    };
+    document.addEventListener("keydown", onKey);
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.body.style.overflow = prevOverflow;
+    };
+  }, [onClose, images.length]);
+
+  if (typeof document === "undefined") return null;
+
+  const arrowStyle = (side: "left" | "right"): React.CSSProperties => ({
+    position: "fixed",
+    top: "50%",
+    transform: "translateY(-50%)",
+    [side]: "max(10px, env(safe-area-inset-" + side + "))",
+    width: 48,
+    height: 48,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: 999,
+    border: "1px solid rgba(255,255,255,0.18)",
+    background: "rgba(20,20,24,0.72)",
+    color: "#fff",
+    cursor: "pointer",
+  });
+
+  return createPortal(
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.2 }}
+      onClick={onClose}
+      onTouchStart={(e) => (touchX.current = e.touches[0]?.clientX ?? null)}
+      onTouchEnd={(e) => {
+        if (touchX.current === null) return;
+        const dx = (e.changedTouches[0]?.clientX ?? 0) - touchX.current;
+        if (Math.abs(dx) > 40) go(dx < 0 ? 1 : -1);
+        touchX.current = null;
+      }}
+      role="dialog"
+      aria-modal="true"
+      aria-label={alt}
+      style={{
+        position: "fixed",
+        inset: 0,
+        zIndex: 9999,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: "max(16px, env(safe-area-inset-top)) 16px max(16px, env(safe-area-inset-bottom))",
+        background: "rgba(3,3,5,0.88)",
+        backdropFilter: "blur(8px)",
+        WebkitBackdropFilter: "blur(8px)",
+      }}
+    >
+      <AnimatePresence mode="wait">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <motion.img
+          key={i}
+          src={images[i]}
+          alt={alt}
+          onClick={(e) => e.stopPropagation()}
+          initial={{ opacity: 0, scale: 0.97 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.97 }}
+          transition={{ duration: 0.18 }}
+          style={{
+            maxWidth: "95vw",
+            maxHeight: "90vh",
+            width: "auto",
+            height: "auto",
+            objectFit: "contain",
+            borderRadius: 12,
+            boxShadow: "0 30px 80px rgba(0,0,0,0.6)",
+          }}
+        />
+      </AnimatePresence>
+
+      <button
+        type="button"
+        onClick={onClose}
+        aria-label="Schliessen"
+        style={{
+          position: "fixed",
+          top: "max(14px, env(safe-area-inset-top))",
+          right: 14,
+          width: 44,
+          height: 44,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          borderRadius: 999,
+          border: "1px solid rgba(255,255,255,0.18)",
+          background: "rgba(20,20,24,0.72)",
+          color: "#fff",
+          cursor: "pointer",
+        }}
+      >
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+          <path d="M18 6 6 18M6 6l12 12" />
+        </svg>
+      </button>
+
+      {many && (
+        <>
+          <button
+            type="button"
+            aria-label="Vorheriges Bild"
+            onClick={(e) => {
+              e.stopPropagation();
+              go(-1);
+            }}
+            style={arrowStyle("left")}
+          >
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="m15 18-6-6 6-6" />
+            </svg>
+          </button>
+          <button
+            type="button"
+            aria-label="Nächstes Bild"
+            onClick={(e) => {
+              e.stopPropagation();
+              go(1);
+            }}
+            style={arrowStyle("right")}
+          >
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="m9 18 6-6-6-6" />
+            </svg>
+          </button>
+          <div
+            className="meta"
+            style={{
+              position: "fixed",
+              bottom: "max(16px, env(safe-area-inset-bottom))",
+              left: "50%",
+              transform: "translateX(-50%)",
+              color: "rgba(255,255,255,0.75)",
+              fontSize: "0.7rem",
+              letterSpacing: "0.08em",
+            }}
+          >
+            {i + 1} / {images.length}
+          </div>
+        </>
+      )}
+    </motion.div>,
+    document.body,
+  );
+}
+
 function CapabilitiesSplitPane({ items }: { items: Array<{ title: string; blurb: string; proof: string }> }) {
+  const { imageOverrides } = useDesign();
+  const [lbStart, setLbStart] = useState<number | null>(null);
   const [hover, setHover] = useState(0);
   const active = items[hover] ?? items[0];
   // Samy 2026-05-28: "bei What I Can Do das durchcyceln. Da sollen drei
@@ -1218,6 +1402,14 @@ function CapabilitiesSplitPane({ items }: { items: Array<{ title: string; blurb:
   const slug = slugify(active.title);
   const defaultImg = CAPABILITY_IMAGE[active.title] ?? "/assets/gx-web-1.png";
   const slotIds = [0, 1, 2].map((n) => `capabilities.${slug}.${n}`);
+  // Gallery the lightbox pages through: the resolved src of each of the 3
+  // slots for this capability, deduped (so slots that fall back to the same
+  // default image don't show as duplicate frames).
+  const gallery = [...new Set(slotIds.map((id) => imageOverrides[id] ?? defaultImg))];
+  const openLightbox = () => {
+    const visible = imageOverrides[slotIds[cycle]] ?? defaultImg;
+    setLbStart(Math.max(0, gallery.indexOf(visible)));
+  };
   return (
     <Reveal>
       <div className="mt-12 grid gap-6 md:grid-cols-[minmax(220px,300px)_1fr]">
@@ -1254,7 +1446,19 @@ function CapabilitiesSplitPane({ items }: { items: Array<{ title: string; blurb:
               drueckte Tabs + Titel/Blurb raus → "man kann auf einen Blick nichts
               lesen". Jetzt bleibt die Card ~1 Screen, Bild + Text gleichzeitig
               sichtbar. */}
-          <div className="relative h-[clamp(240px,38vh,440px)] w-full overflow-hidden">
+          <div
+            className="group relative h-[clamp(240px,38vh,440px)] w-full cursor-zoom-in overflow-hidden"
+            role="button"
+            tabIndex={0}
+            aria-label={`${active.title} — Bild vergroessern`}
+            onClick={openLightbox}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                openLightbox();
+              }
+            }}
+          >
             {slotIds.map((id, i) => (
               // eslint-disable-next-line @next/next/no-img-element
               <img
@@ -1270,6 +1474,21 @@ function CapabilitiesSplitPane({ items }: { items: Array<{ title: string; blurb:
               className="pointer-events-none absolute inset-x-0 bottom-0 h-1/2"
               style={{ background: "linear-gradient(180deg, transparent, rgba(5,5,7,0.92))" }}
             />
+            {/* Vergroessern-Hinweis: immer sichtbar (Mobile hat kein Hover),
+                wird beim Hover am Desktop noch etwas praesenter. */}
+            <div
+              className="pointer-events-none absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-full opacity-80 transition-opacity group-hover:opacity-100"
+              style={{
+                background: "rgba(15,15,18,0.55)",
+                border: "1px solid rgba(255,255,255,0.16)",
+                backdropFilter: "blur(4px)",
+                WebkitBackdropFilter: "blur(4px)",
+              }}
+            >
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7" />
+              </svg>
+            </div>
             {/* dezente cycle-indicator-dots unten rechts */}
             <div className="pointer-events-none absolute bottom-3 right-3 flex gap-1.5">
               {slotIds.map((id, i) => (
@@ -1317,6 +1536,17 @@ function CapabilitiesSplitPane({ items }: { items: Array<{ title: string; blurb:
           ));
         })}
       </div>
+
+      <AnimatePresence>
+        {lbStart !== null && (
+          <Lightbox
+            images={gallery}
+            start={lbStart}
+            alt={active.title}
+            onClose={() => setLbStart(null)}
+          />
+        )}
+      </AnimatePresence>
     </Reveal>
   );
 }
@@ -1390,12 +1620,15 @@ function CapabilitiesScrollSnap({ items }: { items: Array<{ title: string; blurb
 
 /* ============================================== WORK (6 variants) */
 
-/** Filter cases by DevPanel's project-whitelist. Empty = show all. */
+/** Filter cases by DevPanel's project-whitelist. Empty = show all. Falls back to
+ *  the hard-coded data.ts list when the config doesn't supply client-specific cases. */
 function useVisibleCases() {
   const { workProjects } = useDesign();
-  if (workProjects.length === 0) return cases;
+  const configCases = useOffer().content.work.cases;
+  const source = configCases && configCases.length > 0 ? configCases : cases;
+  if (workProjects.length === 0) return source;
   const set = new Set(workProjects);
-  return cases.filter((c) => set.has(c.name));
+  return source.filter((c) => set.has(c.name));
 }
 
 export function Work() {

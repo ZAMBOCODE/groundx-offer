@@ -1,3 +1,5 @@
+import type { CaseStudy } from "./data";
+
 /**
  * OfferConfig — the per-client contract the Techne renderer consumes.
  * Mirrors services/aether-api/src/offers.ts. The deck fetches GET /offers/:id
@@ -38,7 +40,7 @@ export type OfferContent = {
     sub: string;
     items: { title: string; blurb: string; proof: string }[];
   };
-  work: { eyebrow: string; title: string; titleAccent: string };
+  work: { eyebrow: string; title: string; titleAccent: string; cases?: CaseStudy[] };
   brand: { eyebrow: string; title: string; titleAccent: string; sub: string };
   process: {
     eyebrow: string;
@@ -202,7 +204,7 @@ export const DEFAULT_CONFIG: OfferConfig = {
     process: {
       eyebrow: "How this rolls out",
       title: "From handshake to first",
-      titleAccent: "renderings in 14 days.",
+      titleAccent: "results in 14 days.",
       sub: "A short timeline so Ground X knows exactly what lands, when, and what's expected from you. Each milestone has a hard deliverable, not a status update.",
       milestones: [
         {
@@ -219,9 +221,9 @@ export const DEFAULT_CONFIG: OfferConfig = {
           when: "Week 1",
           title: "First samples",
           deliverables: [
-            "5-7 photoreal AI renderings (your preferred angles)",
+            "7-10 photoreal AI renderings (your preferred angles)",
             "First brand-direction frame (palette + type)",
-            "Site wireframe in Figma if part of the scope",
+            "First shop mockup (home + product page)",
             "SEO keyword + competitor scan delivered",
           ],
         },
@@ -230,8 +232,8 @@ export const DEFAULT_CONFIG: OfferConfig = {
           title: "Approval round",
           deliverables: [
             "Locked brand direction (palette, type, tone)",
-            "10-15 final photoreal renderings, ready for use",
-            "Site mockup at high fidelity",
+            "First ad mockups (static concepts for paid)",
+            "High-fidelity shop mockup, full flow",
             "On-page SEO blueprint (meta, schema, sitemap)",
           ],
         },
@@ -239,7 +241,7 @@ export const DEFAULT_CONFIG: OfferConfig = {
           when: "Week 4",
           title: "Launch",
           deliverables: [
-            "Site deployed on Vercel, EN+DE, SEO live",
+            "Shop deployed: Shopify + wholesale site, EN+DE, SEO live",
             "First 2-3 marketing videos delivered",
             "Social calendar staged for month 2",
             "Analytics + Search Console wired",
@@ -249,8 +251,8 @@ export const DEFAULT_CONFIG: OfferConfig = {
           when: "Month 2+",
           title: "System running",
           deliverables: [
-            "Monthly cadence locked: 15-20 posts, 4-6 reels, 3-5 renderings, ads",
-            "SEO monitoring + content optimization every month",
+            "Monthly cadence locked: 15-20 posts, 4-6 reels, ongoing ads",
+            "SEO + AI-search (LLM) optimization every month",
             "Monthly report with what landed + what moved",
             "Quarterly review to recalibrate direction",
           ],
@@ -314,7 +316,7 @@ export const DEFAULT_CONFIG: OfferConfig = {
       items: [
         {
           q: "How fast can we start?",
-          a: "Kickoff within a week of signing. First renderings inside two weeks. The Process section above breaks it down day by day.",
+          a: "Kickoff within a week of signing. First samples inside two weeks. The Process section above breaks it down day by day.",
         },
         {
           q: "Who owns the assets?",
@@ -341,7 +343,7 @@ export const DEFAULT_CONFIG: OfferConfig = {
     contact: {
       eyebrow: "Next step",
       headline: "Let's build the first",
-      headlineAccent: "renderings.",
+      headlineAccent: "samples.",
       sub: "Samples land first, the offer right behind. Take it to the table with your team, and we start.",
     },
   },
@@ -432,7 +434,7 @@ export const DE_CONTENT: OfferContent = {
   process: {
     eyebrow: "Wie das abläuft",
     title: "Vom Handshake bis zu den ersten",
-    titleAccent: "Renderings in 14 Tagen.",
+    titleAccent: "Ergebnissen in 14 Tagen.",
     sub: "Ein kurzer Zeitplan, damit Ground X genau weiß, was wann landet — und was wir von euch brauchen. Jeder Meilenstein hat ein hartes Deliverable, kein Status-Update.",
     milestones: [
       {
@@ -449,9 +451,9 @@ export const DE_CONTENT: OfferContent = {
         when: "Woche 1",
         title: "Erste Samples",
         deliverables: [
-          "5–7 fotorealistische KI-Renderings (gewünschte Winkel)",
+          "7–10 fotorealistische KI-Renderings (gewünschte Winkel)",
           "Erstes Brand-Direction-Frame (Palette + Typografie)",
-          "Site-Wireframe in Figma falls Teil des Umfangs",
+          "Erstes Shop-Mockup (Startseite + Produktseite)",
           "SEO-Keyword- + Wettbewerber-Scan geliefert",
         ],
       },
@@ -460,8 +462,8 @@ export const DE_CONTENT: OfferContent = {
         title: "Approval-Runde",
         deliverables: [
           "Brand-Richtung gelockt (Palette, Typo, Tonalität)",
-          "10–15 finale fotorealistische Renderings, einsatzbereit",
-          "Site-Mockup in hoher Fidelity",
+          "Erste Ad-Mockups (statische Konzepte für Paid)",
+          "Shop-Mockup in hoher Fidelity, kompletter Flow",
           "On-Page-SEO-Blueprint (Meta, Schema, Sitemap)",
         ],
       },
@@ -469,7 +471,7 @@ export const DE_CONTENT: OfferContent = {
         when: "Woche 4",
         title: "Launch",
         deliverables: [
-          "Site live auf Vercel, EN+DE, SEO live",
+          "Shop deployed: Shopify + Wholesale-Site, EN+DE, SEO live",
           "Erste 2–3 Marketing-Videos ausgeliefert",
           "Social-Kalender für Monat 2 vorbereitet",
           "Analytics + Search Console verbunden",
@@ -479,8 +481,8 @@ export const DE_CONTENT: OfferContent = {
         when: "Monat 2+",
         title: "System läuft",
         deliverables: [
-          "Monatliche Frequenz gelockt: 15–20 Posts, 4–6 Reels, 3–5 Renderings, Ads",
-          "SEO-Monitoring + Content-Optimierung jeden Monat",
+          "Monatliche Frequenz gelockt: 15–20 Posts, 4–6 Reels, laufende Ads",
+          "SEO + KI-Suchmaschinen-Optimierung (LLM) jeden Monat",
           "Monatlicher Report: was gelandet ist, was bewegt hat",
           "Quartals-Review zur Richtung-Justierung",
         ],
@@ -538,7 +540,7 @@ export const DE_CONTENT: OfferContent = {
     items: [
       {
         q: "Wie schnell können wir starten?",
-        a: "Kickoff innerhalb einer Woche nach Unterschrift. Erste Renderings innerhalb von zwei Wochen. Der Process-Abschnitt oben zeigt es Tag für Tag.",
+        a: "Kickoff innerhalb einer Woche nach Unterschrift. Erste Samples innerhalb von zwei Wochen. Der Process-Abschnitt oben zeigt es Tag für Tag.",
       },
       {
         q: "Wem gehören die Assets?",
@@ -565,7 +567,7 @@ export const DE_CONTENT: OfferContent = {
   contact: {
     eyebrow: "Nächster Schritt",
     headline: "Lass uns die ersten",
-    headlineAccent: "Renderings bauen.",
+    headlineAccent: "Samples bauen.",
     sub: "Samples landen zuerst, das Angebot direkt dahinter. Nehmt es mit ans Tisch zu eurem Team, und wir starten.",
   },
 };

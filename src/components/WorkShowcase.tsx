@@ -43,7 +43,8 @@ export function WorkShowcase() {
   const [lightboxCase, setLightboxCase] = useState<CaseStudy | null>(null);
   const [lightboxIdx, setLightboxIdx] = useState(0);
   const pdf = usePdfMode();
-  const list = cases;
+  const configCases = useOffer().content.work.cases;
+  const list = configCases && configCases.length > 0 ? configCases : cases;
 
   function openLightbox(c: CaseStudy, startIdx = 0) {
     setLightboxCase(c);

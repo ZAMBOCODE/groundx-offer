@@ -1,0 +1,14 @@
+# WICHTIG: Sobald diese Datei existiert, ignoriert die Vercel-CLI die
+# .gitignore NICHT mehr. Also muessen die grossen Build-/Dep-Ordner hier
+# explizit raus, sonst laedt die CLI node_modules + .next hoch (-> Upload abort).
+node_modules
+.next
+.git
+.vercel
+
+# Nicht-Runtime-Artefakte
+groundx-offer.pdf
+tsconfig.tsbuildinfo
+/scripts
+/data/preset.json
+*.log

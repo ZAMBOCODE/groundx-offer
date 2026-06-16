@@ -63,15 +63,52 @@ export function seedLookIfEmpty(look: Look | null | undefined, force = false): v
   }
 }
 
-/** Fetch an offer by slug/id and seed its saved look into localStorage.
+/** Seed the look for an offer into localStorage.
+ *  Two sources, in order:
+ *    1. A same-origin baked snapshot at /looks/<slug>.json. Always reachable
+ *       (served from this deployment's own CDN), so the saved look renders
+ *       even when the VPS API is unreachable (e.g. networks that block the
+ *       sslip.io host). This is what makes a Vercel mirror look identical.
+ *    2. The live VPS API, best-effort, so any newer DevPanel edits still win
+ *       when the host is reachable.
  *  Resolves whether or not a look exists; never throws. */
 export async function seedLookFromBackend(offerId: string, force = false): Promise<void> {
+  // 1. baked same-origin snapshot — the ONLY thing the first paint waits on.
+  //    It is tiny (a few KB; images live as normal lazy <img> files), so this
+  //    resolves fast even on mobile.
+  let snapshotHasImages = false;
   try {
-    const r = await fetch(`${API}/offers/${encodeURIComponent(offerId)}`);
-    if (!r.ok) return;
-    const row = (await r.json()) as { config?: { look?: Look } } | null;
-    seedLookIfEmpty(row?.config?.look, force);
+    const r = await fetch(`/looks/${encodeURIComponent(offerId)}.json`);
+    if (r.ok) {
+      const snap = (await r.json()) as Look;
+      seedLookIfEmpty(snap, force);
+      snapshotHasImages = typeof snap["groundx.imageOverrides"] === "string";
+    }
   } catch {}
+
+  // 2. live VPS overlay — fire-and-forget, NOT awaited. On networks that block
+  //    the sslip.io host this request can hang for many seconds; we must never
+  //    let it delay the first paint. It only matters for picking up newer
+  //    DevPanel edits, which can apply a beat late.
+  //
+  //    When the baked snapshot already carries image overrides, we keep THOSE
+  //    (lightweight file paths served from this deploy's CDN) and let the VPS
+  //    update only the other look keys. Otherwise the VPS would clobber them
+  //    with the original multi-MB base64 data-URIs and re-download them in the
+  //    background on every visit.
+  void fetch(`${API}/offers/${encodeURIComponent(offerId)}`)
+    .then((r) => (r.ok ? r.json() : null))
+    .then((row: { config?: { look?: Look } } | null) => {
+      const look = row?.config?.look;
+      if (!look) return;
+      if (snapshotHasImages) {
+        const { "groundx.imageOverrides": _drop, ...rest } = look;
+        seedLookIfEmpty(rest, force);
+      } else {
+        seedLookIfEmpty(look, force);
+      }
+    })
+    .catch(() => {});
 }
 
 /** Save the current look to the backend for this client. */
