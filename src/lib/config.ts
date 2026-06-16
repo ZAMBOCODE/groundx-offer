@@ -190,14 +190,6 @@ export const DEFAULT_CONFIG: OfferConfig = {
             { tag: "Soft start", name: "Test month", price: "€999 flat", items: ["One month, full output", "No long commitment", "Rolls into the retainer", "De-risks the decision"] },
           ],
         },
-        {
-          label: "À la carte",
-          note: "Self-serve add-ons, plus visual production on request.",
-          cards: [
-            { tag: "Web & ads", name: "Self-serve add-ons", price: "from €150", items: ["Landing page — from €900", "Extra language (e.g. Arabic + RTL) — €250", "Brand guidelines — from €450", "SEO audit + fix — from €350", "Ad-campaign setup — from €350", "ManyChat DM funnel — from €400", "Monthly report — from €150"] },
-            { tag: "Visual", name: "Visual production", price: "on request", items: ["Photoreal product renderings", "AI video / reel", "Logo animation", "Motion graphics", "Custom imagery"] },
-          ],
-        },
       ],
     },
     process: {
@@ -417,14 +409,6 @@ export const DE_CONTENT: OfferContent = {
           { tag: "Setup", name: "Setup & Fundament", price: "ab 3.500 €", items: ["Shopify-Shop aufgesetzt + gelauncht", "Informative Website, deployed (SEO inklusive)", "Brand-Guidelines + Logo-System", "Social-Profile + Launch-Content", "Ad-Account + Tracking aufgesetzt", "Drive + Content-Kalender", "Fotorealistische Produkt-Renderings nach Bedarf"] },
           { tag: "Monatlich", name: "Laufende Partnerschaft", price: "ab 1.200 € / Monat", items: ["Paid-Ads-Management", "15–20 Social-Posts", "Shop- + Site-Pflege", "SEO-Monitoring + Optimierung", "Content-Kalender & Scheduling", "Monatliche Analytics", "Frische Videos + Renderings nach Bedarf"] },
           { tag: "Soft Start", name: "Testmonat", price: "999 € flat", items: ["Ein Monat, voller Output", "Keine lange Bindung", "Geht in den Retainer über", "Entkoppelt die Entscheidung"] },
-        ],
-      },
-      {
-        label: "À la carte",
-        note: "Self-serve Add-ons, plus Visual-Produktion auf Anfrage.",
-        cards: [
-          { tag: "Web & Ads", name: "Self-serve Add-ons", price: "ab 150 €", items: ["Landingpage — ab 900 €", "Mehrsprachig (z.B. Arabisch + RTL) — 250 €", "Brand-Guidelines — ab 450 €", "SEO-Audit + Fix — ab 350 €", "Ad-Kampagne Setup — ab 350 €", "ManyChat-DM-Funnel — ab 400 €", "Monats-Report — ab 150 €"] },
-          { tag: "Visual", name: "Visual-Produktion", price: "auf Anfrage", items: ["Fotorealistische Produkt-Renderings", "KI-Video / Reel", "Logo-Animation", "Motion-Graphics", "Custom-Imagery"] },
         ],
       },
     ],
